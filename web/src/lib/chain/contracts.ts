@@ -35,3 +35,8 @@ export function institutionTypeName(index: number): InstitutionTypeName {
 export function institutionTypeIndex(name: InstitutionTypeName): number {
   return INSTITUTION_TYPES.indexOf(name);
 }
+
+/** Human-readable form of the on-chain enum name, e.g. "ScienceCenter" -> "Science Center". */
+export function institutionTypeLabel(kind: string): string {
+  return kind.replace(/([a-z])([A-Z])/g, "$1 $2");
+}

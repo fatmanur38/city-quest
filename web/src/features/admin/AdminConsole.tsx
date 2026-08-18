@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { TechnicalDetails } from "@/components/ui/TechnicalDetails";
-import { INSTITUTION_TYPES, type InstitutionTypeName } from "@/lib/chain/contracts";
+import {
+  INSTITUTION_TYPES,
+  institutionTypeLabel,
+  type InstitutionTypeName,
+} from "@/lib/chain/contracts";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/chain/client";
 
 export interface AdminInstitution {
@@ -160,7 +164,7 @@ export function AdminConsole({
             >
               {INSTITUTION_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {institutionTypeLabel(type)}
                 </option>
               ))}
             </select>
