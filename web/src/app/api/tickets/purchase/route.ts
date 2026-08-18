@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handle, ok, parseBody } from "@/server/api";
 import { requireWallet } from "@/server/session";
 import { activityBySlug, institutionBySlug } from "@/server/catalog";
+import { priceForSlug } from "@/server/pricing";
 import { CREDENTIALS } from "@/lib/credentials";
 import { addressForSlug } from "@/server/institutions";
 import { issuePassOnChain } from "@/server/chain/writes";
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
       wallet,
       activitySlug: activity.slug,
       passId: receipt.passId,
-      priceTry: activity.priceTry ?? 0,
+      priceTry: await priceForSlug(activity),
       issueTxHash: receipt.txHash,
     });
 

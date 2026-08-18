@@ -4,6 +4,9 @@ import { db } from "@/server/db";
 import { AdminSignIn } from "@/features/admin/AdminSignIn";
 import { AdminConsole } from "@/features/admin/AdminConsole";
 import { getTranslations } from "@/server/locale";
+import { ACTIVITIES } from "@/server/catalog";
+import { loadPrices, priceFor } from "@/server/pricing";
+import { pick } from "@/lib/i18n/types";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -21,8 +24,24 @@ export default async function AdminPage() {
     );
   }
 
-  const { list } = await resolveInstitutions();
+  const [{ list }, { locale }, prices] = await Promise.all([
+    resolveInstitutions(),
+    getTranslations(),
+    loadPrices(),
+  ]);
   const onChain = list.filter((institution) => institution.onChain);
+
+  // Only ticketed activities have a price. Everything else is free by design -- a library visit
+  // that cost money would defeat the point of the project.
+  const priceable = ACTIVITIES.filter(
+    (activity) => activity.kind === "ticket",
+  ).map((activity) => ({
+    slug: activity.slug,
+    title: pick(activity.title, locale),
+    emoji: activity.emoji,
+    catalogPrice: activity.priceTry ?? 0,
+    currentPrice: priceFor(activity, prices),
+  }));
 
   // Ecosystem stats. Counts only, never anything that identifies a citizen.
   const [citizens, recent] = await Promise.all([
@@ -40,11 +59,14 @@ export default async function AdminPage() {
           active: institution.active,
           emoji: institution.emoji,
         }))}
+        priceable={priceable}
         stats={{
           total: onChain.length,
           active: onChain.filter((institution) => institution.active).length,
           citizens: citizens.length,
-          achievements: recent.filter((completion) => completion.txHash !== null).length,
+          achievements: recent.filter(
+            (completion) => completion.txHash !== null,
+          ).length,
         }}
       />
     </div>

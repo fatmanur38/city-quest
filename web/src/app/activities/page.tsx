@@ -5,6 +5,7 @@ import { VerifiedMark } from "@/components/ui/VerifiedMark";
 import { BuyTicketButton } from "@/features/activities/BuyTicketButton";
 import { QuizPanel } from "@/features/activities/QuizPanel";
 import { ACTIVITIES, QUIZ_QUESTIONS, institutionBySlug } from "@/server/catalog";
+import { loadPrices, priceFor } from "@/server/pricing";
 import { currentWallet } from "@/server/session";
 import { db } from "@/server/db";
 import { CREDENTIALS } from "@/lib/credentials";
@@ -26,7 +27,11 @@ const ACCENT_BG: Record<string, string> = {
 
 
 export default async function ActivitiesPage() {
-  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
+  const [wallet, { locale, t }, prices] = await Promise.all([
+    currentWallet(),
+    getTranslations(),
+    loadPrices(),
+  ]);
   const kindLabel: Record<string, string> = {
     checkin: t.activities.kindCheckin,
     ticket: t.activities.kindTicket,
@@ -109,7 +114,7 @@ export default async function ActivitiesPage() {
                     {activity.kind === "ticket" ? (
                       <BuyTicketButton
                         activitySlug={activity.slug}
-                        priceTry={activity.priceTry ?? 0}
+                        priceTry={priceFor(activity, prices)}
                         title={pick(activity.title, locale)}
                       />
                     ) : activity.kind === "quiz" ? null : (

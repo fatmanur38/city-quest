@@ -40,6 +40,22 @@ export interface TicketOrder {
   createdAt: string;
 }
 
+/**
+ * A ticket price the municipality has changed.
+ *
+ * Only overrides live here; an activity with no row keeps the price from the catalogue. That
+ * way the demo has sensible prices out of the box and an empty table is a valid state, rather
+ * than every price having to be seeded before anything can be sold.
+ *
+ * Lira, charged through ordinary payment rails. Deliberately never on-chain: putting a price in
+ * a contract would make this a token project, which is the one thing it is not.
+ */
+export interface ActivityPrice {
+  activitySlug: string;
+  priceTry: number;
+  updatedAt: string;
+}
+
 export interface RewardClaim {
   id: string;
   wallet: string;
@@ -89,6 +105,10 @@ export interface Database {
   listTicketOrders(wallet: string): Promise<TicketOrder[]>;
   findTicketOrderByPassId(passId: string): Promise<TicketOrder | null>;
   markTicketConsumed(passId: string, txHash: string): Promise<void>;
+
+  listActivityPrices(): Promise<ActivityPrice[]>;
+  setActivityPrice(activitySlug: string, priceTry: number): Promise<ActivityPrice>;
+  clearActivityPrice(activitySlug: string): Promise<void>;
 
   createRewardClaim(wallet: string, rewardSlug: string, couponCode: string): Promise<RewardClaim>;
   findRewardClaim(wallet: string, rewardSlug: string): Promise<RewardClaim | null>;

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type {
+  ActivityPrice,
   Completion,
   Database,
   NewCompletion,
@@ -29,9 +30,16 @@ interface Snapshot {
   completions: Completion[];
   ticketOrders: TicketOrder[];
   rewardClaims: RewardClaim[];
+  activityPrices: ActivityPrice[];
 }
 
-const EMPTY: Snapshot = { profiles: [], completions: [], ticketOrders: [], rewardClaims: [] };
+const EMPTY: Snapshot = {
+  profiles: [],
+  completions: [],
+  ticketOrders: [],
+  rewardClaims: [],
+  activityPrices: [],
+};
 
 const DEFAULT_AVATARS = ["🦊", "🐙", "🦉", "🐝", "🦄", "🐢", "🦖", "🐬"];
 
@@ -46,11 +54,38 @@ function defaultAvatar(wallet: string): string {
 
 export class MemoryDatabase implements Database {
   private readonly file: string;
-  private data: Snapshot;
+  private snapshot: Snapshot;
+  private mtimeMs = 0;
 
   constructor(file = resolve(process.cwd(), ".data/cityquest.json")) {
     this.file = file;
-    this.data = this.load();
+    this.snapshot = this.load();
+    this.mtimeMs = this.currentMtime();
+  }
+
+  /**
+   * Re-reads the file when something else has written to it.
+   *
+   * Next gives different route bundles their own module registry in development, so the route
+   * handler that writes and the page that reads can end up holding two separate instances of
+   * this class. Without this check the reader keeps serving whatever it loaded at construction
+   * and a change made in the admin console never shows up on the public page.
+   */
+  private get data(): Snapshot {
+    const mtime = this.currentMtime();
+    if (mtime !== this.mtimeMs) {
+      this.snapshot = this.load();
+      this.mtimeMs = mtime;
+    }
+    return this.snapshot;
+  }
+
+  private currentMtime(): number {
+    try {
+      return statSync(this.file).mtimeMs;
+    } catch {
+      return 0;
+    }
   }
 
   private load(): Snapshot {
@@ -67,7 +102,10 @@ export class MemoryDatabase implements Database {
   private persist(): void {
     try {
       mkdirSync(dirname(this.file), { recursive: true });
-      writeFileSync(this.file, JSON.stringify(this.data, null, 2));
+      // Writes `snapshot` rather than `data`: going through the getter here could reload the
+      // file and throw away the change that is being saved.
+      writeFileSync(this.file, JSON.stringify(this.snapshot, null, 2));
+      this.mtimeMs = this.currentMtime();
     } catch (error) {
       console.error("[db] could not persist local store", error);
     }
@@ -185,6 +223,30 @@ export class MemoryDatabase implements Database {
       order.consumeTxHash = txHash;
       this.persist();
     }
+  }
+
+  async listActivityPrices(): Promise<ActivityPrice[]> {
+    return structuredClone(this.data.activityPrices);
+  }
+
+  async setActivityPrice(activitySlug: string, priceTry: number): Promise<ActivityPrice> {
+    const record: ActivityPrice = {
+      activitySlug,
+      priceTry,
+      updatedAt: new Date().toISOString(),
+    };
+    const existing = this.data.activityPrices.findIndex((p) => p.activitySlug === activitySlug);
+    if (existing >= 0) this.data.activityPrices[existing] = record;
+    else this.data.activityPrices.push(record);
+    this.persist();
+    return structuredClone(record);
+  }
+
+  async clearActivityPrice(activitySlug: string): Promise<void> {
+    this.data.activityPrices = this.data.activityPrices.filter(
+      (p) => p.activitySlug !== activitySlug,
+    );
+    this.persist();
   }
 
   async createRewardClaim(

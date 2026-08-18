@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
+  ActivityPrice,
   Completion,
   Database,
   NewCompletion,
@@ -93,6 +94,20 @@ function toTicketOrder(row: TicketOrderRow): TicketOrder {
     issueTxHash: row.issue_tx_hash,
     consumeTxHash: row.consume_tx_hash,
     createdAt: row.created_at,
+  };
+}
+
+interface ActivityPriceRow {
+  activity_slug: string;
+  price_try: number;
+  updated_at: string;
+}
+
+function toActivityPrice(row: ActivityPriceRow): ActivityPrice {
+  return {
+    activitySlug: row.activity_slug,
+    priceTry: row.price_try,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -286,6 +301,33 @@ export class SupabaseDatabase implements Database {
       .update({ status: "used", consume_tx_hash: txHash })
       .eq("pass_id", passId);
     if (error) throw new Error(`markTicketConsumed: ${error.message}`);
+  }
+
+  async listActivityPrices(): Promise<ActivityPrice[]> {
+    const { data, error } = await this.client.from("activity_prices").select("*");
+    if (error) throw new Error(error.message);
+    return (data as ActivityPriceRow[]).map(toActivityPrice);
+  }
+
+  async setActivityPrice(activitySlug: string, priceTry: number): Promise<ActivityPrice> {
+    const { data, error } = await this.client
+      .from("activity_prices")
+      .upsert(
+        { activity_slug: activitySlug, price_try: priceTry, updated_at: new Date().toISOString() },
+        { onConflict: "activity_slug" },
+      )
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toActivityPrice(data as ActivityPriceRow);
+  }
+
+  async clearActivityPrice(activitySlug: string): Promise<void> {
+    const { error } = await this.client
+      .from("activity_prices")
+      .delete()
+      .eq("activity_slug", activitySlug);
+    if (error) throw new Error(error.message);
   }
 
   async createRewardClaim(

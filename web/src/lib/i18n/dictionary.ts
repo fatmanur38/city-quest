@@ -314,6 +314,15 @@ const en = {
   },
 
   admin: {
+    prices: "Ticket prices",
+    pricesLead:
+      "Charged through ordinary payment rails and never written to the chain. The contracts only know that a ticket exists and whether it has been used.",
+    priceCatalogue: (amount: number) => `Catalogue price ${amount} TL`,
+    priceSave: "Save",
+    priceSaving: "Saving…",
+    priceSaved: "Price updated",
+    priceReset: "Reset",
+    priceNone: "No ticketed activities yet.",
     metaTitle: "Municipality",
     signInTitle: "Municipality",
     signInBody: "Sign in to authorise institutions and review the city registry.",
@@ -659,6 +668,15 @@ const tr: Dictionary = {
   },
 
   admin: {
+    prices: "Bilet fiyatları",
+    pricesLead:
+      "Sıradan ödeme kanallarından tahsil edilir, zincire hiç yazılmaz. Kontratlar yalnızca biletin var olduğunu ve kullanılıp kullanılmadığını bilir.",
+    priceCatalogue: (amount: number) => `Katalog fiyatı ${amount} TL`,
+    priceSave: "Kaydet",
+    priceSaving: "Kaydediliyor…",
+    priceSaved: "Fiyat güncellendi",
+    priceReset: "Sıfırla",
+    priceNone: "Henüz biletli etkinlik yok.",
     metaTitle: "Belediye",
     signInTitle: "Belediye",
     signInBody: "Kurumları yetkilendirmek ve şehir kayıt defterini incelemek için giriş yap.",
