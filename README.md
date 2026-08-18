@@ -457,8 +457,48 @@ export APP_BASE_URL=https://your-app.vercel.app
 
 forge script script/Deploy.s.sol \
   --rpc-url https://sepolia.base.org \
-  --broadcast --verify
+  --broadcast --verify --slow
 ```
+
+> **Why `--slow`.** Without it Foundry pushes all seven transactions out at once. If the deployer
+> is an EIP-7702 delegated account — which it silently becomes the moment you turn on "smart
+> account" in MetaMask or a similar wallet — Base allows that account only one in-flight
+> transaction, and the run dies partway with `in-flight transaction limit reached for delegated
+> accounts`, leaving the contracts deployed but the institutions half-registered. `--slow` waits
+> for each receipt before sending the next.
+>
+> To check an address: `cast code <address>` returns `0x` for a plain EOA, and something starting
+> `0xef0100` for a delegated one.
+>
+> The public `https://sepolia.base.org` endpoint is also frequently unhealthy. If it answers
+> `no backend is currently healthy to serve traffic`, use
+> `https://base-sepolia-rpc.publicnode.com` instead.
+
+If a run does die halfway, do not start over — the contracts are already on-chain. Read what
+landed with `cast call <registry> "allInstitutions()(address[])"` and register only what is
+missing.
+
+> **The relayer must not be a delegated account either.** The same EIP-7702 restriction applies at
+> runtime, and it fails differently: Base rejects the transaction with
+> `gapped-nonce tx from delegated accounts` even when the nonce is provably correct and nothing is
+> pending. Every on-chain write in the app then returns a 500 while reads keep working, which is a
+> confusing thing to debug live.
+>
+> Use a **dedicated relayer EOA** — freshly generated, used for nothing else, never imported into
+> a wallet that might turn on smart accounts. That is what a production deployment would do
+> anyway: the relayer is a server-side hot wallet, not somebody's personal account.
+>
+> If the relayer is a different address from the deployer, grant it the registrar role so the
+> municipality console can still authorise institutions:
+>
+> ```bash
+> cast send <registry> "grantRole(bytes32,address)" \
+>   $(cast keccak "REGISTRAR_ROLE") <relayer-address> \
+>   --private-key $DEPLOYER_PRIVATE_KEY --rpc-url $RPC
+> ```
+>
+> Nothing else needs a role: credential issuance and ticket operations are authorised by the
+> institution's signature, not by who submits them.
 
 **Only the deployer needs testnet ETH.** It deploys the contracts, acts as the municipality
 registrar, and afterwards relays every institution-signed transaction. The institution signer
