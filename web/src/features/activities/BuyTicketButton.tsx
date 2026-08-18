@@ -69,7 +69,7 @@ export function BuyTicketButton({
       <div className="rounded-2xl bg-emerald-100 p-4">
         <p className="flex items-center gap-2 font-semibold text-emerald-500">
           <Check className="size-4" aria-hidden />
-          {t.activities.ticketInPassport(passId ?? "")}
+          {t.activities.ticketInAccount(passId ?? "")}
         </p>
         <Button
           variant="secondary"

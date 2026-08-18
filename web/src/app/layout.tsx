@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { currentWallet } from "@/server/session";
 import { getTranslations } from "@/server/locale";
+import { currentTheme } from "@/server/theme";
 import { db } from "@/server/db";
 
 // Chosen for a conventional Q: the brand name puts one in almost every heading.
@@ -25,29 +26,40 @@ export async function generateMetadata(): Promise<Metadata> {
   const { locale } = await getTranslations();
   return locale === "tr"
     ? {
-        title: "CityQuest — Şehir Öğrenme Pasaportun",
+        title: "CityQuest — Şehir Öğrenme Hesabın",
         description:
-          "Şehrini keşfet, yeni bir şey öğren ve kütüphanelerin, müzelerin, bilim merkezlerinin ayrı ayrı doğrulayabileceği bir deneyim pasaportu oluştur.",
+          "Şehrini keşfet, yeni bir şey öğren ve kütüphanelerin, müzelerin, bilim merkezlerinin ayrı ayrı doğrulayabileceği bir deneyim hesabı oluştur.",
       }
     : {
-        title: "CityQuest — Your City Learning Passport",
+        title: "CityQuest — Your City Learning Account",
         description:
-          "Explore your city, learn something new, and build a passport of experiences that libraries, museums and science centers can each verify.",
+          "Explore your city, learn something new, and collect experiences that libraries, museums and science centers can each verify.",
       };
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Reading the session and the language here means the header renders signed-in, in the right
   // language, on the first paint — no flash of English and no flash of a signed-out state.
-  const [wallet, { locale }] = await Promise.all([currentWallet(), getTranslations()]);
+  const [wallet, { locale }, theme] = await Promise.all([
+    currentWallet(),
+    getTranslations(),
+    currentTheme(),
+  ]);
   const profile = wallet ? await db().upsertProfile(wallet) : null;
 
   return (
-    <html lang={locale} className={`${display.variable} ${body.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      // "system" writes no attribute on purpose, leaving prefers-color-scheme in charge. An
+      // explicit choice is rendered here rather than applied by script, so a reader who chose
+      // dark never gets a white flash first.
+      data-theme={theme === "system" ? undefined : theme}
+      className={`${display.variable} ${body.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">
         <LocaleProvider locale={locale}>
           <AccountProvider initialProfile={profile}>
-            <SiteHeader />
+            <SiteHeader theme={theme} />
             <main className="flex-1">{children}</main>
             <SiteFooter />
           </AccountProvider>

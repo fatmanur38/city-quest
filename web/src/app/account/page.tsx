@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Flame, Sparkles, Ticket, Trophy } from "lucide-react";
 import { currentWallet } from "@/server/session";
-import { loadPassport } from "@/server/passport-service";
+import { loadAccount } from "@/server/account-service";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { AppAwardedMark } from "@/components/ui/VerifiedMark";
 import { SignInButton } from "@/features/auth/SignInButton";
-import { PassportCode } from "@/features/passport/PassportCode";
-import { CredentialCard } from "@/features/passport/CredentialCard";
+import { AccountCode } from "@/features/account/AccountCode";
+import { CredentialCard } from "@/features/account/CredentialCard";
 import { activityBySlug } from "@/server/catalog";
 import { isChainConfigured } from "@/lib/env";
 import { getTranslations } from "@/server/locale";
@@ -17,19 +17,19 @@ import { pick } from "@/lib/i18n/types";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
-  return { title: `${t.passport.metaTitle} — CityQuest` };
+  return { title: `${t.account.metaTitle} — CityQuest` };
 }
 
-export default async function PassportPage() {
+export default async function AccountPage() {
   const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
 
   if (!wallet) {
     return (
       <div className="mx-auto grid w-full max-w-2xl place-items-center px-4 py-24 text-center sm:px-6">
         <span className="text-6xl">🛂</span>
-        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.passport.signedOutTitle}</h1>
+        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.account.signedOutTitle}</h1>
         <p className="mt-3 text-ink-soft">
-          {t.passport.signedOutBody}
+          {t.account.signedOutBody}
         </p>
         <div className="mt-8 flex justify-center">
           <SignInButton />
@@ -38,14 +38,14 @@ export default async function PassportPage() {
     );
   }
 
-  const passport = await loadPassport(wallet);
-  const { profile, level, credentials, passes, completions, quests, libraryStreakDays } = passport;
+  const account = await loadAccount(wallet);
+  const { profile, level, credentials, passes, completions, quests, libraryStreakDays } = account;
   const validPasses = passes.filter((pass) => pass.status === "Valid");
   const activeQuest = quests.find((quest) => !quest.claimed) ?? quests[0];
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
-      {/* ------------------------------------------------------------- Passport header */}
+      {/* --------------------------------------------------------------- Account header */}
       <Card className="overflow-hidden">
         <div className="perforation h-2.5 w-full" />
         <div className="p-6 sm:p-8">
@@ -56,7 +56,7 @@ export default async function PassportPage() {
               </span>
               <div>
                 <p className="text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
-                  {t.passport.documentLabel}
+                  {t.account.documentLabel}
                 </p>
                 <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl">
                   {profile.displayName}
@@ -64,7 +64,7 @@ export default async function PassportPage() {
               </div>
             </div>
 
-            <PassportCode wallet={wallet} />
+            <AccountCode wallet={wallet} />
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -80,12 +80,12 @@ export default async function PassportPage() {
                 />
               </div>
               <p className="mt-2 text-xs text-brand-700">
-                {t.passport.toNextLevel(level.xpForNextLevel - level.xpIntoLevel, level.level + 1)}
+                {t.account.toNextLevel(level.xpForNextLevel - level.xpIntoLevel, level.level + 1)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-paper-sunk p-4">
-              <p className="text-xs font-semibold text-ink-soft">{t.passport.experience}</p>
+              <p className="text-xs font-semibold text-ink-soft">{t.account.experience}</p>
               <p className="mt-1 font-display text-3xl font-extrabold text-ink">{profile.xp}</p>
               <div className="mt-3">
                 <AppAwardedMark label={t.common.appPoints} />
@@ -95,15 +95,15 @@ export default async function PassportPage() {
             <div className="rounded-2xl bg-sun-100 p-4">
               <p className="flex items-center gap-1.5 text-xs font-semibold text-sun-700">
                 <Flame className="size-3.5" aria-hidden />
-                {t.passport.libraryStreak}
+                {t.account.libraryStreak}
               </p>
               <p className="mt-1 font-display text-3xl font-extrabold text-sun-700">
                 {libraryStreakDays}
               </p>
               <p className="mt-3 text-xs text-sun-700">
                 {libraryStreakDays === 0
-                  ? t.passport.streakNone
-                  : t.passport.streakDays(libraryStreakDays)}
+                  ? t.account.streakNone
+                  : t.account.streakDays(libraryStreakDays)}
               </p>
             </div>
           </div>
@@ -112,28 +112,28 @@ export default async function PassportPage() {
 
       {!isChainConfigured ? (
         <Card className="mt-6 border-danger-100 bg-danger-100/30 p-4 text-sm text-danger-700">
-          {t.passport.chainNotConfigured}
+          {t.account.chainNotConfigured}
         </Card>
       ) : null}
 
       {/* ---------------------------------------------------------------- Achievements */}
       <section className="mt-10">
         <CardHeader
-          title={t.passport.achievements}
-          description={t.passport.achievementsLead}
+          title={t.account.achievements}
+          description={t.account.achievementsLead}
         />
 
         {credentials.length === 0 ? (
           <Card className="mt-4 grid place-items-center p-10 text-center">
             <span className="text-5xl">🌱</span>
             <p className="mt-4 font-display text-lg font-semibold text-ink">
-              {t.passport.noAchievements}
+              {t.account.noAchievements}
             </p>
             <p className="mt-2 max-w-sm text-sm text-ink-soft">
-              {t.passport.noAchievementsBody}
+              {t.account.noAchievementsBody}
             </p>
             <ButtonLink href="/activities" className="mt-6">
-              {t.passport.findSomething}
+              {t.account.findSomething}
             </ButtonLink>
           </Card>
         ) : (
@@ -148,7 +148,7 @@ export default async function PassportPage() {
       {/* ---------------------------------------------------------------------- Quest */}
       {activeQuest ? (
         <section className="mt-12">
-          <CardHeader title={t.passport.currentQuest} description={t.passport.currentQuestLead} />
+          <CardHeader title={t.account.currentQuest} description={t.account.currentQuestLead} />
           <Card className="mt-4 p-6">
             <div className="flex items-start gap-4">
               <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-sun-100 text-3xl">
@@ -176,14 +176,14 @@ export default async function PassportPage() {
                 <div className="mt-5 flex items-center gap-3">
                   <ButtonLink href="/quests" variant={activeQuest.allMet ? "primary" : "secondary"}>
                     {activeQuest.claimed
-                      ? t.passport.viewQuests
+                      ? t.account.viewQuests
                       : activeQuest.allMet
-                        ? t.passport.claimReward
-                        : t.passport.questDetails}
+                        ? t.account.claimReward
+                        : t.account.questDetails}
                   </ButtonLink>
                   <span className="flex items-center gap-1.5 text-sm font-semibold text-ink-soft">
                     <Trophy className="size-4" aria-hidden />
-                    {t.passport.questProgress(activeQuest.completed, activeQuest.total)}
+                    {t.account.questProgress(activeQuest.completed, activeQuest.total)}
                   </span>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default async function PassportPage() {
       {/* -------------------------------------------------------------------- Tickets */}
       {validPasses.length > 0 ? (
         <section className="mt-12">
-          <CardHeader title={t.passport.yourTickets} description={t.passport.yourTicketsLead} />
+          <CardHeader title={t.account.yourTickets} description={t.account.yourTicketsLead} />
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {validPasses.map((pass) => (
               <Link key={pass.passId} href="/tickets">
@@ -223,8 +223,8 @@ export default async function PassportPage() {
       {completions.length > 0 ? (
         <section className="mt-12">
           <CardHeader
-            title={t.passport.recentActivity}
-            description={t.passport.recentActivityLead}
+            title={t.account.recentActivity}
+            description={t.account.recentActivityLead}
           />
           <Card className="mt-4 divide-y divide-border-soft">
             {completions.slice(0, 8).map((completion) => {
@@ -238,7 +238,7 @@ export default async function PassportPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-ink">
                       {isQuest
-                        ? t.passport.questCompleted
+                        ? t.account.questCompleted
                         : activity
                           ? pick(activity.title, locale)
                           : completion.activitySlug}

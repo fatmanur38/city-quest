@@ -2,7 +2,7 @@ import { BadgeCheck, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { currentWallet } from "@/server/session";
-import { loadPassport } from "@/server/passport-service";
+import { loadAccount } from "@/server/account-service";
 import { QUESTS, institutionBySlug } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
 import { ClaimQuestButton } from "@/features/quests/ClaimQuestButton";
@@ -17,7 +17,7 @@ export async function generateMetadata() {
 
 export default async function QuestsPage() {
   const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
-  const passport = wallet ? await loadPassport(wallet) : null;
+  const account = wallet ? await loadAccount(wallet) : null;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
@@ -32,7 +32,7 @@ export default async function QuestsPage() {
 
       <div className="mt-9 space-y-6">
         {QUESTS.map((quest) => {
-          const progress = passport?.quests.find((entry) => entry.quest.slug === quest.slug);
+          const progress = account?.quests.find((entry) => entry.quest.slug === quest.slug);
           const issuer = institutionBySlug(quest.issuerSlug);
           const reward = CREDENTIALS[quest.rewardCredential];
           const requirements =
@@ -141,7 +141,7 @@ export default async function QuestsPage() {
                       <SignInButton label={t.auth.startShort} redirectTo="/quests" size="md" />
                     ) : progress?.claimed ? (
                       <p className="text-sm font-semibold text-emerald-500">
-                        {t.quests.alreadyInPassport}
+                        {t.quests.alreadyInAccount}
                       </p>
                     ) : (
                       <ClaimQuestButton

@@ -49,21 +49,23 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* A passport that looks like a passport, not a wallet. */}
+            {/* An account card that looks like a membership card, not a wallet. */}
             <div className="animate-rise lg:justify-self-end" style={{ animationDelay: "80ms" }}>
               <Card className="w-full max-w-sm overflow-hidden">
                 <div className="perforation h-2.5 w-full" />
                 <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
-                        {t.passport.documentLabel}
+                  {/* min-w-0 and shrink-0: the Turkish labels are long enough to slide under
+                      the avatar without them. */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
+                        {t.account.documentLabel}
                       </p>
-                      <p className="mt-1 font-display text-xl font-bold text-ink">
-                        {t.landing.samplePassportOwner}
+                      <p className="mt-1 truncate font-display text-xl font-bold text-ink">
+                        {t.landing.sampleAccountOwner}
                       </p>
                     </div>
-                    <span className="grid size-12 place-items-center rounded-2xl bg-paper-sunk text-2xl">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-paper-sunk text-2xl">
                       🦊
                     </span>
                   </div>
@@ -76,11 +78,7 @@ export default async function LandingPage() {
                   </div>
 
                   <ul className="mt-6 space-y-3">
-                    {[
-                      { emoji: "📚", title: "Library Visitor", issuer: "Selcuklu Library" },
-                      { emoji: "🌍", title: "Earthquake Experience", issuer: "Konya Science Center" },
-                      { emoji: "🏆", title: "Young Scientist", issuer: "Konya Municipality" },
-                    ].map((item) => (
+                    {t.landing.sampleCredentials.map((item) => (
                       <li
                         key={item.title}
                         className="flex items-center gap-3 rounded-2xl bg-paper-sunk/70 p-3"
@@ -106,17 +104,17 @@ export default async function LandingPage() {
       </section>
 
       {/* ------------------------------------------------- The argument, stated plainly */}
-      <section className="border-y border-border-soft bg-brand-900">
+      <section className="border-y border-border-soft bg-brand-band">
         <div className="mx-auto w-full max-w-5xl px-4 py-16 text-center sm:px-6 lg:py-20">
-          <p className="font-display text-2xl leading-tight font-extrabold text-white sm:text-4xl">
+          <p className="font-display text-2xl leading-tight font-extrabold text-on-band sm:text-4xl">
             {t.landing.manifesto}
           </p>
 
-          <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-brand-100 sm:text-lg">
+          <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-on-band-soft sm:text-lg">
             {t.landing.manifestoBody}
           </p>
 
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-brand-300">
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-on-band-faint">
             {t.landing.manifestoDetail}
           </p>
 
@@ -124,7 +122,7 @@ export default async function LandingPage() {
             {INSTITUTIONS.map((institution) => (
               <span
                 key={institution.slug}
-                className="inline-flex items-center gap-2 rounded-full bg-brand-700/60 px-3.5 py-2 text-sm font-medium text-brand-100"
+                className="inline-flex items-center gap-2 rounded-full bg-band-chip px-3.5 py-2 text-sm font-medium text-on-band-soft"
               >
                 <span aria-hidden>{institution.emoji}</span>
                 {pick(institution.label, locale)}
@@ -145,21 +143,9 @@ export default async function LandingPage() {
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {[
-            {
-              icon: Users,
-              title: "Show your passport",
-              body: "At the desk, show the code on your phone. It changes every time and means nothing on its own.",
-            },
-            {
-              icon: Building2,
-              title: "The institution confirms it",
-              body: "A librarian or an instructor confirms you were there. Their signature is what makes the achievement real.",
-            },
-            {
-              icon: BadgeCheck,
-              title: "It is yours to keep",
-              body: "The achievement lands in your passport, and any other institution can check it — even years later.",
-            },
+            { icon: Users, title: t.landing.step1Title, body: t.landing.step1Body },
+            { icon: Building2, title: t.landing.step2Title, body: t.landing.step2Body },
+            { icon: BadgeCheck, title: t.landing.step3Title, body: t.landing.step3Body },
           ].map((step, index) => (
             <Card key={step.title} className="p-6">
               <div className="flex items-center gap-3">
@@ -280,14 +266,14 @@ export default async function LandingPage() {
       {/* ---------------------------------------------------------------------- CTA */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
         <Card className="overflow-hidden bg-brand-600 p-10 text-center sm:p-14">
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-on-brand sm:text-4xl">
             {t.landing.ctaTitle}
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-brand-100">
+          <p className="mx-auto mt-4 max-w-xl text-on-band-soft">
             {t.landing.ctaBody}
           </p>
           <div className="mt-8 flex justify-center">
-            <div className="[&_p]:text-brand-100 [&_button]:bg-white [&_button]:text-brand-700 hover:[&_button]:bg-brand-50">
+            <div className="[&_p]:text-on-band-soft [&_button]:bg-on-brand [&_button]:text-brand-ink hover:[&_button]:bg-brand-tint">
               <SignInButton />
             </div>
           </div>

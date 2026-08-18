@@ -9,7 +9,7 @@
  */
 
 @theme {
-  /* Warm paper, so the app feels like a printed passport rather than a dashboard. */
+  /* Warm paper, so the app feels like a printed membership card rather than a dashboard. */
   --color-paper: #fdfaf4;
   --color-paper-raised: #ffffff;
   --color-paper-sunk: #f5efe3;
@@ -28,6 +28,8 @@
   --color-brand-600: #0f8570;
   --color-brand-700: #0b6656;
   --color-brand-900: #063b32;
+  --color-brand-hover: #0f8570;
+  --color-brand-active: #063b32;
 
   /* Warm amber for achievements and rewards. */
   --color-sun-100: #fdf0d5;
@@ -51,16 +53,36 @@
   --color-danger-500: #c4462f;
   --color-danger-700: #8f2f1e;
 
+  /*
+   * Fixed-role colours. Everything above is a *tone* and flips between themes; these name a
+   * *job* and must not. The dark teal band and the primary button keep the same appearance in
+   * both themes, so their foregrounds have to stay put -- inverting brand-700 for chip text
+   * would otherwise have turned the button's hover state light-on-white.
+   */
+  --color-brand-band: #063b32;
+  --color-band-chip: #0e5c4d;
+  --color-on-band: #ffffff;
+  --color-on-band-soft: #cdeee5;
+  --color-on-band-faint: #8fd3c2;
+  --color-on-brand: #ffffff;
+  --color-brand-ink: #0b6656;
+  --color-brand-tint: #eefaf7;
+
   --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 1.25rem;
 
-  --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.18);
-  --shadow-lift: 0 2px 4px rgb(28 25 23 / 0.05), 0 18px 40px -18px rgb(28 25 23 / 0.28);
+  --shadow-soft:
+    0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.18);
+  --shadow-lift:
+    0 2px 4px rgb(28 25 23 / 0.05), 0 18px 40px -18px rgb(28 25 23 / 0.28);
 }
 
 html {
+  /* Tells the browser to render its own furniture -- scrollbars, form controls, the overscroll
+     gutter -- to match. The dark blocks below override it. */
+  color-scheme: light;
   background-color: var(--color-paper);
   -webkit-text-size-adjust: 100%;
 }
@@ -76,6 +98,21 @@ body {
   background-image:
     radial-gradient(circle at 15% 20%, rgb(23 160 133 / 0.05), transparent 45%),
     radial-gradient(circle at 85% 10%, rgb(232 163 61 / 0.07), transparent 40%);
+}
+
+/* The same wash needs more strength to register against a dark ground. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .paper-grain {
+    background-image:
+      radial-gradient(circle at 15% 20%, rgb(33 184 153 / 0.11), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgb(240 179 82 / 0.09), transparent 40%);
+  }
+}
+
+:root[data-theme="dark"] .paper-grain {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgb(33 184 153 / 0.11), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgb(240 179 82 / 0.09), transparent 40%);
 }
 
 @keyframes cq-rise {
@@ -118,9 +155,131 @@ body {
   }
 }
 
-/* The dotted rule used along the top of passport cards, like a real stamped document. */
+/* The dotted rule along the top of account cards, like a real stamped document. */
 .perforation {
-  background-image: radial-gradient(circle, var(--color-border-soft) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(
+    circle,
+    var(--color-border-soft) 1.5px,
+    transparent 1.5px
+  );
   background-size: 10px 10px;
   background-repeat: repeat-x;
+}
+
+/*
+ * Dark mode.
+ *
+ * Only the token values change; not one component carries a `dark:` class. Every utility in the
+ * app already resolves through these variables, so the whole interface re-themes from here.
+ *
+ * Three states, deliberately: an explicit choice stamps data-theme on <html> and wins in both
+ * directions, while "system" stamps nothing and falls through to prefers-color-scheme. The
+ * server writes the attribute from a cookie, so a dark reader never sees a white flash.
+ *
+ * The dark ground is warm charcoal rather than black -- the light theme is warm paper, and a
+ * neutral black would have read as a trading terminal, which is what this project is not.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-paper: #14120f;
+    --color-paper-raised: #1e1b17;
+    --color-paper-sunk: #272219;
+
+    --color-ink: #f5f0e6;
+    --color-ink-soft: #c2baaa;
+    --color-ink-faint: #8e8677;
+
+    --color-border-soft: #363028;
+
+    /* The teal ramp shifts lighter so it reads on a dark ground, and 100/700 swap roles:
+       100 becomes the deep chip fill, 700 the bright text that sits on it. */
+    --color-brand-50: #0a201c;
+    --color-brand-100: #0f3129;
+    --color-brand-300: #2f8570;
+    --color-brand-500: #21b899;
+    --color-brand-600: #17a085;
+    --color-brand-700: #6fe0c6;
+    --color-brand-900: #a9f0dc;
+    --color-brand-hover: #2ec5a5;
+    --color-brand-active: #46d8b8;
+
+    --color-sun-100: #3a2a10;
+    --color-sun-300: #6d4f1c;
+    --color-sun-500: #f0b352;
+    --color-sun-700: #f7d494;
+
+    --color-berry-100: #35152a;
+    --color-berry-500: #e08cc0;
+
+    --color-sky-100: #12283c;
+    --color-sky-500: #79b6e8;
+
+    --color-violet-100: #221d3d;
+    --color-violet-500: #a495ee;
+
+    --color-emerald-100: #12301c;
+    --color-emerald-500: #63c47f;
+
+    --color-danger-100: #3a1a14;
+    --color-danger-500: #ef7a5f;
+    --color-danger-700: #f9a893;
+
+    --shadow-soft:
+      0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+    --shadow-lift:
+      0 2px 4px rgb(0 0 0 / 0.45), 0 18px 40px -18px rgb(0 0 0 / 0.8);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-paper: #14120f;
+  --color-paper-raised: #1e1b17;
+  --color-paper-sunk: #272219;
+
+  --color-ink: #f5f0e6;
+  --color-ink-soft: #c2baaa;
+  --color-ink-faint: #8e8677;
+
+  --color-border-soft: #363028;
+
+  /* The teal ramp shifts lighter so it reads on a dark ground, and 100/700 swap roles:
+     100 becomes the deep chip fill, 700 the bright text that sits on it. */
+  --color-brand-50: #0a201c;
+  --color-brand-100: #0f3129;
+  --color-brand-300: #2f8570;
+  --color-brand-500: #21b899;
+  --color-brand-600: #17a085;
+  --color-brand-700: #6fe0c6;
+  --color-brand-900: #a9f0dc;
+  --color-brand-hover: #2ec5a5;
+  --color-brand-active: #46d8b8;
+
+  --color-sun-100: #3a2a10;
+  --color-sun-300: #6d4f1c;
+  --color-sun-500: #f0b352;
+  --color-sun-700: #f7d494;
+
+  --color-berry-100: #35152a;
+  --color-berry-500: #e08cc0;
+
+  --color-sky-100: #12283c;
+  --color-sky-500: #79b6e8;
+
+  --color-violet-100: #221d3d;
+  --color-violet-500: #a495ee;
+
+  --color-emerald-100: #12301c;
+  --color-emerald-500: #63c47f;
+
+  --color-danger-100: #3a1a14;
+  --color-danger-500: #ef7a5f;
+  --color-danger-700: #f9a893;
+
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --shadow-lift:
+    0 2px 4px rgb(0 0 0 / 0.45), 0 18px 40px -18px rgb(0 0 0 / 0.8);
 }

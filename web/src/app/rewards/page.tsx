@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/Badge";
 import { SignInButton } from "@/features/auth/SignInButton";
 import { ClaimRewardButton } from "@/features/rewards/ClaimRewardButton";
 import { currentWallet } from "@/server/session";
-import { loadPassport } from "@/server/passport-service";
+import { loadAccount } from "@/server/account-service";
 import { REWARDS } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
 import { getTranslations } from "@/server/locale";
@@ -16,7 +16,7 @@ export async function generateMetadata() {
 
 export default async function RewardsPage() {
   const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
-  const passport = wallet ? await loadPassport(wallet) : null;
+  const account = wallet ? await loadAccount(wallet) : null;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
@@ -31,7 +31,7 @@ export default async function RewardsPage() {
 
       <div className="mt-9 grid gap-5 sm:grid-cols-2">
         {REWARDS.map((reward) => {
-          const view = passport?.rewards.find((entry) => entry.slug === reward.slug);
+          const view = account?.rewards.find((entry) => entry.slug === reward.slug);
           const required = CREDENTIALS[reward.requiredCredential];
 
           return (

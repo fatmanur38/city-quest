@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
-import { institutionTypeLabel } from "@/lib/chain/contracts";
+import { institutionTypeLabel, type InstitutionTypeName } from "@/lib/chain/contracts";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 export interface SelectableInstitution {
@@ -79,7 +79,8 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
               <span>
                 <span className="block text-sm font-semibold text-ink">{institution.name}</span>
                 <span className="block text-xs text-ink-faint">
-                  {institutionTypeLabel(institution.kind)}
+                  {t.common.institutionTypes[institution.kind as InstitutionTypeName] ??
+                    institutionTypeLabel(institution.kind)}
                 </span>
               </span>
             </label>

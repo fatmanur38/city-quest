@@ -2,7 +2,7 @@ import { ShieldOff } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { VerifiedMark } from "@/components/ui/VerifiedMark";
 import { TechnicalDetails } from "@/components/ui/TechnicalDetails";
-import type { CredentialView } from "@/server/passport-service";
+import type { CredentialView } from "@/server/account-service";
 import { pick, type Locale } from "@/lib/i18n/types";
 import type { Dictionary } from "@/lib/i18n/dictionary";
 import { explorerAddressUrl } from "@/lib/chain/client";
@@ -44,7 +44,7 @@ export function CredentialCard({
             </h3>
             {definition.tier === "milestone" ? (
               <span className="rounded-full bg-sun-100 px-2 py-0.5 text-[0.7rem] font-bold text-sun-700">
-                {t.passport.milestone}
+                {t.account.milestone}
               </span>
             ) : null}
           </div>
@@ -57,12 +57,12 @@ export function CredentialCard({
             {revoked ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-danger-100 px-2.5 py-1 text-xs font-semibold text-danger-700">
                 <ShieldOff className="size-3.5" aria-hidden />
-                {t.passport.withdrawnBy(pick(issuerName, locale))}
+                {t.account.withdrawnBy(pick(issuerName, locale))}
               </span>
             ) : (
               <VerifiedMark issuer={`${issuerEmoji} ${pick(issuerName, locale)}`} label={t.common.verifiedBy} />
             )}
-            <span className="text-xs text-ink-faint">{t.passport.earnedOn(monthYear(issuedAt, locale))}</span>
+            <span className="text-xs text-ink-faint">{t.account.earnedOn(monthYear(issuedAt, locale))}</span>
           </div>
 
           <TechnicalDetails

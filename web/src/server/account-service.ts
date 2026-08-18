@@ -7,7 +7,7 @@ import { ACTIVITIES, QUESTS, REWARDS, activityBySlug, type CatalogQuest } from "
 import { resolveInstitutions, type ResolvedInstitution } from "@/server/institutions";
 
 /**
- * Assembles the City Passport screen.
+ * Assembles the City Account screen.
  *
  * This is the one place where the two halves of the system are stitched together: verified
  * achievements come from the chain, everything playful -- points, levels, streaks, quest
@@ -69,7 +69,7 @@ export interface RewardView {
   couponCode: string | null;
 }
 
-export interface PassportView {
+export interface AccountView {
   wallet: `0x${string}`;
   profile: Profile;
   level: LevelInfo;
@@ -148,7 +148,7 @@ export function questProgress(
   };
 }
 
-export async function loadPassport(wallet: `0x${string}`): Promise<PassportView> {
+export async function loadAccount(wallet: `0x${string}`): Promise<AccountView> {
   const database = db();
   const [profile, credentials, passes, completions, rewardClaims, { list, byAddress }] =
     await Promise.all([

@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { AppAwardedMark } from "@/components/ui/VerifiedMark";
 import { currentWallet } from "@/server/session";
 import { db } from "@/server/db";
-import { levelFor } from "@/server/passport-service";
+import { levelFor } from "@/server/account-service";
 import { cn } from "@/lib/cn";
 import { getTranslations } from "@/server/locale";
 
@@ -54,7 +54,7 @@ export default async function LeaderboardPage() {
             {t.leaderboard.emptyBody}
           </p>
           <ButtonLink href="/activities" className="mt-6">
-            {t.passport.findSomething}
+            {t.account.findSomething}
           </ButtonLink>
         </Card>
       ) : (

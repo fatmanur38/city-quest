@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 /**
  * Renders a QR code as an SVG data URL.
  *
- * The QR itself is only a pointer -- a passport address or a ticket number. Holding it proves
+ * The QR itself is only a pointer -- an account address or a ticket number. Holding it proves
  * nothing: every screen that scans one re-checks ownership, authority and usage state against
  * the contract before anything happens.
  */
@@ -51,7 +51,7 @@ export function QrCode({
     >
       {dataUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={dataUrl} alt="Passport code" width={size - 24} height={size - 24} />
+        <img src={dataUrl} alt="City account code" width={size - 24} height={size - 24} />
       ) : (
         <div className="size-full animate-pulse rounded-xl bg-paper-sunk" />
       )}

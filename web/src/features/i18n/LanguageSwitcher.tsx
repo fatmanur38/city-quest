@@ -57,7 +57,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
           className={cn(
             "rounded-full px-2.5 py-1 text-xs font-semibold transition-colors",
             shown === option
-              ? "bg-brand-600 text-white"
+              ? "bg-brand-600 text-on-brand"
               : "text-ink-soft hover:bg-paper-sunk hover:text-ink",
           )}
           title={LOCALE_LABELS[option]}

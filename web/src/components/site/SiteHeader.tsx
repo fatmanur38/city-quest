@@ -5,11 +5,14 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "@/features/auth/AccountProvider";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/features/i18n/LanguageSwitcher";
+import { ThemeSwitcher } from "@/features/theme/ThemeSwitcher";
+import { Logo } from "@/components/site/Logo";
+import type { Theme } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
-  { href: "/passport", key: "passport" },
+  { href: "/account", key: "account" },
   { href: "/activities", key: "activities" },
   { href: "/quests", key: "quests" },
   { href: "/tickets", key: "tickets" },
@@ -17,7 +20,7 @@ const LINKS = [
   { href: "/leaderboard", key: "leaderboard" },
 ] as const;
 
-export function SiteHeader() {
+export function SiteHeader({ theme }: { theme: Theme }) {
   const pathname = usePathname();
   const { profile, status, busy, signIn, signOut } = useAccount();
   const { t } = useTranslations();
@@ -25,9 +28,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border-soft/70 bg-paper/85 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-xl bg-brand-600 text-lg">🗺️</span>
-          <span className="font-display text-lg font-bold tracking-tight text-ink">CityQuest</span>
+        <Link href="/" className="shrink-0" aria-label="CityQuest">
+          <Logo />
         </Link>
 
         <nav className="hidden flex-1 items-center gap-1 md:flex">
@@ -49,11 +51,12 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          <ThemeSwitcher initial={theme} />
           <LanguageSwitcher />
           {status === "signed-in" && profile ? (
             <>
               <Link
-                href="/passport"
+                href="/account"
                 className="hidden items-center gap-2 rounded-full border border-border-soft bg-paper-raised py-1 pr-3 pl-1 sm:flex"
               >
                 <span className="grid size-8 place-items-center rounded-full bg-paper-sunk text-base">

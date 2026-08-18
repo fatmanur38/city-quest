@@ -6,7 +6,7 @@ import { resolveInstitutions } from "@/server/institutions";
 import { isChainConfigured } from "@/lib/env";
 
 /**
- * ERC-721 metadata for an achievement, so it renders anywhere a passport is opened -- including
+ * ERC-721 metadata for an achievement, so it renders anywhere an account is opened -- including
  * wallets and explorers this project does not control. That portability is the point.
  *
  * Note what the response does not contain: no name, no age, no school, no visit times. Only the
@@ -36,7 +36,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ tokenId: s
     return NextResponse.json({
       name: definition.title,
       description: definition.description,
-      external_url: "https://cityquest.example/passport",
+      external_url: "https://cityquest.example/account",
       attributes: [
         { trait_type: "Issued by", value: issuer?.name ?? credential.issuer },
         { trait_type: "Achievement", value: definition.name },

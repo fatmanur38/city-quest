@@ -9,7 +9,7 @@ import { db } from "@/server/db";
  *
  * Deliberately off-chain and deliberately unverified by any institution: nobody watched this
  * person answer, so it would be dishonest to record it as an institutional achievement. It
- * earns points and counts towards a quest, and the passport shows it as an app activity rather
+ * earns points and counts towards a quest, and the account shows it as an app activity rather
  * than a verified one.
  */
 

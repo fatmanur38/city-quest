@@ -74,7 +74,7 @@ export function Scanner({
     const parsed = parseQrPayload(typed);
     if (!parsed || parsed.kind !== expect) {
       setCameraError(
-        expect === "user" ? t.institution.notAPassportCode : t.institution.notATicketNumber,
+        expect === "user" ? t.institution.notAnAccountCode : t.institution.notATicketNumber,
       );
       return;
     }
@@ -116,7 +116,7 @@ export function Scanner({
       {mode === "camera" ? (
         <div className="relative overflow-hidden rounded-2xl bg-ink">
           <video ref={videoRef} className="aspect-video w-full object-cover" muted playsInline />
-          <p className="absolute inset-x-0 bottom-0 bg-ink/70 p-2 text-center text-xs text-white">
+          <p className="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-center text-xs text-white">
             {t.institution.cameraHint}
           </p>
         </div>
@@ -128,7 +128,7 @@ export function Scanner({
             onKeyDown={(event) => {
               if (event.key === "Enter") submitTyped();
             }}
-            placeholder={placeholder ?? t.institution.passportOrTicket}
+            placeholder={placeholder ?? t.institution.accountOrTicket}
             disabled={disabled}
             className="h-11 min-w-0 flex-1 rounded-full border border-border-soft bg-paper-raised px-4 text-sm focus:border-brand-500 focus:outline-none"
           />

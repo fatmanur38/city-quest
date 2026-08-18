@@ -10,10 +10,10 @@ import { useTranslations } from "@/features/i18n/LocaleProvider";
 /**
  * The code a citizen shows at the desk.
  *
- * It is just their passport address. That is safe to show: an address alone cannot claim
+ * It is just their account address. That is safe to show: an address alone cannot claim
  * anything, because only an authorised institution's signature can create an achievement.
  */
-export function PassportCode({ wallet }: { wallet: string }) {
+export function AccountCode({ wallet }: { wallet: string }) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslations();
 
@@ -21,7 +21,7 @@ export function PassportCode({ wallet }: { wallet: string }) {
     <>
       <Button variant="secondary" onClick={() => setOpen(true)} className="gap-2">
         <QrIcon className="size-4" aria-hidden />
-        {t.passport.showCode}
+        {t.account.showCode}
       </Button>
 
       {open ? (
@@ -35,9 +35,9 @@ export function PassportCode({ wallet }: { wallet: string }) {
             className="animate-pop w-full max-w-sm rounded-card bg-paper-raised p-7 text-center shadow-lift"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 className="font-display text-xl font-bold text-ink">{t.passport.showCodeTitle}</h2>
+            <h2 className="font-display text-xl font-bold text-ink">{t.account.showCodeTitle}</h2>
             <p className="mt-2 text-sm text-ink-soft">
-              {t.passport.showCodeBody}
+              {t.account.showCodeBody}
             </p>
 
             <div className="mt-6 flex justify-center">

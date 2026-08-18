@@ -58,10 +58,10 @@ function step(n, text) {
 
 const key = generatePrivateKey();
 const account = privateKeyToAccount(key);
-console.log(`Citizen passport: ${account.address}`);
+console.log(`Citizen city account: ${account.address}`);
 
 // ---------------------------------------------------------------------------- 1. sign in
-step(1, "Citizen creates a passport and signs in");
+step(1, "Citizen creates a city account and signs in");
 {
   const { data: challenge } = await call("citizen", "/api/auth/nonce", {
     body: { address: account.address },

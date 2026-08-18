@@ -157,8 +157,8 @@ export const ACTIVITIES: CatalogActivity[] = [
       tr: "Okuyarak vakit geçir ve ziyaretini danışmada onaylat.",
     },
     description: {
-      en: "Show your passport code at the front desk. A librarian confirms your visit and your passport records it. You can earn this once per day.",
-      tr: "Pasaport kodunu danışmada göster. Bir kütüphaneci ziyaretini onaylar ve pasaportun bunu kaydeder. Bunu günde bir kez kazanabilirsin.",
+      en: "Show your account code at the front desk. A librarian confirms your visit and your account records it. You can earn this once per day.",
+      tr: "Hesap kodunu danışmada göster. Bir kütüphaneci ziyaretini onaylar ve hesabın bunu kaydeder. Bunu günde bir kez kazanabilirsin.",
     },
     kind: "checkin",
     credential: "LIBRARY_VISIT",

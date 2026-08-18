@@ -8,14 +8,14 @@ import { useAccount } from "./AccountProvider";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /**
- * "Start your City Passport", not "Connect Wallet".
+ * "Create my City Account", not "Connect Wallet".
  *
  * The default path creates an identity on the device with a single tap. People who already own
  * a wallet get a quieter second option; nobody is required to know what a wallet is.
  */
 export function SignInButton({
   label,
-  redirectTo = "/passport",
+  redirectTo = "/account",
   size = "lg",
 }: {
   label?: string;
@@ -33,7 +33,7 @@ export function SignInButton({
   if (status === "signed-in") {
     return (
       <Button size={size} onClick={() => router.push(redirectTo)}>
-        {t.auth.openPassport}
+        {t.auth.openAccount}
       </Button>
     );
   }

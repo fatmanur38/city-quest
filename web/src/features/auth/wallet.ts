@@ -28,21 +28,23 @@ export interface WalletAdapter {
   forget(): Promise<void>;
 }
 
+// Left under its original name on purpose. Renaming this key would orphan every device
+// account already created in someone's browser, and those keys cannot be recovered.
 const DEVICE_KEY_STORAGE = "cityquest.device-passport-key";
 
 /**
  * DEMO WALLET -- a key generated in the browser and kept in local storage.
  *
- * This is what makes the demo feel like an ordinary app: tapping "Create my passport" produces
+ * This is what makes the demo feel like an ordinary app: tapping "Create my account" produces
  * an identity instantly, with no extension, no seed phrase and nothing to write down.
  *
  * It is not how this should ship. The key controls nothing of value -- it holds no funds and
  * cannot issue anything, it only names who an achievement belongs to -- but local storage is
- * still the wrong home for a private key, and clearing site data loses the passport. The
+ * still the wrong home for a private key, and clearing site data loses the account. The
  * production answer is a passkey-backed smart account, where the key is held by the device
  * secure enclave and can be recovered.
  */
-export class DevicePassportWallet implements WalletAdapter {
+export class DeviceAccountWallet implements WalletAdapter {
   kind: WalletKind = "device";
   label = "This device";
 
@@ -68,7 +70,7 @@ export class DevicePassportWallet implements WalletAdapter {
 
   async signMessage(message: string): Promise<Hex> {
     const key = this.read();
-    if (!key) throw new Error("No passport on this device yet.");
+    if (!key) throw new Error("No city account on this device yet.");
     return privateKeyToAccount(key).signMessage({ message });
   }
 
@@ -125,7 +127,7 @@ export function hasBrowserWallet(): boolean {
 }
 
 export function walletFor(kind: WalletKind): WalletAdapter {
-  return kind === "browser" ? new BrowserWallet() : new DevicePassportWallet();
+  return kind === "browser" ? new BrowserWallet() : new DeviceAccountWallet();
 }
 
 const KIND_STORAGE = "cityquest.wallet-kind";

@@ -166,7 +166,7 @@ export function AdminConsole({
             >
               {INSTITUTION_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {institutionTypeLabel(type)}
+                  {t.common.institutionTypes[type] ?? institutionTypeLabel(type)}
                 </option>
               ))}
             </select>

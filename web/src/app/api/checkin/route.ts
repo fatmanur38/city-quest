@@ -21,7 +21,7 @@ import { pick } from "@/lib/i18n/types";
  */
 
 const schema = z.object({
-  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "not a valid passport code"),
+  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "not a valid city account code"),
   activitySlug: z.string().min(1),
 });
 

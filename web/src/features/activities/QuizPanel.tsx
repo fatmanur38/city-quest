@@ -122,7 +122,7 @@ export function QuizPanel({
                         chosen ? "border-brand-600 bg-brand-600" : "border-border-soft",
                       )}
                     >
-                      {chosen ? <span className="size-1.5 rounded-full bg-white" /> : null}
+                      {chosen ? <span className="size-1.5 rounded-full bg-on-brand" /> : null}
                     </span>
                     {option}
                   </label>

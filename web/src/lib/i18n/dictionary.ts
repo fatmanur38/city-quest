@@ -10,7 +10,7 @@ import type { Locale } from "./types";
 
 const en = {
   nav: {
-    passport: "My Passport",
+    account: "My Account",
     activities: "Activities",
     quests: "Quests",
     tickets: "Tickets",
@@ -22,9 +22,22 @@ const en = {
     institutionStaff: "Institution staff",
     municipality: "Municipality",
     language: "Language",
+    appearance: "Appearance",
+    switchToDark: "Switch to dark",
+    switchToLight: "Switch to light",
   },
 
   common: {
+    // Keyed by the on-chain enum name in InstitutionRegistry.InstitutionType, so a new kind of
+    // institution added to the contract fails to compile here until it has been translated.
+    institutionTypes: {
+      Library: "Library",
+      ScienceCenter: "Science Center",
+      Museum: "Museum",
+      University: "University",
+      Municipality: "Municipality",
+      Other: "Other",
+    },
     verifiedBy: (issuer: string) => `Verified by ${issuer}`,
     verifiedInstitution: "Verified institution",
     appPoints: "City app points",
@@ -40,14 +53,22 @@ const en = {
   },
 
   landing: {
-    eyebrow: "A learning passport for Konya",
+    eyebrow: "One learning account for Konya",
     headlineLine1: "Explore your city.",
     headlineLine2: "Learn something new.",
-    headlineLine3: "Build a passport of experiences.",
+    headlineLine3: "Collect your experiences in one place.",
     subtitle:
       "Visit libraries, science centers, museums and workshops. Each one confirms what you did, in a way anybody can check later — and the record belongs to you, not to whoever built the app.",
     exploreActivities: "Explore Activities",
-    samplePassportOwner: "Elif's Passport",
+    sampleAccountOwner: "Elif's City Account",
+    // The card in the hero. Kept here rather than hardcoded in the page so the sample is in the
+    // reader's language too -- an English sample under a Turkish headline undercuts the whole
+    // point of the demo. The names match src/lib/credentials.ts and src/server/catalog.ts.
+    sampleCredentials: [
+      { emoji: "📚", title: "Library Visitor", issuer: "Selcuklu Library" },
+      { emoji: "🌍", title: "Earthquake Experience", issuer: "Konya Science Center" },
+      { emoji: "🏆", title: "Young Scientist", issuer: "Konya Municipality" },
+    ],
     manifesto: "“If there were only one institution, we wouldn't use blockchain.”",
     manifestoBody:
       "Libraries, science centers, museums, universities and municipalities can independently issue achievements that belong to you.",
@@ -55,7 +76,7 @@ const en = {
       "We are not using a blockchain because it is fashionable, or to create a coin. We use it because these institutions are independent of one another, and a student's record should not be locked inside whichever organisation happened to build the software.",
     howItWorks: "How it works",
     howItWorksLead: "Three steps, and none of them involve knowing anything about cryptography.",
-    step1Title: "Show your passport",
+    step1Title: "Show your code",
     step1Body:
       "At the desk, show the code on your phone. It changes every time and means nothing on its own.",
     step2Title: "The institution confirms it",
@@ -63,7 +84,7 @@ const en = {
       "A librarian or an instructor confirms you were there. Their signature is what makes the achievement real.",
     step3Title: "It is yours to keep",
     step3Body:
-      "The achievement lands in your passport, and any other institution can check it — even years later.",
+      "The achievement lands in your account, and any other institution can check it — even years later.",
     whatsHappening: "What's happening in the city",
     whatsHappeningLead: "Every activity is hosted by a real institution that stands behind it.",
     seeAllActivities: "See all activities",
@@ -87,16 +108,16 @@ const en = {
       "The time you arrived or left",
       "Where you were, minute by minute",
     ],
-    ctaTitle: "Start your City Passport",
+    ctaTitle: "Create your City Account",
     ctaBody: "It takes one tap. Your first achievement is waiting at the library.",
     ticketRequired: "Ticket required",
   },
 
   auth: {
-    start: "Start Your City Passport",
-    startShort: "Start your passport",
+    start: "Create My City Account",
+    startShort: "Create my account",
     settingUp: "Setting up…",
-    openPassport: "Open my passport",
+    openAccount: "Open my account",
     reassurance: "No app to install, nothing to pay, nothing to remember.",
     haveWallet: "I already have a wallet",
     signInToBook: "Sign in to book",
@@ -106,10 +127,10 @@ const en = {
     couldNotSignIn: "Could not sign in.",
   },
 
-  passport: {
-    metaTitle: "My City Passport",
-    documentLabel: "City Learning Passport",
-    signedOutTitle: "Your passport is waiting",
+  account: {
+    metaTitle: "My City Account",
+    documentLabel: "City Learning Account",
+    signedOutTitle: "Your city account is waiting",
     signedOutBody: "Create one in a single tap. Nothing to install, nothing to pay.",
     showCode: "Show my code",
     showCodeTitle: "Show this at the desk",
@@ -155,13 +176,13 @@ const en = {
     kindWorkshop: "Scheduled workshop",
     kindQuiz: "Take it from home",
     howToEarn: "How to earn this",
-    howToEarnBody: "Open your passport, tap Show my code, and let a member of staff scan it.",
+    howToEarnBody: "Open your account, tap Show my code, and let a member of staff scan it.",
     bookFor: (price: number) => `Book for ${price} TL`,
     total: "Total",
     demoCheckout: "Demo checkout — no card is charged and no money moves.",
     payNow: "Pay now",
     processing: "Processing…",
-    ticketInPassport: (id: string) => `Ticket #${id} is in your passport`,
+    ticketInAccount: (id: string) => `Ticket #${id} is in your account`,
     viewTicket: "View ticket",
     submitForXp: (xp: number) => `Submit for +${xp} XP`,
     checking: "Checking…",
@@ -182,7 +203,7 @@ const en = {
     scoredByApp: "Scored by the city app",
     reward: "Reward",
     issuedBy: (name: string, xp: number) => `Issued by ${name} · +${xp} XP`,
-    alreadyInPassport: "Already in your passport.",
+    alreadyInAccount: "Already in your account.",
     claim: (title: string) => `Claim ${title}`,
     confirming: "Confirming…",
     finishFirst: "Finish everything on the list to unlock this.",
@@ -211,14 +232,14 @@ const en = {
     cancelledBody: "This ticket was cancelled",
     validUntil: (date: string) => `Valid until ${date}`,
     usedHint: "Used a ticket? The matching achievement is already in your",
-    passportWord: "passport",
+    accountWord: "account",
     unknownVenue: "Unknown venue",
   },
 
   rewards: {
     metaTitle: "Rewards",
     title: "Rewards from local sponsors",
-    lead: "Local businesses offer small thank-yous to students who have earned particular achievements. They check your passport themselves — we do not sell them your details, and your points are never converted into money.",
+    lead: "Local businesses offer small thank-yous to students who have earned particular achievements. They check your account themselves — we do not sell them your details, and your points are never converted into money.",
     eligible: "Eligible",
     locked: "Locked",
     by: (sponsor: string) => `by ${sponsor}`,
@@ -240,7 +261,7 @@ const en = {
     title: "City explorers",
     lead: "Who has been out exploring this season. These are experience points from the city app — the achievements themselves are not a competition.",
     empty: "Nobody has set off yet",
-    emptyBody: "Be the first. Visit a library and get your passport stamped.",
+    emptyBody: "Be the first. Visit a library and earn your first achievement.",
     you: "You",
     notInTop: "You are not in the top 25 yet. Every verified visit moves you up.",
     footnote:
@@ -286,9 +307,9 @@ const en = {
     useCamera: "Use camera",
     cameraHint: "Point at the code on the visitor's phone",
     cameraFailed: "The camera could not be opened. Type the code instead.",
-    notAPassportCode: "That does not look like a passport code.",
+    notAnAccountCode: "That does not look like a city account code.",
     notATicketNumber: "That does not look like a ticket number.",
-    passportOrTicket: "Passport code or ticket number",
+    accountOrTicket: "Account code or ticket number",
     ticketNumberPlaceholder: "Ticket number",
   },
 
@@ -338,7 +359,7 @@ export type Dictionary = typeof en;
 
 const tr: Dictionary = {
   nav: {
-    passport: "Pasaportum",
+    account: "Hesabım",
     activities: "Etkinlikler",
     quests: "Görevler",
     tickets: "Biletler",
@@ -350,9 +371,20 @@ const tr: Dictionary = {
     institutionStaff: "Kurum görevlisi",
     municipality: "Belediye",
     language: "Dil",
+    appearance: "Görünüm",
+    switchToDark: "Koyu temaya geç",
+    switchToLight: "Açık temaya geç",
   },
 
   common: {
+    institutionTypes: {
+      Library: "Kütüphane",
+      ScienceCenter: "Bilim Merkezi",
+      Museum: "Müze",
+      University: "Üniversite",
+      Municipality: "Belediye",
+      Other: "Diğer",
+    },
     verifiedBy: (issuer: string) => `${issuer} onayladı`,
     verifiedInstitution: "Kurum onaylı",
     appPoints: "Şehir uygulaması puanı",
@@ -368,14 +400,19 @@ const tr: Dictionary = {
   },
 
   landing: {
-    eyebrow: "Konya için bir öğrenme pasaportu",
+    eyebrow: "Konya için tek bir öğrenme hesabı",
     headlineLine1: "Şehrini keşfet.",
     headlineLine2: "Yeni bir şey öğren.",
-    headlineLine3: "Deneyimlerinden bir pasaport oluştur.",
+    headlineLine3: "Deneyimlerini tek yerde topla.",
     subtitle:
       "Kütüphaneleri, bilim merkezlerini, müzeleri ve atölyeleri ziyaret et. Her biri yaptığını onaylar — herkesin sonradan doğrulayabileceği şekilde. Ve bu kayıt uygulamayı yapana değil, sana aittir.",
     exploreActivities: "Etkinlikleri keşfet",
-    samplePassportOwner: "Elif'in Pasaportu",
+    sampleAccountOwner: "Elif'in Şehir Hesabı",
+    sampleCredentials: [
+      { emoji: "📚", title: "Kütüphane Ziyaretçisi", issuer: "Selçuklu Kütüphanesi" },
+      { emoji: "🌍", title: "Deprem Deneyimi", issuer: "Konya Bilim Merkezi" },
+      { emoji: "🏆", title: "Genç Bilim İnsanı", issuer: "Konya Belediyesi" },
+    ],
     manifesto: "“Tek bir kurum olsaydı, blokzincir kullanmazdık.”",
     manifestoBody:
       "Kütüphaneler, bilim merkezleri, müzeler, üniversiteler ve belediyeler; sana ait olan başarımları birbirinden bağımsız olarak verebilir.",
@@ -383,7 +420,7 @@ const tr: Dictionary = {
       "Blokzinciri moda olduğu için ya da bir coin çıkarmak için kullanmıyoruz. Kullanıyoruz çünkü bu kurumlar birbirinden bağımsız ve bir öğrencinin kaydı, yazılımı hangi kurum yaptıysa onun veritabanına hapsolmamalı.",
     howItWorks: "Nasıl çalışır",
     howItWorksLead: "Üç adım — ve hiçbirinde kriptografi bilmene gerek yok.",
-    step1Title: "Pasaportunu göster",
+    step1Title: "Kodunu göster",
     step1Body:
       "Danışmada telefonundaki kodu göster. Kod her seferinde değişir ve tek başına hiçbir anlam taşımaz.",
     step2Title: "Kurum onaylar",
@@ -391,7 +428,7 @@ const tr: Dictionary = {
       "Bir kütüphaneci ya da eğitmen orada olduğunu onaylar. Başarımı gerçek kılan şey, o kurumun imzasıdır.",
     step3Title: "Artık senin",
     step3Body:
-      "Başarım pasaportuna işlenir ve başka herhangi bir kurum bunu doğrulayabilir — yıllar sonra bile.",
+      "Başarım hesabına işlenir ve başka herhangi bir kurum bunu doğrulayabilir — yıllar sonra bile.",
     whatsHappening: "Şehirde neler oluyor",
     whatsHappeningLead: "Her etkinliğin arkasında, onu üstlenen gerçek bir kurum var.",
     seeAllActivities: "Tüm etkinlikleri gör",
@@ -415,16 +452,16 @@ const tr: Dictionary = {
       "Geliş ve gidiş saatin",
       "Dakika dakika nerede olduğun",
     ],
-    ctaTitle: "Şehir Pasaportunu oluştur",
+    ctaTitle: "Şehir Hesabını oluştur",
     ctaBody: "Tek dokunuş yeterli. İlk başarımın kütüphanede seni bekliyor.",
     ticketRequired: "Bilet gerekli",
   },
 
   auth: {
-    start: "Şehir Pasaportunu Oluştur",
-    startShort: "Pasaportunu oluştur",
+    start: "Şehir Hesabımı Oluştur",
+    startShort: "Hesabımı oluştur",
     settingUp: "Hazırlanıyor…",
-    openPassport: "Pasaportumu aç",
+    openAccount: "Hesabımı aç",
     reassurance: "Kurulacak uygulama yok, ödeme yok, ezberlenecek bir şey yok.",
     haveWallet: "Zaten bir cüzdanım var",
     signInToBook: "Bilet almak için giriş yap",
@@ -434,10 +471,10 @@ const tr: Dictionary = {
     couldNotSignIn: "Giriş yapılamadı.",
   },
 
-  passport: {
-    metaTitle: "Şehir Pasaportum",
-    documentLabel: "Şehir Öğrenme Pasaportu",
-    signedOutTitle: "Pasaportun seni bekliyor",
+  account: {
+    metaTitle: "Şehir Hesabım",
+    documentLabel: "Şehir Öğrenme Hesabı",
+    signedOutTitle: "Şehir hesabın seni bekliyor",
     signedOutBody: "Tek dokunuşla oluştur. Kurulum yok, ödeme yok.",
     showCode: "Kodumu göster",
     showCodeTitle: "Bunu danışmada göster",
@@ -484,13 +521,13 @@ const tr: Dictionary = {
     kindQuiz: "Evden çöz",
     howToEarn: "Bu nasıl kazanılır",
     howToEarnBody:
-      "Pasaportunu aç, Kodumu göster'e dokun ve bir görevlinin okutmasını bekle.",
+      "Hesabını aç, Kodumu göster'e dokun ve bir görevlinin okutmasını bekle.",
     bookFor: (price: number) => `${price} TL — bilet al`,
     total: "Toplam",
     demoCheckout: "Demo ödeme — hiçbir kart çekilmez, para hareket etmez.",
     payNow: "Ödemeyi tamamla",
     processing: "İşleniyor…",
-    ticketInPassport: (id: string) => `#${id} numaralı bilet pasaportunda`,
+    ticketInAccount: (id: string) => `#${id} numaralı bilet hesabında`,
     viewTicket: "Bileti gör",
     submitForXp: (xp: number) => `Gönder ve +${xp} XP kazan`,
     checking: "Kontrol ediliyor…",
@@ -511,7 +548,7 @@ const tr: Dictionary = {
     scoredByApp: "Şehir uygulaması değerlendirdi",
     reward: "Ödül",
     issuedBy: (name: string, xp: number) => `${name} veriyor · +${xp} XP`,
-    alreadyInPassport: "Zaten pasaportunda.",
+    alreadyInAccount: "Zaten hesabında.",
     claim: (title: string) => `${title} al`,
     confirming: "Onaylanıyor…",
     finishFirst: "Bunu açmak için listedeki her şeyi tamamla.",
@@ -540,14 +577,14 @@ const tr: Dictionary = {
     cancelledBody: "Bu bilet iptal edildi",
     validUntil: (date: string) => `${date} tarihine kadar geçerli`,
     usedHint: "Bilet mi kullandın? İlgili başarım çoktan",
-    passportWord: "pasaportunda",
+    accountWord: "hesabında",
     unknownVenue: "Bilinmeyen mekân",
   },
 
   rewards: {
     metaTitle: "Ödüller",
     title: "Yerel sponsorlardan ödüller",
-    lead: "Yerel işletmeler, belirli başarımları kazanan öğrencilere küçük teşekkürler sunuyor. Pasaportunu kendileri kontrol ediyor — biz onlara bilgilerini satmıyoruz ve puanların asla paraya çevrilmiyor.",
+    lead: "Yerel işletmeler, belirli başarımları kazanan öğrencilere küçük teşekkürler sunuyor. Hesabını kendileri kontrol ediyor — biz onlara bilgilerini satmıyoruz ve puanların asla paraya çevrilmiyor.",
     eligible: "Hak kazandın",
     locked: "Kilitli",
     by: (sponsor: string) => `${sponsor} sunuyor`,
@@ -569,7 +606,7 @@ const tr: Dictionary = {
     title: "Şehrin kâşifleri",
     lead: "Bu sezon kimler keşfe çıkmış. Bunlar şehir uygulamasının deneyim puanları — başarımların kendisi bir yarış değil.",
     empty: "Henüz kimse yola çıkmadı",
-    emptyBody: "İlk sen ol. Bir kütüphaneye uğra ve pasaportunu damgalat.",
+    emptyBody: "İlk sen ol. Bir kütüphaneye uğra ve ilk başarımını kazan.",
     you: "Sen",
     notInTop: "Henüz ilk 25'te değilsin. Onaylanan her ziyaret seni yukarı taşır.",
     footnote:
@@ -615,9 +652,9 @@ const tr: Dictionary = {
     useCamera: "Kamerayı kullan",
     cameraHint: "Ziyaretçinin telefonundaki koda doğrult",
     cameraFailed: "Kamera açılamadı. Bunun yerine kodu yaz.",
-    notAPassportCode: "Bu bir pasaport koduna benzemiyor.",
+    notAnAccountCode: "Bu bir şehir hesabı koduna benzemiyor.",
     notATicketNumber: "Bu bir bilet numarasına benzemiyor.",
-    passportOrTicket: "Pasaport kodu ya da bilet numarası",
+    accountOrTicket: "Hesap kodu ya da bilet numarası",
     ticketNumberPlaceholder: "Bilet numarası",
   },
 

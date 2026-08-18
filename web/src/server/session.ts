@@ -54,15 +54,22 @@ function isNonceValid(nonce: string): boolean {
 /**
  * Deliberately readable. If a wallet ever does show this to a person, it should explain itself
  * in plain language rather than as a wall of hex.
+ *
+ * The address is checksummed here rather than by the callers. This message is built twice --
+ * once when the challenge is handed out and once when the signature is checked -- in two
+ * separate requests, and the two strings have to be byte-identical or recovery returns a
+ * different address. MetaMask returns lowercase addresses from `eth_requestAccounts` while a
+ * viem local account returns them checksummed, so normalising at only one of the two sites
+ * verified fine for the device account and rejected every browser wallet.
  */
 export function signInMessage(address: string, nonce: string): string {
   return [
-    "Sign in to your City Passport.",
+    "Sign in to your City Account.",
     "",
-    "This only proves the passport is yours.",
+    "This only proves the account is yours.",
     "It does not move any money and costs nothing.",
     "",
-    `Passport: ${address}`,
+    `Account: ${getAddress(address)}`,
     `Code: ${nonce}`,
   ].join("\n");
 }
@@ -78,7 +85,7 @@ export async function verifySignIn(
   nonce: string,
   signature: string,
 ): Promise<SignInResult> {
-  if (!isAddress(address)) return { ok: false, error: "That is not a valid passport address." };
+  if (!isAddress(address)) return { ok: false, error: "That is not a valid city account address." };
   if (!isNonceValid(nonce)) return { ok: false, error: "Your sign-in code expired. Try again." };
 
   const checksummed = getAddress(address);
@@ -88,7 +95,7 @@ export async function verifySignIn(
       message: signInMessage(checksummed, nonce),
       signature: signature as `0x${string}`,
     });
-    if (!valid) return { ok: false, error: "That signature does not match the passport." };
+    if (!valid) return { ok: false, error: "That signature does not match the account." };
   } catch {
     return { ok: false, error: "That signature could not be read." };
   }
@@ -126,7 +133,7 @@ export async function currentWallet(): Promise<`0x${string}` | null> {
 
 export async function requireWallet(): Promise<`0x${string}`> {
   const wallet = await currentWallet();
-  if (!wallet) throw new SessionError("Please sign in to your City Passport first.");
+  if (!wallet) throw new SessionError("Please sign in to your City Account first.");
   return wallet;
 }
 

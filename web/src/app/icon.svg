@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Same mark as components/site/Logo.tsx. Literal colours: a favicon renders outside the
+       document and cannot read the app's CSS variables. -->
+  <defs>
+    <linearGradient id="cq-ring" x1="46" y1="6" x2="24" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3d84c6"/>
+      <stop offset=".55" stop-color="#17a085"/>
+      <stop offset="1" stop-color="#0f8570"/>
+    </linearGradient>
+    <clipPath id="cq-inside"><circle cx="32" cy="26" r="15.5"/></clipPath>
+    <mask id="cq-gap">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M32 26 66 34 66 -2 46 -2Z" fill="#000"/>
+    </mask>
+  </defs>
+
+  <g clip-path="url(#cq-inside)">
+    <circle cx="32" cy="26" r="15.5" fill="#eefaf7"/>
+
+    <rect x="18.5" y="26" width="5" height="12" rx="1" fill="#3d84c6" opacity=".5"/>
+    <rect x="25" y="17" width="6.5" height="21" rx="1" fill="#3d84c6"/>
+    <rect x="33" y="22" width="5.5" height="16" rx="1" fill="#0f8570" opacity=".85"/>
+    <rect x="40" y="27.5" width="4.5" height="11" rx="1" fill="#3d84c6" opacity=".4"/>
+
+    <path d="M28.2 17.5V9.5" stroke="#0b6656" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M28.2 10L34.4 12.1L28.2 14.2Z" fill="#e8a33d"/>
+
+    <path d="M9 34c6.5-3 11.5.6 16.5-.5s9.5-3 13-2.5 6 1.8 9.5.7V44H9Z" fill="#0f8570"/>
+    <path d="M32.6 28.5c-.6 3.4-4.2 4-3.6 7.2.6 3.2 3.8 3.8 2.8 7.3"
+          stroke="#eefaf7" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <path fill-rule="evenodd" clip-rule="evenodd" mask="url(#cq-gap)" fill="url(#cq-ring)"
+        d="M16 41.1A22 22 0 1 1 48 41.1L32 58ZM32 10.5a15.5 15.5 0 1 0 0 31 15.5 15.5 0 0 0 0-31Z"/>
+
+  <path d="M47.8 11.6 49.5 15.7 53.6 17.4 49.5 19.1 47.8 23.2 46.1 19.1 42 17.4 46.1 15.7Z" fill="#e8a33d"/>
+</svg>

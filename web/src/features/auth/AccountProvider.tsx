@@ -17,7 +17,7 @@ import { lastWalletKind, rememberWalletKind, walletFor, type WalletKind } from "
 /**
  * Sign-in state for the whole app.
  *
- * "Sign in" here means: prove you hold this passport by signing a sentence. No gas, no
+ * "Sign in" here means: prove this city account is yours by signing a sentence. No gas, no
  * transaction, no network prompt. The result is an ordinary session cookie.
  */
 

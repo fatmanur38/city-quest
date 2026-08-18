@@ -148,8 +148,8 @@ export default async function TicketsPage() {
       {passes.some((pass) => pass.status === "Used") ? (
         <p className="mt-8 text-sm text-ink-soft">
           {t.tickets.usedHint}{" "}
-          <Link href="/passport" className="font-semibold text-brand-700 underline">
-            {t.tickets.passportWord}
+          <Link href="/account" className="font-semibold text-brand-700 underline">
+            {t.tickets.accountWord}
           </Link>
           .
         </p>
