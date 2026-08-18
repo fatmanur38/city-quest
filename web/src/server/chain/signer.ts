@@ -37,6 +37,36 @@ export function passportDomain() {
   } as const;
 }
 
+export const PASS_ISSUANCE_TYPES = {
+  PassIssuance: [
+    { name: "recipient", type: "address" },
+    { name: "institution", type: "address" },
+    { name: "credentialType", type: "bytes32" },
+    { name: "validUntil", type: "uint64" },
+    { name: "expiresAt", type: "uint64" },
+    { name: "nonce", type: "bytes32" },
+  ],
+} as const;
+
+export const CONSUME_AUTHORIZATION_TYPES = {
+  ConsumeAuthorization: [
+    { name: "passId", type: "uint256" },
+    { name: "institution", type: "address" },
+    { name: "expiresAt", type: "uint64" },
+    { name: "nonce", type: "bytes32" },
+  ],
+} as const;
+
+/** Must match EIP712("CityQuest Experience", "1") in ExperiencePass.sol. */
+export function experienceDomain() {
+  return {
+    name: "CityQuest Experience",
+    version: "1",
+    chainId: publicEnv.chainId,
+    verifyingContract: publicEnv.experiencePass,
+  } as const;
+}
+
 export class MissingSignerError extends Error {
   constructor(role: SignerRole) {
     super(
@@ -65,8 +95,11 @@ export class MissingRelayerError extends Error {
 }
 
 /**
- * The account that pays gas so citizens never have to. It has no authority of its own -- it can
- * only carry a claim that some institution already signed.
+ * The only account in the whole system that needs a gas balance.
+ *
+ * It has no authority of its own: every transaction it sends carries an institution's signature,
+ * and the contracts check that signature rather than who submitted it. Draining this account
+ * stops the service; it cannot be used to forge anything.
  */
 export function relayerAccount(): PrivateKeyAccount {
   const key = serverEnv().relayerPrivateKey;

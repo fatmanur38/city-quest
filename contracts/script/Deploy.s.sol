@@ -15,6 +15,10 @@ import {ExperiencePass} from "../src/ExperiencePass.sol";
 ///      Base Sepolia:
 ///        forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast --verify
 ///
+///      Only the deployer needs a funded account. It deploys the contracts, acts as the
+///      municipality registrar, and relays every institution-signed transaction afterwards.
+///      The institution signers never send transactions, so they never need gas.
+///
 ///      Writes deployments/<chainId>.json, which the web app reads to learn the addresses.
 contract Deploy is Script {
     // Default institution signers are the standard Anvil accounts 1-3, so a local demo works
@@ -56,13 +60,6 @@ contract Deploy is Script {
             municipalitySigner, "Konya Municipality", InstitutionRegistry.InstitutionType.Municipality
         );
 
-        // Institutions send their own transactions when issuing and consuming tickets, so they
-        // each need a little gas. On a public testnet the deployer tops them up here; on Anvil
-        // they are already funded and this is a no-op.
-        _fundIfNeeded(librarySigner);
-        _fundIfNeeded(scienceCenterSigner);
-        _fundIfNeeded(municipalitySigner);
-
         vm.stopBroadcast();
 
         _writeDeployment(address(registry), address(passport), address(experiencePass));
@@ -76,20 +73,8 @@ contract Deploy is Script {
         console.log("Library signer       %s", librarySigner);
         console.log("ScienceCenter signer %s", scienceCenterSigner);
         console.log("Municipality signer  %s", municipalitySigner);
-    }
-
-    /// @dev Institutions pay gas only for ticket issuance and consumption. Credential issuance
-    ///      is signed by them but submitted by the relayer, so citizens never need funds at all.
-    uint256 constant INSTITUTION_GAS_TOPUP = 0.02 ether;
-
-    function _fundIfNeeded(address institution) private {
-        if (institution.balance >= INSTITUTION_GAS_TOPUP) return;
-        if (msg.sender.balance < INSTITUTION_GAS_TOPUP * 2) {
-            console.log("WARNING: deployer too poor to fund %s", institution);
-            return;
-        }
-        (bool sent,) = institution.call{value: INSTITUTION_GAS_TOPUP}("");
-        if (sent) console.log("Funded institution %s", institution);
+        console.log("");
+        console.log("Institution signers hold no funds and need none: they sign, the relayer pays.");
     }
 
     function _writeDeployment(address registry, address passport, address experiencePass) private {

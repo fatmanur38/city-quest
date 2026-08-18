@@ -2001,6 +2001,102 @@ export const experiencePassAbi = [
   },
   {
     "type": "function",
+    "name": "consumePassSigned",
+    "inputs": [
+      {
+        "name": "authorization",
+        "type": "tuple",
+        "internalType": "struct ExperiencePass.ConsumeAuthorization",
+        "components": [
+          {
+            "name": "passId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "expiresAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "domainSeparator",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "eip712Domain",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "fields",
+        "type": "bytes1",
+        "internalType": "bytes1"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "verifyingContract",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "salt",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "extensions",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getApproved",
     "inputs": [
       {
@@ -2178,6 +2274,98 @@ export const experiencePassAbi = [
   },
   {
     "type": "function",
+    "name": "hashConsumeAuthorization",
+    "inputs": [
+      {
+        "name": "authorization",
+        "type": "tuple",
+        "internalType": "struct ExperiencePass.ConsumeAuthorization",
+        "components": [
+          {
+            "name": "passId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "expiresAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hashIssuance",
+    "inputs": [
+      {
+        "name": "issuance",
+        "type": "tuple",
+        "internalType": "struct ExperiencePass.PassIssuance",
+        "components": [
+          {
+            "name": "recipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "credentialType",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "expiresAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "isApprovedForAll",
     "inputs": [
       {
@@ -2189,6 +2377,30 @@ export const experiencePassAbi = [
         "name": "operator",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isIssuanceSpent",
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "nonce",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
@@ -2218,6 +2430,62 @@ export const experiencePassAbi = [
         "name": "validUntil",
         "type": "uint64",
         "internalType": "uint64"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "passId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "issuePassSigned",
+    "inputs": [
+      {
+        "name": "issuance",
+        "type": "tuple",
+        "internalType": "struct ExperiencePass.PassIssuance",
+        "components": [
+          {
+            "name": "recipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "credentialType",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "expiresAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "nonce",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [
@@ -2576,6 +2844,12 @@ export const experiencePassAbi = [
   },
   {
     "type": "event",
+    "name": "EIP712DomainChanged",
+    "inputs": [],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "PassCancelled",
     "inputs": [
       {
@@ -2772,6 +3046,17 @@ export const experiencePassAbi = [
   },
   {
     "type": "error",
+    "name": "AuthorizationExpired",
+    "inputs": [
+      {
+        "name": "expiresAt",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "ERC721IncorrectOwner",
     "inputs": [
       {
@@ -2885,6 +3170,27 @@ export const experiencePassAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidShortString",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "IssuanceAlreadyUsed",
+    "inputs": [
+      {
+        "name": "issuanceKey",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "NotIssuingInstitution",
     "inputs": []
   },
@@ -2940,6 +3246,17 @@ export const experiencePassAbi = [
     "type": "error",
     "name": "SoulboundTransferNotAllowed",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StringTooLong",
+    "inputs": [
+      {
+        "name": "str",
+        "type": "string",
+        "internalType": "string"
+      }
+    ]
   },
   {
     "type": "error",

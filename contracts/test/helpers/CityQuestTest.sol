@@ -91,6 +91,53 @@ abstract contract CityQuestTest is Test {
         return abi.encodePacked(r, s, v);
     }
 
+    function _issuance(address recipient, address institution, bytes32 credentialType, uint64 validUntil)
+        internal
+        view
+        returns (ExperiencePass.PassIssuance memory)
+    {
+        return ExperiencePass.PassIssuance({
+            recipient: recipient,
+            institution: institution,
+            credentialType: credentialType,
+            validUntil: validUntil,
+            expiresAt: uint64(block.timestamp + 5 minutes),
+            nonce: keccak256(abi.encode(recipient, institution, credentialType, "issuance"))
+        });
+    }
+
+    function _signIssuance(uint256 pk, ExperiencePass.PassIssuance memory issuance)
+        internal
+        view
+        returns (bytes memory)
+    {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, experiencePass.hashIssuance(issuance));
+        return abi.encodePacked(r, s, v);
+    }
+
+    function _consumeAuth(uint256 passId, address institution)
+        internal
+        view
+        returns (ExperiencePass.ConsumeAuthorization memory)
+    {
+        return ExperiencePass.ConsumeAuthorization({
+            passId: passId,
+            institution: institution,
+            expiresAt: uint64(block.timestamp + 5 minutes),
+            nonce: keccak256(abi.encode(passId, institution, "consume"))
+        });
+    }
+
+    function _signConsume(uint256 pk, ExperiencePass.ConsumeAuthorization memory authorization)
+        internal
+        view
+        returns (bytes memory)
+    {
+        (uint8 v, bytes32 r, bytes32 s) =
+            vm.sign(pk, experiencePass.hashConsumeAuthorization(authorization));
+        return abi.encodePacked(r, s, v);
+    }
+
     /// @notice The production path: an institution signs, a relayer submits, the citizen pays
     ///         nothing and signs nothing.
     function _relay(uint256 institutionPk, CityPassport.ActivityClaim memory claim)

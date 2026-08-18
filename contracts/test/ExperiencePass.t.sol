@@ -218,4 +218,173 @@ contract ExperiencePassTest is CityQuestTest {
 
         assertEq(passport.credentialCount(citizen), 1);
     }
+
+    // -------------------------------------------------------------------------------------
+    // Relayed paths: the venue signs, anyone submits, nobody but the relayer holds gas
+    // -------------------------------------------------------------------------------------
+
+    function test_RelayerIssuesTicketFromVenueSignature() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(scienceCenterPk, issuance);
+
+        vm.prank(relayer);
+        uint256 passId = experiencePass.issuePassSigned(issuance, signature);
+
+        assertEq(experiencePass.ownerOf(passId), citizen);
+        ExperiencePass.Pass memory pass = experiencePass.getPass(passId);
+        assertEq(pass.institution, scienceCenter, "the venue, not the relayer, issued this");
+        assertEq(uint256(pass.status), uint256(ExperiencePass.PassStatus.Valid));
+    }
+
+    /// @dev The whole point of the change: no institution needs an ether balance.
+    function test_VenueNeedsNoGasForTheSignedPaths() public {
+        vm.deal(scienceCenter, 0);
+        assertEq(scienceCenter.balance, 0);
+
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        vm.prank(relayer);
+        uint256 passId = experiencePass.issuePassSigned(issuance, _signIssuance(scienceCenterPk, issuance));
+
+        ExperiencePass.ConsumeAuthorization memory authorization = _consumeAuth(passId, scienceCenter);
+        vm.prank(relayer);
+        experiencePass.consumePassSigned(authorization, _signConsume(scienceCenterPk, authorization));
+
+        assertEq(scienceCenter.balance, 0, "the venue spent nothing");
+        assertEq(uint256(experiencePass.getPass(passId).status), uint256(ExperiencePass.PassStatus.Used));
+        assertTrue(passport.hasCredential(citizen, EARTHQUAKE_EXPERIENCE));
+    }
+
+    function test_RevertWhen_IssuanceSignatureIsFromSomeoneElse() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(impostorPk, issuance);
+
+        vm.prank(relayer);
+        vm.expectRevert(ExperiencePass.InvalidSignature.selector);
+        experiencePass.issuePassSigned(issuance, signature);
+    }
+
+    function test_RevertWhen_IssuanceNamesAnUnauthorizedVenue() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, impostor, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(impostorPk, issuance);
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(ExperiencePass.UnauthorizedInstitution.selector, impostor));
+        experiencePass.issuePassSigned(issuance, signature);
+    }
+
+    function test_RevertWhen_IssuanceIsTamperedWith() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(scienceCenterPk, issuance);
+
+        issuance.recipient = impostor;
+
+        vm.prank(relayer);
+        vm.expectRevert(ExperiencePass.InvalidSignature.selector);
+        experiencePass.issuePassSigned(issuance, signature);
+    }
+
+    function test_RevertWhen_IssuanceHasExpired() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(scienceCenterPk, issuance);
+
+        vm.warp(issuance.expiresAt + 1);
+
+        vm.prank(relayer);
+        vm.expectRevert(
+            abi.encodeWithSelector(ExperiencePass.AuthorizationExpired.selector, issuance.expiresAt)
+        );
+        experiencePass.issuePassSigned(issuance, signature);
+    }
+
+    /// @dev Without this, one signed authorisation would be an unlimited ticket printer.
+    function test_RevertWhen_TheSameIssuanceIsSubmittedTwice() public {
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(scienceCenterPk, issuance);
+
+        vm.startPrank(relayer);
+        experiencePass.issuePassSigned(issuance, signature);
+
+        bytes32 issuanceKey = keccak256(abi.encode(scienceCenter, issuance.nonce));
+        vm.expectRevert(abi.encodeWithSelector(ExperiencePass.IssuanceAlreadyUsed.selector, issuanceKey));
+        experiencePass.issuePassSigned(issuance, signature);
+        vm.stopPrank();
+
+        assertTrue(experiencePass.isIssuanceSpent(scienceCenter, issuance.nonce));
+    }
+
+    function test_RevertWhen_SignedConsumeIsReplayed() public {
+        uint256 passId = _issueTicket();
+        ExperiencePass.ConsumeAuthorization memory authorization = _consumeAuth(passId, scienceCenter);
+        bytes memory signature = _signConsume(scienceCenterPk, authorization);
+
+        vm.startPrank(relayer);
+        experiencePass.consumePassSigned(authorization, signature);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ExperiencePass.PassNotValid.selector, passId, ExperiencePass.PassStatus.Used
+            )
+        );
+        experiencePass.consumePassSigned(authorization, signature);
+        vm.stopPrank();
+    }
+
+    function test_RevertWhen_AnotherVenueSignsTheConsume() public {
+        uint256 passId = _issueTicket();
+        // The library is a real, authorised institution -- it just did not sell this ticket.
+        ExperiencePass.ConsumeAuthorization memory authorization = _consumeAuth(passId, library_);
+        bytes memory signature = _signConsume(libraryPk, authorization);
+
+        vm.prank(relayer);
+        vm.expectRevert(ExperiencePass.NotIssuingInstitution.selector);
+        experiencePass.consumePassSigned(authorization, signature);
+    }
+
+    function test_RevertWhen_ConsumeSignatureIsFromSomeoneElse() public {
+        uint256 passId = _issueTicket();
+        ExperiencePass.ConsumeAuthorization memory authorization = _consumeAuth(passId, scienceCenter);
+        bytes memory signature = _signConsume(impostorPk, authorization);
+
+        vm.prank(relayer);
+        vm.expectRevert(ExperiencePass.InvalidSignature.selector);
+        experiencePass.consumePassSigned(authorization, signature);
+    }
+
+    function test_RevertWhen_ConsumeAuthorizationHasExpired() public {
+        uint256 passId = _issueTicket();
+        ExperiencePass.ConsumeAuthorization memory authorization = _consumeAuth(passId, scienceCenter);
+        bytes memory signature = _signConsume(scienceCenterPk, authorization);
+
+        vm.warp(authorization.expiresAt + 1);
+
+        vm.prank(relayer);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ExperiencePass.AuthorizationExpired.selector, authorization.expiresAt
+            )
+        );
+        experiencePass.consumePassSigned(authorization, signature);
+    }
+
+    function test_RevertWhen_SuspendedVenueSignsAnIssuance() public {
+        vm.prank(admin);
+        registry.deactivateInstitution(scienceCenter);
+
+        ExperiencePass.PassIssuance memory issuance =
+            _issuance(citizen, scienceCenter, EARTHQUAKE_EXPERIENCE, validUntil);
+        bytes memory signature = _signIssuance(scienceCenterPk, issuance);
+
+        vm.prank(relayer);
+        vm.expectRevert(
+            abi.encodeWithSelector(ExperiencePass.UnauthorizedInstitution.selector, scienceCenter)
+        );
+        experiencePass.issuePassSigned(issuance, signature);
+    }
 }

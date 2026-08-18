@@ -19,6 +19,9 @@ export function SiteFooter() {
           <Link href="/quests" className="hover:text-ink">
             Quests
           </Link>
+          <Link href="/leaderboard" className="hover:text-ink">
+            Explorers
+          </Link>
           <Link href="/institution" className="hover:text-ink">
             Institution staff
           </Link>

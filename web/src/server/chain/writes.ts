@@ -5,14 +5,22 @@ import { publicEnv } from "@/lib/env";
 import { activeChain, publicClient } from "@/lib/chain/client";
 import { contracts, institutionTypeIndex, type InstitutionTypeName } from "@/lib/chain/contracts";
 import type { SignerRole } from "@/server/catalog";
-import { ACTIVITY_CLAIM_TYPES, institutionAccount, passportDomain, relayerAccount } from "./signer";
+import {
+  ACTIVITY_CLAIM_TYPES,
+  CONSUME_AUTHORIZATION_TYPES,
+  PASS_ISSUANCE_TYPES,
+  experienceDomain,
+  institutionAccount,
+  passportDomain,
+  relayerAccount,
+} from "./signer";
 
 /**
  * Every transaction this app sends.
  *
- * The pattern that matters is in `verifyActivity`: the institution signs, the relayer submits.
- * The citizen is not involved in the transaction at all, which is why they never need gas, a
- * seed phrase, or any idea that a blockchain exists.
+ * One rule holds everywhere: the institution signs, the relayer submits. Authority lives in the
+ * signature, gas lives with the relayer, and neither citizens nor institutions ever need to hold
+ * a balance. That is why a single funded account is enough to run the whole city.
  */
 
 const CLAIM_TTL_SECONDS = 300;
@@ -89,44 +97,73 @@ export async function verifyActivityOnChain(
   return { txHash, blockNumber: receipt.blockNumber.toString() };
 }
 
-/**
- * Issue a ticket. Unlike credentials this is sent by the institution itself, because the
- * contract records `msg.sender` as the issuing institution.
- */
+/** Issue a ticket: the venue signs the sale, the relayer puts it on-chain. */
 export async function issuePassOnChain(
   role: SignerRole,
   to: `0x${string}`,
   credentialType: `0x${string}`,
   validUntil: bigint,
 ): Promise<TxResult & { passId: string }> {
-  const account = institutionAccount(role);
+  const institution = institutionAccount(role);
+  const issuance = {
+    recipient: to,
+    institution: institution.address,
+    credentialType,
+    validUntil,
+    expiresAt: BigInt(Math.floor(Date.now() / 1000) + CLAIM_TTL_SECONDS),
+    nonce: toHex(randomBytes(32)),
+  } as const;
+
+  const signature = await institution.signTypedData({
+    domain: experienceDomain(),
+    types: PASS_ISSUANCE_TYPES,
+    primaryType: "PassIssuance",
+    message: issuance,
+  });
+
+  const relayer = relayerAccount();
   const client = publicClient();
 
   const { request, result } = await client.simulateContract({
     ...contracts.experiencePass,
-    functionName: "issuePass",
-    args: [to, credentialType, validUntil],
-    account,
+    functionName: "issuePassSigned",
+    args: [issuance, signature],
+    account: relayer,
   });
 
-  const txHash = await walletFor(account).writeContract(request);
+  const txHash = await walletFor(relayer).writeContract(request);
   const receipt = await client.waitForTransactionReceipt({ hash: txHash });
   return { txHash, blockNumber: receipt.blockNumber.toString(), passId: result.toString() };
 }
 
-/** Spend a ticket. The same transaction awards the achievement. */
+/** Spend a ticket at the door. The same transaction awards the achievement. */
 export async function consumePassOnChain(role: SignerRole, passId: bigint): Promise<TxResult> {
-  const account = institutionAccount(role);
+  const institution = institutionAccount(role);
+  const authorization = {
+    passId,
+    institution: institution.address,
+    expiresAt: BigInt(Math.floor(Date.now() / 1000) + CLAIM_TTL_SECONDS),
+    nonce: toHex(randomBytes(32)),
+  } as const;
+
+  const signature = await institution.signTypedData({
+    domain: experienceDomain(),
+    types: CONSUME_AUTHORIZATION_TYPES,
+    primaryType: "ConsumeAuthorization",
+    message: authorization,
+  });
+
+  const relayer = relayerAccount();
   const client = publicClient();
 
   const { request } = await client.simulateContract({
     ...contracts.experiencePass,
-    functionName: "consumePass",
-    args: [passId],
-    account,
+    functionName: "consumePassSigned",
+    args: [authorization, signature],
+    account: relayer,
   });
 
-  const txHash = await walletFor(account).writeContract(request);
+  const txHash = await walletFor(relayer).writeContract(request);
   const receipt = await client.waitForTransactionReceipt({ hash: txHash });
   return { txHash, blockNumber: receipt.blockNumber.toString() };
 }

@@ -119,10 +119,11 @@ flowchart TB
     FE --> API
     API -->|"asks to confirm"| LIB
     LIB -->|"EIP-712 signed claim"| API
-    API -->|"relayer submits<br/>citizen pays no gas"| PASS
+    API -->|"relayer submits<br/>nobody else pays gas"| PASS
+    API -->|"relayer submits"| TICK
     PASS -->|"is this issuer authorised?"| REG
     PASS -->|"badge issued"| U
-    SCI -->|"issues / consumes"| TICK
+    SCI -->|"EIP-712 signed<br/>ticket authorisation"| API
     TICK -->|"awards achievement<br/>same transaction"| PASS
     MUN -->|"registers institutions"| REG
     MUN -->|"issues quest reward after<br/>reading other institutions' badges"| PASS
@@ -155,6 +156,12 @@ The separation of **authority** (the institution's signature) from **payment** (
 is what makes the citizen experience possible. A twelve-year-old collects a verified credential
 without owning cryptocurrency, seeing a wallet popup, or knowing a blockchain was involved.
 
+The same rule covers tickets, so it holds without exception across the system: **institutions sign,
+the relayer pays.** Exactly one account in the entire deployment needs a balance. Institutions do
+not have to monitor gas — which matters, because a library's IT department has better things to do
+than watch an ether balance — and a venue running dry can never take the door offline. The relayer
+holds no authority of its own: drain it and the service stops, but nothing can be forged.
+
 ---
 
 ## On-chain vs off-chain
@@ -169,6 +176,10 @@ without owning cryptocurrency, seeing a wallet popup, or knowing a blockchain wa
 | Anti-abuse record keys | `CityPassport` | Must hold even if our server is compromised |
 | Revocation status | `CityPassport` | An institution must be able to withdraw its own word |
 | Ticket existence and consumption | `ExperiencePass` | Must be spendable exactly once |
+
+**Who pays for all this:** one relayer account, and nothing else. Institutions sign but never
+transact; citizens neither sign transactions nor hold funds. See
+[`writes.ts`](web/src/server/chain/writes.ts).
 
 **Off-chain** — everything else:
 
@@ -282,19 +293,25 @@ Signatures are checked with OpenZeppelin's `SignatureChecker`, so an institution
 single key to a multisig later without redeploying anything.
 
 ### `ExperiencePass.sol`
-Non-transferable single-use tickets. Only the issuing institution can consume one, and consumption
-awards the achievement **in the same transaction** — so an operator can never burn a ticket without
-the visitor getting credit. Money never touches this contract; payment happens in ordinary currency
+Non-transferable single-use tickets. Only the issuing venue can consume one, and consumption awards
+the achievement **in the same transaction** — so an operator can never burn a ticket without the
+visitor getting credit. Money never touches this contract; payment happens in ordinary currency
 through ordinary payment rails.
+
+Selling and admitting both work from an EIP-712 signature (`issuePassSigned`,
+`consumePassSigned`), so a venue never sends a transaction and never needs a gas balance. Issuance
+carries its own nonce guard, because otherwise one signed authorisation would be an unlimited
+ticket printer; consumption needs none, since a spent pass can never return to Valid. The direct
+`msg.sender` path is kept for a venue that would rather submit its own transactions.
 
 ### Tests
 
-56 Foundry tests covering the security-relevant behaviour:
+68 Foundry tests covering the security-relevant behaviour:
 
 ```
 contracts/test/InstitutionRegistry.t.sol   11 tests
 contracts/test/CityPassport.t.sol          28 tests
-contracts/test/ExperiencePass.t.sol        17 tests
+contracts/test/ExperiencePass.t.sol        29 tests
 ```
 
 Including: unauthorised issuers rejected · signatures from the wrong key rejected · tampered claims
@@ -302,7 +319,8 @@ rejected · expired claims rejected · same claim not usable twice · leaving an
 library the same day rejected even with a fresh signature · next-day visits accepted without
 duplicating the badge · one-time credentials not re-earnable · tickets consumable exactly once ·
 another venue cannot spend a ticket · credentials and tickets non-transferable · revocation limited
-to the issuer or an admin · a suspended institution cannot issue.
+to the issuer or an admin · a suspended institution cannot issue · one signed ticket
+authorisation cannot mint two tickets · a venue with a zero balance can still sell and admit.
 
 ```bash
 cd contracts && forge test -vv
@@ -399,10 +417,10 @@ See [`web/.env.example`](web/.env.example). Summary:
 | `NEXT_PUBLIC_INSTITUTION_REGISTRY_ADDRESS` | Registry address |
 | `NEXT_PUBLIC_CITY_PASSPORT_ADDRESS` | Passport address |
 | `NEXT_PUBLIC_EXPERIENCE_PASS_ADDRESS` | Ticket address |
-| `RELAYER_PRIVATE_KEY` | Pays gas; also the municipality admin. Holds no authority of its own |
-| `LIBRARY_SIGNER_PRIVATE_KEY` | Library's signing key |
-| `SCIENCE_CENTER_SIGNER_PRIVATE_KEY` | Science center's signing key |
-| `MUNICIPALITY_SIGNER_PRIVATE_KEY` | Municipality's signing key |
+| `RELAYER_PRIVATE_KEY` | **The only account that needs funds.** Pays all gas; also the municipality admin. Holds no authority of its own |
+| `LIBRARY_SIGNER_PRIVATE_KEY` | Library's signing key — signs only, needs no ether |
+| `SCIENCE_CENTER_SIGNER_PRIVATE_KEY` | Science center's signing key — signs only, needs no ether |
+| `MUNICIPALITY_SIGNER_PRIVATE_KEY` | Municipality's signing key — signs only, needs no ether |
 | `SESSION_SECRET` | Signs session cookies |
 | `OPERATOR_PIN` / `ADMIN_PIN` | **Demo mock** staff sign-in codes |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Optional; omit to use the local JSON store |
@@ -430,10 +448,13 @@ forge script script/Deploy.s.sol \
   --broadcast --verify
 ```
 
-The script deploys all three contracts, grants `ExperiencePass` the credential-issuer role,
-registers the three demo institutions, and tops each institution up with a small amount of gas
-(institutions send their own transactions when issuing and consuming tickets; credential issuance
-is relayed, so citizens never need funds). Addresses are printed and written to
+**Only the deployer needs testnet ETH.** It deploys the contracts, acts as the municipality
+registrar, and afterwards relays every institution-signed transaction. The institution signer
+addresses never send a transaction, so they can hold a zero balance forever — you only need their
+*addresses* here, never their funds. Citizens never need funds either.
+
+The script deploys all three contracts, grants `ExperiencePass` the credential-issuer role, and
+registers the three demo institutions. Addresses are printed and written to
 `contracts/deployments/<chainId>.json`.
 
 Copy them into `web/.env.local`, then deploy the web app anywhere that runs Next.js.

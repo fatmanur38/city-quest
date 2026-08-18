@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/quests", label: "Quests" },
   { href: "/tickets", label: "Tickets" },
   { href: "/rewards", label: "Rewards" },
+  { href: "/leaderboard", label: "Explorers" },
 ];
 
 export function SiteHeader() {
