@@ -407,6 +407,18 @@ cd ../web && npm run sync:abis
 
 ## Environment variables
 
+> **Two different sets, and it is easy to mix them up.** The Foundry deploy script takes
+> institution **addresses** (`LIBRARY_SIGNER_ADDRESS`); the web app takes institution **private
+> keys** (`LIBRARY_SIGNER_PRIVATE_KEY`). The deploy script only records who is authorised, so it
+> never needs a key. The app has to actually sign, so it does.
+>
+> Similarly, `DEPLOYER_PRIVATE_KEY` is read only by the deploy script; the running app reads the
+> same key as `RELAYER_PRIVATE_KEY`.
+>
+> Putting a key in an `_ADDRESS` variable leaves the app with no signer and check-ins fail with no
+> obvious cause, so `configWarnings()` in [`env.ts`](web/src/lib/env.ts) detects exactly that and
+> logs what to fix.
+
 See [`web/.env.example`](web/.env.example). Summary:
 
 | Variable | Purpose |

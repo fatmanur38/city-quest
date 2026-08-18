@@ -8,4 +8,7 @@ broadcast/
 deployments/31337.json
 
 docs/
-.env
+
+# Every env file. Never commit keys.
+.env*
+!.env.example

@@ -64,6 +64,41 @@ export function chainConfigError(): string | null {
     .join("; ");
 }
 
+/**
+ * Catches the configuration mistakes that would otherwise fail silently.
+ *
+ * The dangerous one is confusing the two variable sets: Foundry's deploy script takes institution
+ * *addresses*, while this app takes institution *private keys*. Pasting a key into a variable
+ * named ADDRESS leaves the app with no signer at all, and the only symptom is a check-in that
+ * refuses for no visible reason.
+ */
+export function configWarnings(): string[] {
+  const warnings: string[] = [];
+  const isKey = (v?: string) => Boolean(v && /^0x[0-9a-fA-F]{64}$/.test(v));
+
+  if (!process.env.RELAYER_PRIVATE_KEY && isKey(process.env.DEPLOYER_PRIVATE_KEY)) {
+    warnings.push(
+      "DEPLOYER_PRIVATE_KEY is set but RELAYER_PRIVATE_KEY is not. This app reads " +
+        "RELAYER_PRIVATE_KEY; DEPLOYER_PRIVATE_KEY is only used by the Foundry deploy script. " +
+        "Rename it in .env.local.",
+    );
+  }
+
+  for (const role of ["LIBRARY", "SCIENCE_CENTER", "MUNICIPALITY"]) {
+    if (isKey(process.env[`${role}_SIGNER_ADDRESS`])) {
+      warnings.push(
+        `${role}_SIGNER_ADDRESS holds a private key, not an address. The app wants ` +
+          `${role}_SIGNER_PRIVATE_KEY; the deploy script wants the matching address.`,
+      );
+    }
+    if (!process.env[`${role}_SIGNER_PRIVATE_KEY`]) {
+      warnings.push(`${role}_SIGNER_PRIVATE_KEY is missing, so that institution cannot sign.`);
+    }
+  }
+
+  return warnings;
+}
+
 /** Server-only secrets. Never import this module from a client component. */
 const serverSchema = z.object({
   relayerPrivateKey: privateKeySchema.optional(),
@@ -79,8 +114,16 @@ export type ServerEnv = z.infer<typeof serverSchema>;
 
 let cachedServerEnv: ServerEnv | null = null;
 
+let warned = false;
+
 export function serverEnv(): ServerEnv {
   if (cachedServerEnv) return cachedServerEnv;
+
+  if (!warned) {
+    warned = true;
+    for (const warning of configWarnings()) console.warn(`[env] ${warning}`);
+  }
+
   cachedServerEnv = serverSchema.parse({
     relayerPrivateKey: process.env.RELAYER_PRIVATE_KEY || undefined,
     librarySignerPrivateKey: process.env.LIBRARY_SIGNER_PRIVATE_KEY || undefined,
