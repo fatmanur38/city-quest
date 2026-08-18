@@ -1,0 +1,180 @@
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
+import { verifyMessage, isAddress, getAddress } from "viem";
+import { serverEnv } from "@/lib/env";
+
+/**
+ * Sessions without a session table.
+ *
+ * A citizen proves they control an address by signing a short human-readable message. We check
+ * that signature, then hand back an HMAC-signed cookie. Nonces are themselves signed tokens
+ * carrying their own expiry, so nothing has to be stored between the two requests.
+ */
+
+const CITIZEN_COOKIE = "cq_session";
+const OPERATOR_COOKIE = "cq_operator";
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+const NONCE_TTL_SECONDS = 5 * 60;
+
+function sign(payload: string): string {
+  return createHmac("sha256", serverEnv().sessionSecret).update(payload).digest("base64url");
+}
+
+function seal(payload: string): string {
+  return `${payload}.${sign(payload)}`;
+}
+
+function unseal(token: string | undefined): string | null {
+  if (!token) return null;
+  const index = token.lastIndexOf(".");
+  if (index <= 0) return null;
+  const payload = token.slice(0, index);
+  const provided = Buffer.from(token.slice(index + 1));
+  const expected = Buffer.from(sign(payload));
+  if (provided.length !== expected.length) return null;
+  return timingSafeEqual(provided, expected) ? payload : null;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Sign-in challenge
+// ---------------------------------------------------------------------------------------------
+
+export function createNonce(): string {
+  const expiresAt = Math.floor(Date.now() / 1000) + NONCE_TTL_SECONDS;
+  return seal(`${randomBytes(12).toString("base64url")}:${expiresAt}`);
+}
+
+function isNonceValid(nonce: string): boolean {
+  const payload = unseal(nonce);
+  if (!payload) return false;
+  const expiresAt = Number(payload.split(":")[1]);
+  return Number.isFinite(expiresAt) && expiresAt > Math.floor(Date.now() / 1000);
+}
+
+/**
+ * Deliberately readable. If a wallet ever does show this to a person, it should explain itself
+ * in plain language rather than as a wall of hex.
+ */
+export function signInMessage(address: string, nonce: string): string {
+  return [
+    "Sign in to your City Passport.",
+    "",
+    "This only proves the passport is yours.",
+    "It does not move any money and costs nothing.",
+    "",
+    `Passport: ${address}`,
+    `Code: ${nonce}`,
+  ].join("\n");
+}
+
+export interface SignInResult {
+  ok: boolean;
+  address?: `0x${string}`;
+  error?: string;
+}
+
+export async function verifySignIn(
+  address: string,
+  nonce: string,
+  signature: string,
+): Promise<SignInResult> {
+  if (!isAddress(address)) return { ok: false, error: "That is not a valid passport address." };
+  if (!isNonceValid(nonce)) return { ok: false, error: "Your sign-in code expired. Try again." };
+
+  const checksummed = getAddress(address);
+  try {
+    const valid = await verifyMessage({
+      address: checksummed,
+      message: signInMessage(checksummed, nonce),
+      signature: signature as `0x${string}`,
+    });
+    if (!valid) return { ok: false, error: "That signature does not match the passport." };
+  } catch {
+    return { ok: false, error: "That signature could not be read." };
+  }
+  return { ok: true, address: checksummed };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Citizen session
+// ---------------------------------------------------------------------------------------------
+
+export async function startSession(address: `0x${string}`): Promise<void> {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const store = await cookies();
+  store.set(CITIZEN_COOKIE, seal(`${address.toLowerCase()}:${expiresAt}`), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_SECONDS,
+  });
+}
+
+export async function endSession(): Promise<void> {
+  (await cookies()).delete(CITIZEN_COOKIE);
+}
+
+/** The signed-in citizen's address, or null. */
+export async function currentWallet(): Promise<`0x${string}` | null> {
+  const payload = unseal((await cookies()).get(CITIZEN_COOKIE)?.value);
+  if (!payload) return null;
+  const [wallet, expiresAt] = payload.split(":");
+  if (!wallet || Number(expiresAt) <= Math.floor(Date.now() / 1000)) return null;
+  return isAddress(wallet) ? getAddress(wallet) : null;
+}
+
+export async function requireWallet(): Promise<`0x${string}`> {
+  const wallet = await currentWallet();
+  if (!wallet) throw new SessionError("Please sign in to your City Passport first.");
+  return wallet;
+}
+
+export class SessionError extends Error {}
+
+// ---------------------------------------------------------------------------------------------
+// Institution operator session
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * DEMO MOCK -- institution staff authenticate with a shared PIN.
+ *
+ * It exists so that "any browser can mint credentials" is not literally true during the demo.
+ * In production each institution would have real staff accounts (municipal SSO, or a device
+ * certificate on the kiosk), and the signing key would live in an HSM rather than in an
+ * environment variable. The contract-level guarantee is unaffected either way: an institution
+ * that is not in the registry cannot issue anything, no matter who is holding the laptop.
+ */
+export function operatorPin(): string {
+  return process.env.OPERATOR_PIN || "1234";
+}
+
+export async function startOperatorSession(role: string): Promise<void> {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const store = await cookies();
+  store.set(OPERATOR_COOKIE, seal(`${role}:${expiresAt}`), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_SECONDS,
+  });
+}
+
+export async function endOperatorSession(): Promise<void> {
+  (await cookies()).delete(OPERATOR_COOKIE);
+}
+
+export async function currentOperator(): Promise<string | null> {
+  const payload = unseal((await cookies()).get(OPERATOR_COOKIE)?.value);
+  if (!payload) return null;
+  const [role, expiresAt] = payload.split(":");
+  if (!role || Number(expiresAt) <= Math.floor(Date.now() / 1000)) return null;
+  return role;
+}
+
+export async function requireOperator(): Promise<string> {
+  const role = await currentOperator();
+  if (!role) throw new SessionError("Institution staff sign-in required.");
+  return role;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "city-quest",
+  "private": true,
+  "description": "A city learning passport: verifiable achievements issued by independent institutions.",
+  "scripts": {
+    "chain": "anvil --block-time 1",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test -vv",
+    "contracts:deploy:local": "cd contracts && forge script script/Deploy.s.sol --rpc-url http://127.0.0.1:8545 --broadcast",
+    "contracts:deploy:base-sepolia": "cd contracts && forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build",
+    "sync:abis": "cd web && npm run sync:abis",
+    "demo:e2e": "cd web && npm run demo:e2e"
+  }
+}

@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/*
+ * CityQuest visual identity.
+ *
+ * Civic, warm and a little playful -- closer to a public library's summer reading programme
+ * than to a trading terminal. Deliberately no neon gradients, no dark "crypto" chrome: most of
+ * the people using this are schoolchildren and their parents.
+ */
+
+@theme {
+  /* Warm paper, so the app feels like a printed passport rather than a dashboard. */
+  --color-paper: #fdfaf4;
+  --color-paper-raised: #ffffff;
+  --color-paper-sunk: #f5efe3;
+
+  --color-ink: #1c1917;
+  --color-ink-soft: #57534e;
+  --color-ink-faint: #8b8378;
+
+  --color-border-soft: #e8e0d1;
+
+  /* Deep civic teal: trustworthy, municipal, not a blockchain blue. */
+  --color-brand-50: #eefaf7;
+  --color-brand-100: #d3f2ea;
+  --color-brand-300: #7ed4c1;
+  --color-brand-500: #17a085;
+  --color-brand-600: #0f8570;
+  --color-brand-700: #0b6656;
+  --color-brand-900: #063b32;
+
+  /* Warm amber for achievements and rewards. */
+  --color-sun-100: #fdf0d5;
+  --color-sun-300: #f7cf7a;
+  --color-sun-500: #e8a33d;
+  --color-sun-700: #b3741d;
+
+  --color-berry-100: #f7e6f0;
+  --color-berry-500: #b4478c;
+
+  --color-sky-100: #e3f0fb;
+  --color-sky-500: #3d84c6;
+
+  --color-violet-100: #ece8fb;
+  --color-violet-500: #6d5bd0;
+
+  --color-emerald-100: #e2f5e6;
+  --color-emerald-500: #3f9757;
+
+  --color-danger-100: #fbe7e4;
+  --color-danger-500: #c4462f;
+  --color-danger-700: #8f2f1e;
+
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(28 25 23 / 0.05), 0 18px 40px -18px rgb(28 25 23 / 0.28);
+}
+
+html {
+  background-color: var(--color-paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* A faint paper grain so large empty areas do not look like a blank div. */
+.paper-grain {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgb(23 160 133 / 0.05), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgb(232 163 61 / 0.07), transparent 40%);
+}
+
+@keyframes cq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cq-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-rise {
+  animation: cq-rise 0.35s ease-out both;
+}
+
+.animate-pop {
+  animation: cq-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-pop {
+    animation: none;
+  }
+}
+
+/* The dotted rule used along the top of passport cards, like a real stamped document. */
+.perforation {
+  background-image: radial-gradient(circle, var(--color-border-soft) 1.5px, transparent 1.5px);
+  background-size: 10px 10px;
+  background-repeat: repeat-x;
+}

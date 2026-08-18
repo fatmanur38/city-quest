@@ -1,0 +1,11 @@
+# Foundry build output
+out/
+cache/
+broadcast/
+
+# Deployment records are written per chain. The Base Sepolia one is worth committing;
+# local Anvil runs are not.
+deployments/31337.json
+
+docs/
+.env
