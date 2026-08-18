@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { institutionTypeLabel } from "@/lib/chain/contracts";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 export interface SelectableInstitution {
   slug: string;
@@ -20,6 +21,7 @@ export interface SelectableInstitution {
  */
 export function OperatorSignIn({ institutions }: { institutions: SelectableInstitution[] }) {
   const router = useRouter();
+  const { t } = useTranslations();
   const [slug, setSlug] = useState(institutions[0]?.slug ?? "");
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
@@ -38,7 +40,7 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
       if (!data.ok) throw new Error(data.error);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not sign in.");
+      setError(cause instanceof Error ? cause.message : t.auth.couldNotSignIn);
     } finally {
       setBusy(false);
     }
@@ -46,13 +48,13 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
 
   return (
     <Card className="mx-auto w-full max-w-lg p-7">
-      <h1 className="font-display text-2xl font-bold text-ink">Institution staff</h1>
+      <h1 className="font-display text-2xl font-bold text-ink">{t.institution.signInTitle}</h1>
       <p className="mt-2 text-sm text-ink-soft">
-        Sign in to confirm visits and validate tickets on behalf of your institution.
+        {t.institution.signInBody}
       </p>
 
       <fieldset className="mt-6">
-        <legend className="text-sm font-semibold text-ink">Which institution?</legend>
+        <legend className="text-sm font-semibold text-ink">{t.institution.whichInstitution}</legend>
         <div className="mt-3 grid gap-2">
           {institutions.map((institution) => (
             <label
@@ -86,7 +88,7 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
       </fieldset>
 
       <label className="mt-6 block">
-        <span className="text-sm font-semibold text-ink">Staff code</span>
+        <span className="text-sm font-semibold text-ink">{t.institution.staffCode}</span>
         <input
           type="password"
           value={pin}
@@ -102,11 +104,11 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
       {error ? <p className="mt-3 text-sm font-medium text-danger-700">{error}</p> : null}
 
       <Button className="mt-6 w-full" onClick={submit} disabled={busy || pin.length === 0}>
-        {busy ? "Checking…" : "Sign in"}
+        {busy ? t.activities.checking : t.nav.signIn}
       </Button>
 
       <p className="mt-4 rounded-xl bg-sun-100 px-3 py-2 text-xs text-sun-700">
-        Demo build — the staff code is <code className="font-mono font-semibold">1234</code>.
+        {t.institution.demoStaffCode} <code className="font-mono font-semibold">1234</code>.
       </p>
     </Card>
   );

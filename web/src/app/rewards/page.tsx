@@ -6,23 +6,26 @@ import { currentWallet } from "@/server/session";
 import { loadPassport } from "@/server/passport-service";
 import { REWARDS } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "Rewards — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.rewards.metaTitle} — CityQuest` };
+}
 
 export default async function RewardsPage() {
-  const wallet = await currentWallet();
+  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
   const passport = wallet ? await loadPassport(wallet) : null;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          Rewards from local sponsors
+          {t.rewards.title}
         </h1>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          Local businesses offer small thank-yous to students who have earned particular
-          achievements. They check your passport themselves — we do not sell them your details,
-          and your points are never converted into money.
+          {t.rewards.lead}
         </p>
       </header>
 
@@ -38,36 +41,40 @@ export default async function RewardsPage() {
                   {reward.emoji}
                 </span>
                 {view?.eligible ? (
-                  <Badge tone="emerald">Eligible</Badge>
+                  <Badge tone="emerald">{t.rewards.eligible}</Badge>
                 ) : (
-                  <Badge tone="neutral">Locked</Badge>
+                  <Badge tone="neutral">{t.rewards.locked}</Badge>
                 )}
               </div>
 
-              <h2 className="mt-4 font-display text-lg font-bold text-ink">{reward.title}</h2>
-              <p className="mt-1 text-sm font-semibold text-ink-soft">by {reward.sponsorName}</p>
+              <h2 className="mt-4 font-display text-lg font-bold text-ink">
+                {pick(reward.title, locale)}
+              </h2>
+              <p className="mt-1 text-sm font-semibold text-ink-soft">
+                {t.rewards.by(reward.sponsorName)}
+              </p>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-soft">
-                {reward.description}
+                {pick(reward.description, locale)}
               </p>
 
               <div className="mt-4 rounded-xl bg-paper-sunk px-4 py-3">
                 <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
-                  Requirement
+                  {t.rewards.requirement}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-ink">
-                  {required.emoji} {required.title}
+                  {required.emoji} {pick(required.title, locale)}
                 </p>
               </div>
 
               <div className="mt-5">
                 {!wallet ? (
-                  <SignInButton label="Sign in to check" redirectTo="/rewards" size="md" />
+                  <SignInButton label={t.auth.signInToCheck} redirectTo="/rewards" size="md" />
                 ) : (
                   <ClaimRewardButton
                     rewardSlug={reward.slug}
                     eligible={Boolean(view?.eligible)}
                     existingCode={view?.couponCode ?? null}
-                    requirement={required.title}
+                    requirement={pick(required.title, locale)}
                   />
                 )}
               </div>
@@ -78,13 +85,10 @@ export default async function RewardsPage() {
 
       <Card className="mt-8 bg-paper-sunk/50 p-6">
         <h2 className="font-display text-base font-semibold text-ink">
-          Why a coupon and not a coin?
+          {t.rewards.whyTitle}
         </h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">
-          The moment learning points become tradable, the incentive changes from &ldquo;go and
-          learn something&rdquo; to &ldquo;farm the points&rdquo;. So the cafe reads an achievement
-          it did not issue, decides for itself that it is worth a hot chocolate, and hands over an
-          ordinary coupon. Nothing is bought, sold or transferred.
+          {t.rewards.whyBody}
         </p>
       </Card>
     </div>

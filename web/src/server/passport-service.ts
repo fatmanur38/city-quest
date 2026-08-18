@@ -2,6 +2,7 @@ import { readCredentials, readPasses, type OnChainCredential, type OnChainPass }
 import { CREDENTIALS, type CredentialName } from "@/lib/credentials";
 import { db } from "@/server/db";
 import type { Completion, Profile } from "@/server/db/types";
+import type { Localized } from "@/lib/i18n/types";
 import { ACTIVITIES, QUESTS, REWARDS, activityBySlug, type CatalogQuest } from "@/server/catalog";
 import { resolveInstitutions, type ResolvedInstitution } from "@/server/institutions";
 
@@ -36,12 +37,12 @@ export function levelFor(xp: number): LevelInfo {
 }
 
 export interface CredentialView extends OnChainCredential {
-  issuerName: string;
+  issuerName: Localized;
   issuerEmoji: string;
 }
 
 export interface RequirementProgress {
-  label: string;
+  label: Localized;
   met: boolean;
   /** Whether this requirement is proven on-chain or scored by our own app. */
   verifiedOnChain: boolean;
@@ -60,10 +61,10 @@ export interface QuestProgress {
 export interface RewardView {
   slug: string;
   sponsorName: string;
-  title: string;
-  description: string;
+  title: Localized;
+  description: Localized;
   emoji: string;
-  requiredCredentialTitle: string;
+  requiredCredentialTitle: Localized;
   eligible: boolean;
   couponCode: string | null;
 }
@@ -89,7 +90,7 @@ function decorateCredentials(
     const institution = byAddress.get(credential.issuer.toLowerCase());
     return {
       ...credential,
-      issuerName: institution?.name ?? "Unknown institution",
+      issuerName: institution?.label ?? { en: "Unknown institution", tr: "Bilinmeyen kurum" },
       issuerEmoji: institution?.emoji ?? "🏢",
     };
   });

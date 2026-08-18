@@ -6,6 +6,9 @@ import { rewardBySlug } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
 import { hasCredential } from "@/lib/chain/reads";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
+import { getDictionary } from "@/lib/i18n/dictionary";
 
 /**
  * A sponsor rewards verified learning with an ordinary coupon.
@@ -28,6 +31,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { rewardSlug } = await parseBody(request, schema);
+    const { locale } = await getTranslations();
 
     const reward = rewardBySlug(rewardSlug);
     if (!reward) return fail("We do not know that reward.", 404);
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
     const existing = await db().findRewardClaim(wallet, reward.slug);
     if (existing) {
       return ok({
-        reward: { title: reward.title, sponsor: reward.sponsorName, emoji: reward.emoji },
+        reward: { title: pick(reward.title, locale), sponsor: reward.sponsorName, emoji: reward.emoji },
         couponCode: existing.couponCode,
         alreadyClaimed: true,
       });
@@ -43,12 +47,12 @@ export async function POST(request: Request) {
 
     const required = CREDENTIALS[reward.requiredCredential];
     if (!(await hasCredential(wallet, required.hash))) {
-      return fail(`You need the ${required.title} achievement first.`, 403, "NotEligible");
+      return fail(getDictionary(locale).rewards.notYetBody(pick(required.title, locale)), 403, "NotEligible");
     }
 
     const claim = await db().createRewardClaim(wallet, reward.slug, couponCode());
     return ok({
-      reward: { title: reward.title, sponsor: reward.sponsorName, emoji: reward.emoji },
+      reward: { title: pick(reward.title, locale), sponsor: reward.sponsorName, emoji: reward.emoji },
       couponCode: claim.couponCode,
       alreadyClaimed: false,
     });

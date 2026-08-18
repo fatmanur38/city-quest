@@ -10,8 +10,13 @@ import { readPasses } from "@/lib/chain/reads";
 import { resolveInstitutions } from "@/server/institutions";
 import { ticketQrPayload } from "@/lib/qr";
 import { explorerAddressUrl } from "@/lib/chain/client";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "My Tickets — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.tickets.metaTitle} — CityQuest` };
+}
 
 const STATUS_TONE = {
   Valid: "emerald",
@@ -20,22 +25,21 @@ const STATUS_TONE = {
   None: "neutral",
 } as const;
 
-const STATUS_LABEL = {
-  Valid: "Valid",
-  Used: "Used",
-  Cancelled: "Cancelled",
-  None: "Unknown",
-} as const;
-
 export default async function TicketsPage() {
-  const wallet = await currentWallet();
+  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
+  const statusLabel = {
+    Valid: t.tickets.statusValid,
+    Used: t.tickets.statusUsed,
+    Cancelled: t.tickets.statusCancelled,
+    None: t.tickets.statusUnknown,
+  } as const;
 
   if (!wallet) {
     return (
       <div className="mx-auto grid w-full max-w-2xl place-items-center px-4 py-24 text-center sm:px-6">
         <span className="text-6xl">🎟️</span>
-        <h1 className="mt-6 font-display text-3xl font-bold text-ink">Your tickets live here</h1>
-        <p className="mt-3 text-ink-soft">Sign in to see anything you have booked.</p>
+        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.tickets.signedOutTitle}</h1>
+        <p className="mt-3 text-ink-soft">{t.tickets.signedOutBody}</p>
         <div className="mt-8 flex justify-center">
           <SignInButton redirectTo="/tickets" />
         </div>
@@ -49,23 +53,22 @@ export default async function TicketsPage() {
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          My tickets
+          {t.tickets.title}
         </h1>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          Show a ticket at the entrance and a member of staff will scan it. Each one works exactly
-          once — a screenshot of a used ticket will not get anyone in.
+          {t.tickets.lead}
         </p>
       </header>
 
       {passes.length === 0 ? (
         <Card className="mt-9 grid place-items-center p-12 text-center">
           <span className="text-5xl">🎟️</span>
-          <p className="mt-4 font-display text-lg font-semibold text-ink">No tickets yet</p>
+          <p className="mt-4 font-display text-lg font-semibold text-ink">{t.tickets.none}</p>
           <p className="mt-2 max-w-sm text-sm text-ink-soft">
-            Some experiences, like the earthquake simulation, need a ticket booked in advance.
+            {t.tickets.noneBody}
           </p>
           <ButtonLink href="/activities" className="mt-6">
-            Browse experiences
+            {t.tickets.browse}
           </ButtonLink>
         </Card>
       ) : (
@@ -84,23 +87,23 @@ export default async function TicketsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-xs font-semibold tracking-[0.12em] text-ink-faint uppercase">
-                        Ticket #{pass.passId}
+                        {t.tickets.ticketNumber(pass.passId)}
                       </p>
                       <h2 className="mt-1 font-display text-lg font-bold text-ink">
-                        {pass.credential.title}
+                        {pick(pass.credential.title, locale)}
                       </h2>
                       <p className="mt-1 text-sm text-ink-soft">
-                        {venue?.emoji} {venue?.name ?? "Unknown venue"}
+                        {venue?.emoji} {venue ? pick(venue.label, locale) : t.tickets.unknownVenue}
                       </p>
                     </div>
-                    <Badge tone={STATUS_TONE[pass.status]}>{STATUS_LABEL[pass.status]}</Badge>
+                    <Badge tone={STATUS_TONE[pass.status]}>{statusLabel[pass.status]}</Badge>
                   </div>
 
                   {isValid ? (
                     <div className="mt-5 flex flex-col items-center">
                       <QrCode value={ticketQrPayload(pass.passId)} size={180} />
                       <p className="mt-3 text-center text-xs text-ink-faint">
-                        Show this at the entrance
+                        {t.tickets.showAtEntrance}
                       </p>
                     </div>
                   ) : (
@@ -109,21 +112,20 @@ export default async function TicketsPage() {
                         {pass.credential.emoji}
                       </span>
                       <p className="mt-3 text-sm font-semibold text-ink-soft">
-                        {pass.status === "Used"
-                          ? "Used — enjoy the memory"
-                          : "This ticket was cancelled"}
+                        {pass.status === "Used" ? t.tickets.usedBody : t.tickets.cancelledBody}
                       </p>
                     </div>
                   )}
 
                   {pass.validUntil && isValid ? (
                     <p className="mt-4 text-center text-xs text-ink-faint">
-                      Valid until{" "}
-                      {pass.validUntil.toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {t.tickets.validUntil(
+                        pass.validUntil.toLocaleDateString(locale === "tr" ? "tr-TR" : "en-GB", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }),
+                      )}
                     </p>
                   ) : null}
 
@@ -145,9 +147,9 @@ export default async function TicketsPage() {
 
       {passes.some((pass) => pass.status === "Used") ? (
         <p className="mt-8 text-sm text-ink-soft">
-          Used a ticket? The matching achievement is already in your{" "}
+          {t.tickets.usedHint}{" "}
           <Link href="/passport" className="font-semibold text-brand-700 underline">
-            passport
+            {t.tickets.passportWord}
           </Link>
           .
         </p>

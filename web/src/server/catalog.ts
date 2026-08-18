@@ -1,5 +1,6 @@
 import type { CredentialName } from "@/lib/credentials";
 import type { InstitutionTypeName } from "@/lib/chain/contracts";
+import type { Localized } from "@/lib/i18n/types";
 
 /**
  * The city's catalogue: which institutions exist, what you can do at them, which quests are
@@ -18,11 +19,17 @@ export type SignerRole = "library" | "scienceCenter" | "municipality";
 
 export interface CatalogInstitution {
   slug: string;
+  /**
+   * The canonical name, matching what is registered on-chain. Not translated: the registry entry
+   * is a single public fact about a legal entity, and changing it per reader would break the
+   * match between chain and catalogue.
+   */
   name: string;
+  /** What a reader sees. Free to differ from the registry name, and to be translated. */
+  label: Localized;
   kind: InstitutionTypeName;
-  /** Shown to citizens, never sent on-chain. */
-  description: string;
-  district: string;
+  description: Localized;
+  district: Localized;
   emoji: string;
   /** Absent for sponsors, which never issue achievements. */
   signerRole?: SignerRole;
@@ -34,9 +41,9 @@ export type ActivityKind = "checkin" | "ticket" | "workshop" | "quiz";
 export interface CatalogActivity {
   slug: string;
   institutionSlug: string;
-  title: string;
-  summary: string;
-  description: string;
+  title: Localized;
+  summary: Localized;
+  description: Localized;
   kind: ActivityKind;
   /** Achievement awarded on completion. Quizzes award XP only. */
   credential: CredentialName | null;
@@ -50,13 +57,13 @@ export interface CatalogActivity {
 }
 
 export type QuestRequirement =
-  | { kind: "credential"; credential: CredentialName; label: string }
-  | { kind: "activity"; activitySlug: string; label: string };
+  | { kind: "credential"; credential: CredentialName; label: Localized }
+  | { kind: "activity"; activitySlug: string; label: Localized };
 
 export interface CatalogQuest {
   slug: string;
-  title: string;
-  description: string;
+  title: Localized;
+  description: Localized;
   requirements: QuestRequirement[];
   xpReward: number;
   rewardCredential: CredentialName;
@@ -68,16 +75,16 @@ export interface CatalogQuest {
 export interface CatalogReward {
   slug: string;
   sponsorName: string;
-  title: string;
-  description: string;
+  title: Localized;
+  description: Localized;
   requiredCredential: CredentialName;
   emoji: string;
 }
 
 export interface QuizQuestion {
   id: string;
-  question: string;
-  options: string[];
+  question: Localized;
+  options: Localized[];
   /** Server-side only. Never serialise this to the browser. */
   correctIndex: number;
 }
@@ -86,10 +93,13 @@ export const INSTITUTIONS: CatalogInstitution[] = [
   {
     slug: "selcuklu-library",
     name: "Selcuklu Library",
+    label: { en: "Selcuklu Library", tr: "Selçuklu Kütüphanesi" },
     kind: "Library",
-    description:
-      "A neighbourhood library with a large children's reading room and free study spaces.",
-    district: "Selcuklu",
+    description: {
+      en: "A neighbourhood library with a large children's reading room and free study spaces.",
+      tr: "Geniş bir çocuk okuma salonu ve ücretsiz çalışma alanları olan bir mahalle kütüphanesi.",
+    },
+    district: { en: "Selcuklu", tr: "Selçuklu" },
     emoji: "📚",
     signerRole: "library",
     isIssuer: true,
@@ -97,10 +107,13 @@ export const INSTITUTIONS: CatalogInstitution[] = [
   {
     slug: "konya-science-center",
     name: "Konya Science Center",
+    label: { en: "Konya Science Center", tr: "Konya Bilim Merkezi" },
     kind: "ScienceCenter",
-    description:
-      "Hands-on exhibits, a planetarium and the earthquake simulation hall.",
-    district: "Selcuklu",
+    description: {
+      en: "Hands-on exhibits, a planetarium and the earthquake simulation hall.",
+      tr: "Dokunmatik sergiler, bir planetaryum ve deprem simülasyon salonu.",
+    },
+    district: { en: "Selcuklu", tr: "Selçuklu" },
     emoji: "🔬",
     signerRole: "scienceCenter",
     isIssuer: true,
@@ -108,9 +121,13 @@ export const INSTITUTIONS: CatalogInstitution[] = [
   {
     slug: "konya-municipality",
     name: "Konya Municipality",
+    label: { en: "Konya Municipality", tr: "Konya Belediyesi" },
     kind: "Municipality",
-    description: "Runs city-wide workshops, quests and youth programmes.",
-    district: "City wide",
+    description: {
+      en: "Runs city-wide workshops, quests and youth programmes.",
+      tr: "Şehir genelinde atölyeler, görevler ve gençlik programları düzenler.",
+    },
+    district: { en: "City wide", tr: "Şehir geneli" },
     emoji: "🏛️",
     signerRole: "municipality",
     isIssuer: true,
@@ -118,9 +135,13 @@ export const INSTITUTIONS: CatalogInstitution[] = [
   {
     slug: "demo-cafe",
     name: "Demo Cafe",
+    label: { en: "Demo Cafe", tr: "Demo Kafe" },
     kind: "Other",
-    description: "A local cafe that rewards students for verified learning.",
-    district: "Selcuklu",
+    description: {
+      en: "A local cafe that rewards students for verified learning.",
+      tr: "Onaylanmış öğrenmeyi ödüllendiren yerel bir kafe.",
+    },
+    district: { en: "Selcuklu", tr: "Selçuklu" },
     emoji: "☕",
     isIssuer: false,
   },
@@ -130,10 +151,15 @@ export const ACTIVITIES: CatalogActivity[] = [
   {
     slug: "library-daily-visit",
     institutionSlug: "selcuklu-library",
-    title: "Daily Library Visit",
-    summary: "Spend time reading and get your visit confirmed at the desk.",
-    description:
-      "Show your passport code at the front desk. A librarian confirms your visit and your passport records it. You can earn this once per day.",
+    title: { en: "Daily Library Visit", tr: "Günlük Kütüphane Ziyareti" },
+    summary: {
+      en: "Spend time reading and get your visit confirmed at the desk.",
+      tr: "Okuyarak vakit geçir ve ziyaretini danışmada onaylat.",
+    },
+    description: {
+      en: "Show your passport code at the front desk. A librarian confirms your visit and your passport records it. You can earn this once per day.",
+      tr: "Pasaport kodunu danışmada göster. Bir kütüphaneci ziyaretini onaylar ve pasaportun bunu kaydeder. Bunu günde bir kez kazanabilirsin.",
+    },
     kind: "checkin",
     credential: "LIBRARY_VISIT",
     xpReward: 10,
@@ -144,10 +170,15 @@ export const ACTIVITIES: CatalogActivity[] = [
   {
     slug: "earthquake-simulation",
     institutionSlug: "konya-science-center",
-    title: "Earthquake Experience",
-    summary: "Feel a simulated earthquake and learn exactly what to do.",
-    description:
-      "A 20 minute guided session in the simulation hall. Book a ticket, then show it at the entrance. Your ticket is used once and cannot be reused.",
+    title: { en: "Earthquake Experience", tr: "Deprem Deneyimi" },
+    summary: {
+      en: "Feel a simulated earthquake and learn exactly what to do.",
+      tr: "Simüle edilmiş bir depremi hisset ve tam olarak ne yapman gerektiğini öğren.",
+    },
+    description: {
+      en: "A 20 minute guided session in the simulation hall. Book a ticket, then show it at the entrance. Your ticket is used once and cannot be reused.",
+      tr: "Simülasyon salonunda 20 dakikalık rehberli bir oturum. Bilet al, sonra girişte göster. Biletin bir kez kullanılır ve tekrar kullanılamaz.",
+    },
     kind: "ticket",
     credential: "EARTHQUAKE_EXPERIENCE",
     xpReward: 30,
@@ -159,10 +190,15 @@ export const ACTIVITIES: CatalogActivity[] = [
   {
     slug: "robotics-workshop",
     institutionSlug: "konya-municipality",
-    title: "Robotics Workshop",
-    summary: "Build and program your first robot in a weekend workshop.",
-    description:
-      "A municipality-run workshop for ages 10 to 16. The instructor confirms your attendance at the end of the session.",
+    title: { en: "Robotics Workshop", tr: "Robotik Atölyesi" },
+    summary: {
+      en: "Build and program your first robot in a weekend workshop.",
+      tr: "Hafta sonu atölyesinde ilk robotunu yap ve programla.",
+    },
+    description: {
+      en: "A municipality-run workshop for ages 10 to 16. The instructor confirms your attendance at the end of the session.",
+      tr: "Belediyenin düzenlediği, 10-16 yaş arası için bir atölye. Eğitmen, oturumun sonunda katılımını onaylar.",
+    },
     kind: "workshop",
     credential: "ROBOTICS_WORKSHOP",
     xpReward: 50,
@@ -173,10 +209,15 @@ export const ACTIVITIES: CatalogActivity[] = [
   {
     slug: "science-quiz",
     institutionSlug: "konya-municipality",
-    title: "Science Quiz",
-    summary: "Four questions about what you saw around the city.",
-    description:
-      "A short quiz you can take from home. This one is scored by the city app itself, so it earns experience points but no institutional achievement.",
+    title: { en: "Science Quiz", tr: "Bilim Testi" },
+    summary: {
+      en: "Four questions about what you saw around the city.",
+      tr: "Şehirde gördüklerin hakkında dört soru.",
+    },
+    description: {
+      en: "A short quiz you can take from home. This one is scored by the city app itself, so it earns experience points but no institutional achievement.",
+      tr: "Evden çözebileceğin kısa bir test. Bunu şehir uygulamasının kendisi değerlendirir; bu yüzden deneyim puanı kazandırır ama kurum onaylı bir başarım vermez.",
+    },
     kind: "quiz",
     credential: null,
     xpReward: 20,
@@ -189,17 +230,30 @@ export const ACTIVITIES: CatalogActivity[] = [
 export const QUESTS: CatalogQuest[] = [
   {
     slug: "science-quest",
-    title: "Science Quest",
-    description:
-      "Visit a library, live through an earthquake safely, and prove what you learned. Three independent institutions, one achievement.",
+    title: { en: "Science Quest", tr: "Bilim Görevi" },
+    description: {
+      en: "Visit a library, live through an earthquake safely, and prove what you learned. Three independent institutions, one achievement.",
+      tr: "Bir kütüphaneyi ziyaret et, bir depremi güvenle yaşa ve öğrendiklerini kanıtla. Birbirinden bağımsız üç kurum, tek bir başarım.",
+    },
     requirements: [
-      { kind: "credential", credential: "LIBRARY_VISIT", label: "Visit a library" },
+      {
+        kind: "credential",
+        credential: "LIBRARY_VISIT",
+        label: { en: "Visit a library", tr: "Bir kütüphaneyi ziyaret et" },
+      },
       {
         kind: "credential",
         credential: "EARTHQUAKE_EXPERIENCE",
-        label: "Complete the Earthquake Experience",
+        label: {
+          en: "Complete the Earthquake Experience",
+          tr: "Deprem Deneyimi'ni tamamla",
+        },
       },
-      { kind: "activity", activitySlug: "science-quiz", label: "Pass the science quiz" },
+      {
+        kind: "activity",
+        activitySlug: "science-quiz",
+        label: { en: "Pass the science quiz", tr: "Bilim testini geç" },
+      },
     ],
     xpReward: 150,
     rewardCredential: "YOUNG_SCIENTIST",
@@ -212,9 +266,11 @@ export const REWARDS: CatalogReward[] = [
   {
     slug: "free-coffee",
     sponsorName: "Demo Cafe",
-    title: "Free Hot Chocolate",
-    description:
-      "Show this coupon at the counter. One per person. The cafe is rewarding verified learning, not selling anything.",
+    title: { en: "Free Hot Chocolate", tr: "Ücretsiz Sıcak Çikolata" },
+    description: {
+      en: "Show this coupon at the counter. One per person. The cafe is rewarding verified learning, not selling anything.",
+      tr: "Bu kuponu kasada göster. Kişi başı bir adet. Kafe bir şey satmıyor, onaylanmış öğrenmeyi ödüllendiriyor.",
+    },
     requiredCredential: "YOUNG_SCIENTIST",
     emoji: "☕",
   },
@@ -224,35 +280,60 @@ export const QUIZ_QUESTIONS: Record<string, QuizQuestion[]> = {
   "science-quiz": [
     {
       id: "q1",
-      question: "During an earthquake indoors, what should you do first?",
+      question: {
+        en: "During an earthquake indoors, what should you do first?",
+        tr: "Bina içindeyken deprem olduğunda ilk ne yapmalısın?",
+      },
       options: [
-        "Run outside immediately",
-        "Drop, cover and hold on",
-        "Stand in a doorway",
-        "Use the lift to get out",
+        { en: "Run outside immediately", tr: "Hemen dışarı koş" },
+        { en: "Drop, cover and hold on", tr: "Çök, kapan ve tutun" },
+        { en: "Stand in a doorway", tr: "Kapı eşiğinde dur" },
+        { en: "Use the lift to get out", tr: "Çıkmak için asansörü kullan" },
       ],
       correctIndex: 1,
     },
     {
       id: "q2",
-      question: "What instrument records the strength of an earthquake?",
-      options: ["Barometer", "Seismograph", "Thermometer", "Anemometer"],
+      question: {
+        en: "What instrument records the strength of an earthquake?",
+        tr: "Bir depremin şiddetini hangi alet kaydeder?",
+      },
+      options: [
+        { en: "Barometer", tr: "Barometre" },
+        { en: "Seismograph", tr: "Sismograf" },
+        { en: "Thermometer", tr: "Termometre" },
+        { en: "Anemometer", tr: "Anemometre" },
+      ],
       correctIndex: 1,
     },
     {
       id: "q3",
-      question: "Which layer of the Earth do tectonic plates sit on?",
-      options: ["The crust", "The inner core", "The stratosphere", "The mantle"],
+      question: {
+        en: "Which layer of the Earth do tectonic plates sit on?",
+        tr: "Tektonik levhalar Dünya'nın hangi katmanının üzerinde durur?",
+      },
+      options: [
+        { en: "The crust", tr: "Yer kabuğu" },
+        { en: "The inner core", tr: "İç çekirdek" },
+        { en: "The stratosphere", tr: "Stratosfer" },
+        { en: "The mantle", tr: "Manto" },
+      ],
       correctIndex: 3,
     },
     {
       id: "q4",
-      question: "Why do libraries keep older books in cooler rooms?",
+      question: {
+        en: "Why do libraries keep older books in cooler rooms?",
+        tr: "Kütüphaneler eski kitapları neden daha serin odalarda tutar?",
+      },
       options: [
-        "Cold makes ink darker",
-        "Heat and humidity speed up paper decay",
-        "It saves electricity",
-        "Readers prefer the cold",
+        { en: "Cold makes ink darker", tr: "Soğuk mürekkebi koyulaştırır" },
+        {
+          en: "Heat and humidity speed up paper decay",
+          tr: "Sıcaklık ve nem kâğıdın bozulmasını hızlandırır",
+        },
+        { en: "It saves electricity", tr: "Elektrikten tasarruf sağlar" },
+        { en: "Readers prefer the cold", tr: "Okuyucular soğuğu tercih eder" },
       ],
       correctIndex: 1,
     },

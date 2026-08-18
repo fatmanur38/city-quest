@@ -3,21 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "@/features/auth/AccountProvider";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
+import { LanguageSwitcher } from "@/features/i18n/LanguageSwitcher";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
-  { href: "/passport", label: "My Passport" },
-  { href: "/activities", label: "Activities" },
-  { href: "/quests", label: "Quests" },
-  { href: "/tickets", label: "Tickets" },
-  { href: "/rewards", label: "Rewards" },
-  { href: "/leaderboard", label: "Explorers" },
-];
+  { href: "/passport", key: "passport" },
+  { href: "/activities", key: "activities" },
+  { href: "/quests", key: "quests" },
+  { href: "/tickets", key: "tickets" },
+  { href: "/rewards", key: "rewards" },
+  { href: "/leaderboard", key: "leaderboard" },
+] as const;
 
 export function SiteHeader() {
   const pathname = usePathname();
   const { profile, status, busy, signIn, signOut } = useAccount();
+  const { t } = useTranslations();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-soft/70 bg-paper/85 backdrop-blur">
@@ -39,13 +42,14 @@ export function SiteHeader() {
                   active ? "bg-brand-100 text-brand-700" : "text-ink-soft hover:bg-paper-sunk",
                 )}
               >
-                {link.label}
+                {t.nav[link.key]}
               </Link>
             );
           })}
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          <LanguageSwitcher />
           {status === "signed-in" && profile ? (
             <>
               <Link
@@ -58,12 +62,12 @@ export function SiteHeader() {
                 <span className="text-sm font-semibold text-ink">{profile.xp} XP</span>
               </Link>
               <Button variant="ghost" size="sm" onClick={signOut} disabled={busy}>
-                Sign out
+                {t.nav.signOut}
               </Button>
             </>
           ) : (
             <Button size="sm" onClick={() => signIn()} disabled={busy || status === "loading"}>
-              {busy ? "Signing in…" : "Sign in"}
+              {busy ? t.nav.signingIn : t.nav.signIn}
             </Button>
           )}
         </div>
@@ -82,7 +86,7 @@ export function SiteHeader() {
                 active ? "bg-brand-100 text-brand-700" : "text-ink-soft",
               )}
             >
-              {link.label}
+              {t.nav[link.key]}
             </Link>
           );
         })}

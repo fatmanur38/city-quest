@@ -8,8 +8,13 @@ import { ACTIVITIES, QUIZ_QUESTIONS, institutionBySlug } from "@/server/catalog"
 import { currentWallet } from "@/server/session";
 import { db } from "@/server/db";
 import { CREDENTIALS } from "@/lib/credentials";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "Activities — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.activities.metaTitle} — CityQuest` };
+}
 
 const ACCENT_BG: Record<string, string> = {
   amber: "bg-sun-100",
@@ -18,15 +23,16 @@ const ACCENT_BG: Record<string, string> = {
   emerald: "bg-emerald-100",
 };
 
-const KIND_LABEL: Record<string, string> = {
-  checkin: "Drop in any day",
-  ticket: "Ticket required",
-  workshop: "Scheduled workshop",
-  quiz: "Take it from home",
-};
+
 
 export default async function ActivitiesPage() {
-  const wallet = await currentWallet();
+  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
+  const kindLabel: Record<string, string> = {
+    checkin: t.activities.kindCheckin,
+    ticket: t.activities.kindTicket,
+    workshop: t.activities.kindWorkshop,
+    quiz: t.activities.kindQuiz,
+  };
   const completions = wallet ? await db().listCompletions(wallet) : [];
   const completedSlugs = new Set(completions.map((completion) => completion.activitySlug));
 
@@ -34,11 +40,10 @@ export default async function ActivitiesPage() {
     <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          Things to do in the city
+          {t.activities.title}
         </h1>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          Every activity below is hosted by an institution that will confirm you were there. The
-          quiz is the exception — the city app scores that one itself.
+          {t.activities.lead}
         </p>
       </header>
 
@@ -61,23 +66,27 @@ export default async function ActivitiesPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-xl font-bold text-ink">{activity.title}</h2>
-                    {done ? <Badge tone="emerald">Completed</Badge> : null}
-                    {activity.cadence === "daily" ? <Badge tone="sun">Once per day</Badge> : null}
+                    <h2 className="font-display text-xl font-bold text-ink">
+                      {pick(activity.title, locale)}
+                    </h2>
+                    {done ? <Badge tone="emerald">{t.activities.completed}</Badge> : null}
+                    {activity.cadence === "daily" ? <Badge tone="sun">{t.activities.oncePerDay}</Badge> : null}
                   </div>
 
                   <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
                     <span className="inline-flex items-center gap-1.5 font-medium">
                       <span aria-hidden>{institution?.emoji}</span>
-                      {institution?.name}
+                      {institution ? pick(institution.label, locale) : null}
                     </span>
                     <span className="inline-flex items-center gap-1 text-ink-faint">
                       <MapPin className="size-3.5" aria-hidden />
-                      {institution?.district}
+                      {institution ? pick(institution.district, locale) : null}
                     </span>
                   </p>
 
-                  <p className="mt-3 leading-relaxed text-ink-soft">{activity.description}</p>
+                  <p className="mt-3 leading-relaxed text-ink-soft">
+                    {pick(activity.description, locale)}
+                  </p>
 
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     <Badge tone="brand">+{activity.xpReward} XP</Badge>
@@ -87,11 +96,11 @@ export default async function ActivitiesPage() {
                       ) : (
                         <Users className="size-3.5" aria-hidden />
                       )}
-                      {KIND_LABEL[activity.kind]}
+                      {kindLabel[activity.kind]}
                     </Badge>
                     {credential ? (
                       <Badge tone="sun">
-                        {credential.emoji} {credential.title}
+                        {credential.emoji} {pick(credential.title, locale)}
                       </Badge>
                     ) : null}
                   </div>
@@ -101,17 +110,20 @@ export default async function ActivitiesPage() {
                       <BuyTicketButton
                         activitySlug={activity.slug}
                         priceTry={activity.priceTry ?? 0}
-                        title={activity.title}
+                        title={pick(activity.title, locale)}
                       />
                     ) : activity.kind === "quiz" ? null : (
                       <div className="rounded-2xl bg-paper-sunk p-4">
-                        <p className="text-sm font-semibold text-ink">How to earn this</p>
-                        <p className="mt-1 text-sm text-ink-soft">
-                          Open your passport, tap <strong>Show my code</strong>, and let a member
-                          of staff scan it.
+                        <p className="text-sm font-semibold text-ink">
+                          {t.activities.howToEarn}
                         </p>
+                        <p className="mt-1 text-sm text-ink-soft">{t.activities.howToEarnBody}</p>
                         <div className="mt-3">
-                          <VerifiedMark issuer={institution?.name} />
+                          <VerifiedMark
+                            issuer={institution ? pick(institution.label, locale) : undefined}
+                            label={t.common.verifiedBy}
+                            fallback={t.common.verifiedInstitution}
+                          />
                         </div>
                       </div>
                     )}
@@ -126,8 +138,8 @@ export default async function ActivitiesPage() {
                     xpReward={activity.xpReward}
                     questions={QUIZ_QUESTIONS[activity.slug].map(({ id, question, options }) => ({
                       id,
-                      question,
-                      options,
+                      question: pick(question, locale),
+                      options: options.map((option) => pick(option, locale)),
                     }))}
                   />
                 </div>

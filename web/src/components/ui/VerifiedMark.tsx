@@ -13,9 +13,14 @@ import { cn } from "@/lib/cn";
 
 export function VerifiedMark({
   issuer,
+  label,
+  fallback = "Verified institution",
   className,
 }: {
   issuer?: string;
+  /** Formats "Verified by X" in the reader's language. */
+  label?: (issuer: string) => string;
+  fallback?: string;
   className?: string;
 }) {
   return (
@@ -26,12 +31,18 @@ export function VerifiedMark({
       )}
     >
       <BadgeCheck className="size-3.5" aria-hidden />
-      {issuer ? `Verified by ${issuer}` : "Verified institution"}
+      {issuer ? (label ? label(issuer) : `Verified by ${issuer}`) : fallback}
     </span>
   );
 }
 
-export function AppAwardedMark({ className }: { className?: string }) {
+export function AppAwardedMark({
+  label = "City app points",
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
@@ -40,7 +51,7 @@ export function AppAwardedMark({ className }: { className?: string }) {
       )}
     >
       <Sparkles className="size-3.5" aria-hidden />
-      City app points
+      {label}
     </span>
   );
 }

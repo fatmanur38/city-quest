@@ -4,11 +4,16 @@ import { activitiesForInstitution, institutionBySlug, issuingInstitutions } from
 import { resolveInstitutions } from "@/server/institutions";
 import { OperatorSignIn } from "@/features/institution/OperatorSignIn";
 import { InstitutionConsole } from "@/features/institution/InstitutionConsole";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "Institution console — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.institution.metaTitle} — CityQuest` };
+}
 
 export default async function InstitutionPage() {
-  const operator = await currentOperator();
+  const [operator, { locale, t }] = await Promise.all([currentOperator(), getTranslations()]);
   const institution = operator ? institutionBySlug(operator) : null;
 
   if (!institution?.isIssuer) {
@@ -17,7 +22,7 @@ export default async function InstitutionPage() {
         <OperatorSignIn
           institutions={issuingInstitutions().map((entry) => ({
             slug: entry.slug,
-            name: entry.name,
+            name: pick(entry.label, locale),
             emoji: entry.emoji,
             kind: entry.kind,
           }))}
@@ -42,29 +47,27 @@ export default async function InstitutionPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       {!registered?.onChain ? (
         <Card className="mb-6 border-danger-100 bg-danger-100/30 p-5">
-          <p className="font-semibold text-danger-700">Not in the city registry</p>
+          <p className="font-semibold text-danger-700">{t.institution.notRegisteredTitle}</p>
           <p className="mt-1 text-sm text-ink-soft">
-            This institution is not registered on-chain, so any achievement it tries to issue will
-            be refused. Ask the municipality to add it.
+            {t.institution.notRegisteredBody}
           </p>
         </Card>
       ) : !registered.active ? (
         <Card className="mb-6 border-danger-100 bg-danger-100/30 p-5">
-          <p className="font-semibold text-danger-700">Currently suspended</p>
+          <p className="font-semibold text-danger-700">{t.institution.suspendedTitle}</p>
           <p className="mt-1 text-sm text-ink-soft">
-            The municipality has suspended this institution. Achievements already issued remain
-            valid, but new ones will be refused.
+            {t.institution.suspendedBody}
           </p>
         </Card>
       ) : null}
 
       <InstitutionConsole
-        institutionName={institution.name}
+        institutionName={pick(institution.label, locale)}
         institutionEmoji={institution.emoji}
         sellsTickets={sellsTickets}
         activities={activities.map((activity) => ({
           slug: activity.slug,
-          title: activity.title,
+          title: pick(activity.title, locale),
           emoji: activity.emoji,
           cadence: activity.cadence,
           xpReward: activity.xpReward,

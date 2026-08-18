@@ -5,6 +5,7 @@ import { QrCode as QrIcon } from "lucide-react";
 import { QrCode } from "@/components/ui/QrCode";
 import { Button } from "@/components/ui/Button";
 import { userQrPayload } from "@/lib/qr";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /**
  * The code a citizen shows at the desk.
@@ -14,12 +15,13 @@ import { userQrPayload } from "@/lib/qr";
  */
 export function PassportCode({ wallet }: { wallet: string }) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslations();
 
   return (
     <>
       <Button variant="secondary" onClick={() => setOpen(true)} className="gap-2">
         <QrIcon className="size-4" aria-hidden />
-        Show my code
+        {t.passport.showCode}
       </Button>
 
       {open ? (
@@ -33,9 +35,9 @@ export function PassportCode({ wallet }: { wallet: string }) {
             className="animate-pop w-full max-w-sm rounded-card bg-paper-raised p-7 text-center shadow-lift"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 className="font-display text-xl font-bold text-ink">Show this at the desk</h2>
+            <h2 className="font-display text-xl font-bold text-ink">{t.passport.showCodeTitle}</h2>
             <p className="mt-2 text-sm text-ink-soft">
-              A member of staff scans it to confirm you were here.
+              {t.passport.showCodeBody}
             </p>
 
             <div className="mt-6 flex justify-center">
@@ -45,7 +47,7 @@ export function PassportCode({ wallet }: { wallet: string }) {
             <p className="mt-5 font-mono text-[0.7rem] break-all text-ink-faint">{wallet}</p>
 
             <Button className="mt-6 w-full" onClick={() => setOpen(false)}>
-              Done
+              {t.common.done}
             </Button>
           </div>
         </div>

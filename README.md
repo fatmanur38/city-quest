@@ -349,7 +349,20 @@ small interface in [`features/auth/wallet.ts`](web/src/features/auth/wallet.ts) 
 implementations (device key, browser wallet), so swapping in wagmi or a passkey smart account later
 is a one-file change.
 
-**2. The database falls back to a JSON file.** When `SUPABASE_URL` is unset, the app uses a local
+**2. Turkish and English without an i18n library.** The locale lives in a cookie, so server
+components read it and render the right language on the first paint — no flash of the wrong
+language, and no `/tr/` segment in every URL. Two typed dictionaries in
+[`dictionary.ts`](web/src/lib/i18n/dictionary.ts) define the strings, and the English one's shape
+*is* the `Dictionary` type, so a missing or misspelled Turkish key fails the build. Catalogue
+content carries `{ tr, en }` pairs inline. Turkish is the default: this is a passport for a
+Turkish city, and a child at a library desk in Konya should not have to switch away from English
+first.
+
+Only the two-letter locale crosses the server/client boundary — the dictionary is looked up on
+the client side, because it holds formatter functions like `verifiedBy(issuer)` and React cannot
+serialise a function from a server component into a client one.
+
+**3. The database falls back to a JSON file.** When `SUPABASE_URL` is unset, the app uses a local
 JSON store so a fresh clone runs with zero provisioning and a live demo cannot fail on a missing
 service. Both sit behind the same 15-method `Database` interface; the Supabase adapter and the SQL
 migration are real and complete.

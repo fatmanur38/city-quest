@@ -8,6 +8,8 @@ import { periodIdFor, periodKeyFor } from "@/lib/period";
 import { addressForSlug } from "@/server/institutions";
 import { buildClaim, verifyActivityOnChain } from "@/server/chain/writes";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
 /**
  * An institution confirms that a citizen was there.
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     await requireOperator();
     const body = await parseBody(request, schema);
+    const { locale } = await getTranslations();
 
     const activity = activityBySlug(body.activitySlug);
     if (!activity) return fail("We do not know that activity.", 404);
@@ -81,12 +84,12 @@ export async function POST(request: Request) {
     const profile = await db().addXp(recipient, activity.xpReward);
 
     return ok({
-      activity: { title: activity.title, emoji: activity.emoji },
+      activity: { title: pick(activity.title, locale), emoji: activity.emoji },
       credential: {
-        title: CREDENTIALS[activity.credential].title,
+        title: pick(CREDENTIALS[activity.credential].title, locale),
         emoji: CREDENTIALS[activity.credential].emoji,
       },
-      issuer: institution.name,
+      issuer: pick(institution.label, locale),
       xpAwarded: activity.xpReward,
       totalXp: profile.xp,
       txHash: receipt.txHash,

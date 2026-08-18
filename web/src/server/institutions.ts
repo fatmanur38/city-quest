@@ -1,5 +1,6 @@
 import { readInstitutions, type OnChainInstitution } from "@/lib/chain/reads";
 import { INSTITUTIONS, type CatalogInstitution } from "@/server/catalog";
+import type { Localized } from "@/lib/i18n/types";
 
 /**
  * Institution identity, assembled from two sources on purpose.
@@ -12,21 +13,24 @@ import { INSTITUTIONS, type CatalogInstitution } from "@/server/catalog";
 
 export interface ResolvedInstitution {
   address: `0x${string}` | null;
-  /** From the registry when known, otherwise from the catalogue. */
+  /** The registry name — one public fact about a legal entity, so not translated. */
   name: string;
+  /** What a reader sees. Falls back to the registry name for institutions we do not know. */
+  label: Localized;
   kind: string;
   active: boolean;
   onChain: boolean;
   catalog: CatalogInstitution | null;
   emoji: string;
-  description: string;
-  district: string;
+  description: Localized;
+  district: Localized;
 }
 
 function fromCatalog(entry: CatalogInstitution, chain?: OnChainInstitution): ResolvedInstitution {
   return {
     address: chain?.address ?? null,
     name: chain?.name ?? entry.name,
+    label: entry.label,
     kind: chain?.kind ?? entry.kind,
     active: chain?.active ?? false,
     onChain: Boolean(chain),
@@ -58,13 +62,17 @@ export async function resolveInstitutions(): Promise<{
     list.push({
       address: chain.address,
       name: chain.name,
+      label: { en: chain.name, tr: chain.name },
       kind: chain.kind,
       active: chain.active,
       onChain: true,
       catalog: null,
       emoji: "🏢",
-      description: "Registered in the city registry outside this app's catalogue.",
-      district: "—",
+      description: {
+        en: "Registered in the city registry outside this app's catalogue.",
+        tr: "Bu uygulamanın kataloğu dışında, şehir kayıt defterinde kayıtlı.",
+      },
+      district: { en: "—", tr: "—" },
     });
   }
 

@@ -4,6 +4,8 @@ import { SignInButton } from "@/features/auth/SignInButton";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ACTIVITIES, INSTITUTIONS, institutionBySlug } from "@/server/catalog";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
 const ACCENTS: Record<string, string> = {
   amber: "bg-sun-100",
@@ -12,7 +14,9 @@ const ACCENTS: Record<string, string> = {
   emerald: "bg-emerald-100",
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { locale, t } = await getTranslations();
+
   return (
     <>
       {/* ------------------------------------------------------------------ Hero */}
@@ -22,27 +26,25 @@ export default function LandingPage() {
             <div className="animate-rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-paper-raised px-3 py-1.5 text-xs font-semibold text-ink-soft">
                 <span className="size-2 rounded-full bg-brand-500" aria-hidden />
-                A learning passport for Konya
+                {t.landing.eyebrow}
               </span>
 
               <h1 className="mt-6 font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance text-ink sm:text-5xl lg:text-[2.9rem]">
-                Explore your city.
+                {t.landing.headlineLine1}
                 <br />
-                Learn something new.
+                {t.landing.headlineLine2}
                 <br />
-                <span className="text-brand-600">Build a passport of experiences.</span>
+                <span className="text-brand-600">{t.landing.headlineLine3}</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-                Visit libraries, science centers, museums and workshops. Each one confirms what
-                you did, in a way anybody can check later — and the record belongs to you, not to
-                whoever built the app.
+                {t.landing.subtitle}
               </p>
 
               <div className="mt-9 flex flex-wrap items-start gap-4">
                 <SignInButton />
                 <ButtonLink href="/activities" variant="secondary" size="lg">
-                  Explore Activities
+                  {t.landing.exploreActivities}
                 </ButtonLink>
               </div>
             </div>
@@ -55,9 +57,11 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
-                        City Learning Passport
+                        {t.passport.documentLabel}
                       </p>
-                      <p className="mt-1 font-display text-xl font-bold text-ink">Elif&apos;s Passport</p>
+                      <p className="mt-1 font-display text-xl font-bold text-ink">
+                        {t.landing.samplePassportOwner}
+                      </p>
                     </div>
                     <span className="grid size-12 place-items-center rounded-2xl bg-paper-sunk text-2xl">
                       🦊
@@ -66,7 +70,7 @@ export default function LandingPage() {
 
                   <div className="mt-5 flex items-center gap-3">
                     <span className="rounded-full bg-brand-100 px-3 py-1 text-sm font-bold text-brand-700">
-                      Level 4
+                      {t.common.level} 4
                     </span>
                     <span className="text-sm font-semibold text-ink-soft">860 XP</span>
                   </div>
@@ -105,19 +109,15 @@ export default function LandingPage() {
       <section className="border-y border-border-soft bg-brand-900">
         <div className="mx-auto w-full max-w-5xl px-4 py-16 text-center sm:px-6 lg:py-20">
           <p className="font-display text-2xl leading-tight font-extrabold text-white sm:text-4xl">
-            &ldquo;If there were only one institution,
-            <br className="hidden sm:block" /> we wouldn&apos;t use blockchain.&rdquo;
+            {t.landing.manifesto}
           </p>
 
           <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-brand-100 sm:text-lg">
-            Libraries, science centers, museums, universities and municipalities can independently
-            issue achievements that belong to you.
+            {t.landing.manifestoBody}
           </p>
 
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-brand-300">
-            We are not using a blockchain because it is fashionable, or to create a coin. We use it
-            because these institutions are independent of one another, and a student&apos;s record
-            should not be locked inside whichever organisation happened to build the software.
+            {t.landing.manifestoDetail}
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-2">
@@ -127,7 +127,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 rounded-full bg-brand-700/60 px-3.5 py-2 text-sm font-medium text-brand-100"
               >
                 <span aria-hidden>{institution.emoji}</span>
-                {institution.name}
+                {pick(institution.label, locale)}
               </span>
             ))}
           </div>
@@ -136,9 +136,11 @@ export default function LandingPage() {
 
       {/* ------------------------------------------------------------- How it works */}
       <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
-        <h2 className="font-display text-3xl font-bold tracking-tight text-ink">How it works</h2>
+        <h2 className="font-display text-3xl font-bold tracking-tight text-ink">
+          {t.landing.howItWorks}
+        </h2>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          Three steps, and none of them involve knowing anything about cryptography.
+          {t.landing.howItWorksLead}
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -181,14 +183,14 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-3xl font-bold tracking-tight text-ink">
-                What&apos;s happening in the city
+                {t.landing.whatsHappening}
               </h2>
               <p className="mt-3 max-w-2xl text-ink-soft">
-                Every activity is hosted by a real institution that stands behind it.
+                {t.landing.whatsHappeningLead}
               </p>
             </div>
             <ButtonLink href="/activities" variant="secondary">
-              See all activities
+              {t.landing.seeAllActivities}
             </ButtonLink>
           </div>
 
@@ -206,18 +208,20 @@ export default function LandingPage() {
                       {activity.emoji}
                     </span>
                     <p className="mt-4 text-xs font-semibold text-ink-faint">
-                      {institution?.name}
+                      {institution ? pick(institution.label, locale) : null}
                     </p>
                     <h3 className="mt-1 font-display text-base font-semibold text-ink">
-                      {activity.title}
+                      {pick(activity.title, locale)}
                     </h3>
-                    <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{activity.summary}</p>
+                    <p className="mt-2 line-clamp-2 text-sm text-ink-soft">
+                      {pick(activity.summary, locale)}
+                    </p>
                     <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-brand-700">
                       +{activity.xpReward} XP
                       {activity.kind === "ticket" ? (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint">
                           <Ticket className="size-3.5" aria-hidden />
-                          Ticket required
+                          {t.landing.ticketRequired}
                         </span>
                       ) : null}
                     </p>
@@ -235,19 +239,16 @@ export default function LandingPage() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-3 py-1.5 text-xs font-semibold text-brand-700">
               <Shield className="size-3.5" aria-hidden />
-              Built for children too
+              {t.landing.privacyBadge}
             </span>
             <h2 className="mt-5 font-display text-3xl font-bold tracking-tight text-ink">
-              What we record, and what we refuse to
+              {t.landing.privacyTitle}
             </h2>
             <p className="mt-4 leading-relaxed text-ink-soft">
-              Some of the people using this are eleven years old. A permanent public record of
-              where a child goes after school would be an unacceptable thing to build, so we
-              didn&apos;t build one.
+              {t.landing.privacyBody1}
             </p>
             <p className="mt-4 leading-relaxed text-ink-soft">
-              An achievement says what was earned and who vouched for it. It does not say when you
-              arrived, how long you stayed, or how often you go.
+              {t.landing.privacyBody2}
             </p>
           </div>
 
@@ -255,23 +256,21 @@ export default function LandingPage() {
             <Card className="p-5">
               <p className="flex items-center gap-2 text-sm font-bold text-brand-700">
                 <KeyRound className="size-4" aria-hidden />
-                On the shared registry
+                {t.landing.onRegistry}
               </p>
               <ul className="mt-3 space-y-2 text-sm text-ink-soft">
-                <li>Which achievement you hold</li>
-                <li>Which institution vouched for it</li>
-                <li>Roughly when it was earned</li>
-                <li>Whether it is still valid</li>
+                {t.landing.onRegistryItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </Card>
 
             <Card className="border-danger-100 bg-danger-100/25 p-5">
-              <p className="text-sm font-bold text-danger-700">Never recorded publicly</p>
+              <p className="text-sm font-bold text-danger-700">{t.landing.neverRecorded}</p>
               <ul className="mt-3 space-y-2 text-sm text-ink-soft">
-                <li>Your name, age or school</li>
-                <li>Your phone number or email</li>
-                <li>The time you arrived or left</li>
-                <li>Where you were, minute by minute</li>
+                {t.landing.neverRecordedItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </Card>
           </div>
@@ -282,10 +281,10 @@ export default function LandingPage() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
         <Card className="overflow-hidden bg-brand-600 p-10 text-center sm:p-14">
           <h2 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Start your City Passport
+            {t.landing.ctaTitle}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-brand-100">
-            It takes one tap. Your first achievement is waiting at the library.
+            {t.landing.ctaBody}
           </p>
           <div className="mt-8 flex justify-center">
             <div className="[&_p]:text-brand-100 [&_button]:bg-white [&_button]:text-brand-700 hover:[&_button]:bg-brand-50">

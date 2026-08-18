@@ -7,8 +7,12 @@ import { currentWallet } from "@/server/session";
 import { db } from "@/server/db";
 import { levelFor } from "@/server/passport-service";
 import { cn } from "@/lib/cn";
+import { getTranslations } from "@/server/locale";
 
-export const metadata = { title: "Explorers — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.leaderboard.metaTitle} — CityQuest` };
+}
 
 const PODIUM = ["🥇", "🥈", "🥉"];
 
@@ -23,7 +27,7 @@ const PODIUM = ["🥇", "🥈", "🥉"];
  * nothing that identifies a child — a public ranking is exactly the wrong place for any of that.
  */
 export default async function LeaderboardPage() {
-  const wallet = await currentWallet();
+  const [wallet, { t }] = await Promise.all([currentWallet(), getTranslations()]);
   const explorers = await db().leaderboard(25);
   const myWallet = wallet?.toLowerCase();
   const myRank = explorers.findIndex((profile) => profile.wallet === myWallet);
@@ -32,26 +36,25 @@ export default async function LeaderboardPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          City explorers
+          {t.leaderboard.title}
         </h1>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          Who has been out exploring this season. These are experience points from the city app —
-          the achievements themselves are not a competition.
+          {t.leaderboard.lead}
         </p>
         <div className="mt-4">
-          <AppAwardedMark />
+          <AppAwardedMark label={t.common.appPoints} />
         </div>
       </header>
 
       {explorers.length === 0 ? (
         <Card className="mt-9 grid place-items-center p-12 text-center">
           <span className="text-5xl">🗺️</span>
-          <p className="mt-4 font-display text-lg font-semibold text-ink">Nobody has set off yet</p>
+          <p className="mt-4 font-display text-lg font-semibold text-ink">{t.leaderboard.empty}</p>
           <p className="mt-2 max-w-sm text-sm text-ink-soft">
-            Be the first. Visit a library and get your passport stamped.
+            {t.leaderboard.emptyBody}
           </p>
           <ButtonLink href="/activities" className="mt-6">
-            Find something to do
+            {t.passport.findSomething}
           </ButtonLink>
         </Card>
       ) : (
@@ -84,9 +87,11 @@ export default async function LeaderboardPage() {
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2 truncate font-semibold text-ink">
                     {profile.displayName}
-                    {isMe ? <Badge tone="brand">You</Badge> : null}
+                    {isMe ? <Badge tone="brand">{t.leaderboard.you}</Badge> : null}
                   </p>
-                  <p className="mt-0.5 text-xs text-ink-faint">Level {level.level}</p>
+                  <p className="mt-0.5 text-xs text-ink-faint">
+                    {t.common.level} {level.level}
+                  </p>
                 </div>
 
                 <span className="flex shrink-0 items-center gap-1.5 font-display text-lg font-bold text-brand-700">
@@ -103,14 +108,13 @@ export default async function LeaderboardPage() {
         <Card className="mt-5 flex items-center gap-3 p-5">
           <Flame className="size-5 shrink-0 text-sun-500" aria-hidden />
           <p className="text-sm text-ink-soft">
-            You are not in the top 25 yet. Every verified visit moves you up.
+            {t.leaderboard.notInTop}
           </p>
         </Card>
       ) : null}
 
       <p className="mt-8 text-sm leading-relaxed text-ink-soft">
-        Points measure how much you have been out and about. They are not transferable, cannot be
-        bought, and are worth nothing to anyone but you.
+        {t.leaderboard.footnote}
       </p>
     </div>
   );

@@ -32,7 +32,9 @@ async function call(actor, path, { method = "POST", body } = {}) {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...(jar.size ? { Cookie: cookieHeader(jar) } : {}),
+      // Pin the language: the app answers in the reader's language, and these assertions
+      // compare against English strings.
+      Cookie: [cookieHeader(jar), "cq_locale=en"].filter(Boolean).join("; "),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -260,11 +262,18 @@ step(11, "Municipality suspends an institution");
 // A suspended library cannot issue anything.
 step(12, "A suspended institution cannot issue achievements");
 {
-  const librarySigner = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
-  await call("admin", "/api/admin/institutions", {
+  // Look the library up rather than hard-coding it: the address differs per deployment, and a
+  // stale constant here silently turns this step into a no-op that still reports success.
+  const { data: registry } = await call("admin", "/api/admin/institutions", { method: "GET" });
+  const library = (registry.institutions ?? []).find((i) => /library/i.test(i.name));
+  check("found the library in the registry", Boolean(library), library?.name);
+  const librarySigner = library?.address;
+
+  const { data: off } = await call("admin", "/api/admin/institutions", {
     method: "PATCH",
     body: { address: librarySigner, active: false },
   });
+  check("library suspended", off.ok === true, off.error);
 
   const fresh = privateKeyToAccount(generatePrivateKey());
   jars.fresh = new Map();
@@ -280,10 +289,11 @@ step(12, "A suspended institution cannot issue achievements");
   check("check-in refused while suspended", data.ok === false, data.error);
 
   // Restore, so the demo is left in a working state.
-  await call("admin", "/api/admin/institutions", {
+  const { data: on } = await call("admin", "/api/admin/institutions", {
     method: "PATCH",
     body: { address: librarySigner, active: true },
   });
+  check("library reactivated", on.ok === true, on.error);
   const { data: restored } = await call("library", "/api/checkin", {
     body: { wallet: fresh.address, activitySlug: "library-daily-visit" },
   });

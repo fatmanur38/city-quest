@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /** DEMO MOCK — see the note in src/server/session.ts for the production replacement. */
 export function AdminSignIn() {
   const router = useRouter();
+  const { t } = useTranslations();
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function AdminSignIn() {
       if (!data.ok) throw new Error(data.error);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not sign in.");
+      setError(cause instanceof Error ? cause.message : t.auth.couldNotSignIn);
     } finally {
       setBusy(false);
     }
@@ -33,13 +35,13 @@ export function AdminSignIn() {
 
   return (
     <Card className="mx-auto w-full max-w-md p-7">
-      <h1 className="font-display text-2xl font-bold text-ink">Municipality</h1>
+      <h1 className="font-display text-2xl font-bold text-ink">{t.admin.signInTitle}</h1>
       <p className="mt-2 text-sm text-ink-soft">
-        Sign in to authorise institutions and review the city registry.
+        {t.admin.signInBody}
       </p>
 
       <label className="mt-6 block">
-        <span className="text-sm font-semibold text-ink">Administrator code</span>
+        <span className="text-sm font-semibold text-ink">{t.admin.adminCode}</span>
         <input
           type="password"
           value={pin}
@@ -54,12 +56,11 @@ export function AdminSignIn() {
       {error ? <p className="mt-3 text-sm font-medium text-danger-700">{error}</p> : null}
 
       <Button className="mt-6 w-full" onClick={submit} disabled={busy || pin.length === 0}>
-        {busy ? "Checking…" : "Sign in"}
+        {busy ? t.activities.checking : t.nav.signIn}
       </Button>
 
       <p className="mt-4 rounded-xl bg-sun-100 px-3 py-2 text-xs text-sun-700">
-        Demo build — the administrator code is{" "}
-        <code className="font-mono font-semibold">cityquest</code>.
+        {t.admin.demoAdminCode} <code className="font-mono font-semibold">cityquest</code>.
       </p>
     </Card>
   );

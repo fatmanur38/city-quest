@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CreditCard, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAccount } from "@/features/auth/AccountProvider";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 interface PurchaseResponse {
   ok: true;
@@ -30,6 +31,7 @@ export function BuyTicketButton({
 }) {
   const router = useRouter();
   const { status, signIn } = useAccount();
+  const { t } = useTranslations();
   const [stage, setStage] = useState<"idle" | "checkout" | "paying" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const [passId, setPassId] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function BuyTicketButton({
   if (status !== "signed-in") {
     return (
       <Button variant="secondary" onClick={() => signIn()}>
-        Sign in to book
+        {t.auth.signInToBook}
       </Button>
     );
   }
@@ -67,7 +69,7 @@ export function BuyTicketButton({
       <div className="rounded-2xl bg-emerald-100 p-4">
         <p className="flex items-center gap-2 font-semibold text-emerald-500">
           <Check className="size-4" aria-hidden />
-          Ticket #{passId} is in your passport
+          {t.activities.ticketInPassport(passId ?? "")}
         </p>
         <Button
           variant="secondary"
@@ -75,7 +77,7 @@ export function BuyTicketButton({
           className="mt-3"
           onClick={() => router.push("/tickets")}
         >
-          View ticket
+          {t.activities.viewTicket}
         </Button>
       </div>
     );
@@ -85,7 +87,7 @@ export function BuyTicketButton({
     return (
       <Button onClick={() => setStage("checkout")} className="gap-2">
         <CreditCard className="size-4" aria-hidden />
-        Book for {priceTry} TL
+        {t.activities.bookFor(priceTry)}
       </Button>
     );
   }
@@ -94,22 +96,22 @@ export function BuyTicketButton({
     <div className="rounded-2xl border border-border-soft bg-paper-sunk p-4">
       <p className="text-sm font-semibold text-ink">{title}</p>
       <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-sm text-ink-soft">Total</span>
+        <span className="text-sm text-ink-soft">{t.activities.total}</span>
         <span className="font-display text-xl font-bold text-ink">{priceTry} TL</span>
       </div>
 
       <p className="mt-3 rounded-xl bg-sun-100 px-3 py-2 text-xs text-sun-700">
-        Demo checkout — no card is charged and no money moves.
+        {t.activities.demoCheckout}
       </p>
 
       {error ? <p className="mt-3 text-xs font-medium text-danger-700">{error}</p> : null}
 
       <div className="mt-4 flex gap-2">
         <Button onClick={pay} disabled={stage === "paying"} className="flex-1">
-          {stage === "paying" ? "Processing…" : "Pay now"}
+          {stage === "paying" ? t.activities.processing : t.activities.payNow}
         </Button>
         <Button variant="ghost" onClick={() => setStage("idle")} disabled={stage === "paying"}>
-          Cancel
+          {t.common.cancel}
         </Button>
       </div>
     </div>

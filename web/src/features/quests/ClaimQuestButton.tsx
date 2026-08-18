@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { TechnicalDetails } from "@/components/ui/TechnicalDetails";
 import { useAccount } from "@/features/auth/AccountProvider";
 import { explorerTxUrl } from "@/lib/chain/client";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 interface ClaimResponse {
   ok: true;
@@ -34,6 +35,7 @@ export function ClaimQuestButton({
 }) {
   const router = useRouter();
   const { status, signIn } = useAccount();
+  const { t } = useTranslations();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ClaimResponse | null>(null);
@@ -41,7 +43,7 @@ export function ClaimQuestButton({
   if (status !== "signed-in") {
     return (
       <Button variant="secondary" onClick={() => signIn()}>
-        Sign in to claim
+        {t.auth.signInToClaim}
       </Button>
     );
   }
@@ -53,10 +55,10 @@ export function ClaimQuestButton({
           <span className="text-2xl" aria-hidden>
             {result.credential.emoji}
           </span>
-          {result.credential.title} added
+          {t.quests.added(result.credential.title)}
         </p>
         <p className="mt-1 text-sm text-sun-700">
-          Confirmed by {result.issuer} · +{result.xpAwarded} XP
+          {t.quests.confirmedBy(result.issuer, result.xpAwarded)}
         </p>
         <TechnicalDetails
           className="mt-3"
@@ -91,11 +93,11 @@ export function ClaimQuestButton({
     <div>
       <Button onClick={claim} disabled={disabled || busy} className="gap-2">
         <Trophy className="size-4" aria-hidden />
-        {busy ? "Confirming…" : `Claim ${rewardTitle}`}
+        {busy ? t.quests.confirming : t.quests.claim(rewardTitle)}
       </Button>
       {disabled ? (
         <p className="mt-2 text-xs text-ink-faint">
-          Finish everything on the list to unlock this.
+          {t.quests.finishFirst}
         </p>
       ) : null}
       {error ? <p className="mt-2 text-sm font-medium text-danger-700">{error}</p> : null}

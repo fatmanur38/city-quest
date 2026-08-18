@@ -13,6 +13,7 @@ import {
   type InstitutionTypeName,
 } from "@/lib/chain/contracts";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/chain/client";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 export interface AdminInstitution {
   address: string;
@@ -39,6 +40,7 @@ export function AdminConsole({
   stats: { total: number; active: number; citizens: number; achievements: number };
 }) {
   const router = useRouter();
+  const { t } = useTranslations();
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [kind, setKind] = useState<InstitutionTypeName>("Library");
@@ -64,7 +66,7 @@ export function AdminConsole({
       setName("");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not register that institution.");
+      setError(cause instanceof Error ? cause.message : t.admin.couldNotRegister);
     } finally {
       setBusy(false);
     }
@@ -86,7 +88,7 @@ export function AdminConsole({
       setLastTx(data.txHash);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not update that institution.");
+      setError(cause instanceof Error ? cause.message : t.admin.couldNotUpdate);
     } finally {
       setBusy(false);
     }
@@ -102,23 +104,23 @@ export function AdminConsole({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
-            Municipality
+            {t.nav.municipality}
           </p>
-          <h1 className="font-display text-2xl font-bold text-ink">City registry</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">{t.admin.cityRegistry}</h1>
         </div>
         <Button variant="ghost" size="sm" onClick={signOut} className="gap-1.5">
           <LogOut className="size-4" aria-hidden />
-          Sign out
+          {t.nav.signOut}
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
         {[
-          { label: "Institutions", value: stats.total },
-          { label: "Currently active", value: stats.active },
-          { label: "Citizens", value: stats.citizens },
-          { label: "Achievements issued", value: stats.achievements },
+          { label: t.admin.statInstitutions, value: stats.total },
+          { label: t.admin.statActive, value: stats.active },
+          { label: t.admin.statCitizens, value: stats.citizens },
+          { label: t.admin.statAchievements, value: stats.achievements },
         ].map((stat) => (
           <Card key={stat.label} className="p-5">
             <p className="text-xs font-semibold text-ink-faint">{stat.label}</p>
@@ -130,13 +132,13 @@ export function AdminConsole({
       {/* Register */}
       <Card className="p-6">
         <CardHeader
-          title="Authorise an institution"
-          description="Only an authorised address can issue achievements. This writes to the shared registry."
+          title={t.admin.authorise}
+          description={t.admin.authoriseLead}
         />
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <label className="sm:col-span-2">
-            <span className="text-sm font-semibold text-ink">Institution address</span>
+            <span className="text-sm font-semibold text-ink">{t.admin.institutionAddress}</span>
             <input
               value={address}
               onChange={(event) => setAddress(event.target.value)}
@@ -146,7 +148,7 @@ export function AdminConsole({
           </label>
 
           <label>
-            <span className="text-sm font-semibold text-ink">Public name</span>
+            <span className="text-sm font-semibold text-ink">{t.admin.publicName}</span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -156,7 +158,7 @@ export function AdminConsole({
           </label>
 
           <label>
-            <span className="text-sm font-semibold text-ink">Type</span>
+            <span className="text-sm font-semibold text-ink">{t.admin.type}</span>
             <select
               value={kind}
               onChange={(event) => setKind(event.target.value as InstitutionTypeName)}
@@ -179,7 +181,7 @@ export function AdminConsole({
           disabled={busy || !/^0x[a-fA-F0-9]{40}$/.test(address) || name.trim().length === 0}
         >
           <Building2 className="size-4" aria-hidden />
-          {busy ? "Writing to registry…" : "Authorise institution"}
+          {busy ? t.admin.writing : t.admin.authoriseButton}
         </Button>
 
         {lastTx ? (
@@ -190,8 +192,8 @@ export function AdminConsole({
       {/* List */}
       <Card className="p-6">
         <CardHeader
-          title="Registered institutions"
-          description="Suspending an institution stops new achievements. Existing ones stay valid."
+          title={t.admin.registered}
+          description={t.admin.registeredLead}
         />
 
         <ul className="mt-5 divide-y divide-border-soft">
@@ -208,7 +210,7 @@ export function AdminConsole({
                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
                   {institution.name}
                   <Badge tone={institution.active ? "emerald" : "danger"}>
-                    {institution.active ? "Active" : "Suspended"}
+                    {institution.active ? t.admin.active : t.admin.suspended}
                   </Badge>
                 </p>
                 <a
@@ -231,12 +233,12 @@ export function AdminConsole({
                 {institution.active ? (
                   <>
                     <PowerOff className="size-3.5" aria-hidden />
-                    Suspend
+                    {t.admin.suspend}
                   </>
                 ) : (
                   <>
                     <Power className="size-3.5" aria-hidden />
-                    Reactivate
+                    {t.admin.reactivate}
                   </>
                 )}
               </Button>

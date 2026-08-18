@@ -10,19 +10,26 @@ import { PassportCode } from "@/features/passport/PassportCode";
 import { CredentialCard } from "@/features/passport/CredentialCard";
 import { activityBySlug } from "@/server/catalog";
 import { isChainConfigured } from "@/lib/env";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "My City Passport — CityQuest" };
+
+
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.passport.metaTitle} — CityQuest` };
+}
 
 export default async function PassportPage() {
-  const wallet = await currentWallet();
+  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
 
   if (!wallet) {
     return (
       <div className="mx-auto grid w-full max-w-2xl place-items-center px-4 py-24 text-center sm:px-6">
         <span className="text-6xl">🛂</span>
-        <h1 className="mt-6 font-display text-3xl font-bold text-ink">Your passport is waiting</h1>
+        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.passport.signedOutTitle}</h1>
         <p className="mt-3 text-ink-soft">
-          Create one in a single tap. Nothing to install, nothing to pay.
+          {t.passport.signedOutBody}
         </p>
         <div className="mt-8 flex justify-center">
           <SignInButton />
@@ -49,7 +56,7 @@ export default async function PassportPage() {
               </span>
               <div>
                 <p className="text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
-                  City Learning Passport
+                  {t.passport.documentLabel}
                 </p>
                 <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl">
                   {profile.displayName}
@@ -62,7 +69,7 @@ export default async function PassportPage() {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl bg-brand-100 p-4">
-              <p className="text-xs font-semibold text-brand-700">Level</p>
+              <p className="text-xs font-semibold text-brand-700">{t.common.level}</p>
               <p className="mt-1 font-display text-3xl font-extrabold text-brand-900">
                 {level.level}
               </p>
@@ -73,30 +80,30 @@ export default async function PassportPage() {
                 />
               </div>
               <p className="mt-2 text-xs text-brand-700">
-                {level.xpForNextLevel - level.xpIntoLevel} XP to level {level.level + 1}
+                {t.passport.toNextLevel(level.xpForNextLevel - level.xpIntoLevel, level.level + 1)}
               </p>
             </div>
 
             <div className="rounded-2xl bg-paper-sunk p-4">
-              <p className="text-xs font-semibold text-ink-soft">Experience</p>
+              <p className="text-xs font-semibold text-ink-soft">{t.passport.experience}</p>
               <p className="mt-1 font-display text-3xl font-extrabold text-ink">{profile.xp}</p>
               <div className="mt-3">
-                <AppAwardedMark />
+                <AppAwardedMark label={t.common.appPoints} />
               </div>
             </div>
 
             <div className="rounded-2xl bg-sun-100 p-4">
               <p className="flex items-center gap-1.5 text-xs font-semibold text-sun-700">
                 <Flame className="size-3.5" aria-hidden />
-                Library streak
+                {t.passport.libraryStreak}
               </p>
               <p className="mt-1 font-display text-3xl font-extrabold text-sun-700">
                 {libraryStreakDays}
               </p>
               <p className="mt-3 text-xs text-sun-700">
                 {libraryStreakDays === 0
-                  ? "Visit a library to start one"
-                  : `${libraryStreakDays === 1 ? "day" : "days"} in a row`}
+                  ? t.passport.streakNone
+                  : t.passport.streakDays(libraryStreakDays)}
               </p>
             </div>
           </div>
@@ -105,35 +112,34 @@ export default async function PassportPage() {
 
       {!isChainConfigured ? (
         <Card className="mt-6 border-danger-100 bg-danger-100/30 p-4 text-sm text-danger-700">
-          The city registry is not configured, so achievements cannot be shown. Check the contract
-          addresses in <code className="font-mono">.env.local</code>.
+          {t.passport.chainNotConfigured}
         </Card>
       ) : null}
 
       {/* ---------------------------------------------------------------- Achievements */}
       <section className="mt-10">
         <CardHeader
-          title="Achievements"
-          description="Each one was confirmed by the institution named on it."
+          title={t.passport.achievements}
+          description={t.passport.achievementsLead}
         />
 
         {credentials.length === 0 ? (
           <Card className="mt-4 grid place-items-center p-10 text-center">
             <span className="text-5xl">🌱</span>
             <p className="mt-4 font-display text-lg font-semibold text-ink">
-              No achievements yet
+              {t.passport.noAchievements}
             </p>
             <p className="mt-2 max-w-sm text-sm text-ink-soft">
-              Visit a library, a museum or the science center and ask them to confirm your visit.
+              {t.passport.noAchievementsBody}
             </p>
             <ButtonLink href="/activities" className="mt-6">
-              Find something to do
+              {t.passport.findSomething}
             </ButtonLink>
           </Card>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {credentials.map((credential) => (
-              <CredentialCard key={credential.hash} credential={credential} />
+              <CredentialCard key={credential.hash} credential={credential} locale={locale} t={t} />
             ))}
           </div>
         )}
@@ -142,7 +148,7 @@ export default async function PassportPage() {
       {/* ---------------------------------------------------------------------- Quest */}
       {activeQuest ? (
         <section className="mt-12">
-          <CardHeader title="Current quest" description="Combine achievements to earn a bigger one." />
+          <CardHeader title={t.passport.currentQuest} description={t.passport.currentQuestLead} />
           <Card className="mt-4 p-6">
             <div className="flex items-start gap-4">
               <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-sun-100 text-3xl">
@@ -150,16 +156,18 @@ export default async function PassportPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <h3 className="font-display text-lg font-bold text-ink">
-                  {activeQuest.quest.title}
+                  {pick(activeQuest.quest.title, locale)}
                 </h3>
-                <p className="mt-1 text-sm text-ink-soft">{activeQuest.quest.description}</p>
+                <p className="mt-1 text-sm text-ink-soft">
+                  {pick(activeQuest.quest.description, locale)}
+                </p>
 
                 <ul className="mt-4 space-y-2">
                   {activeQuest.requirements.map((requirement) => (
-                    <li key={requirement.label} className="flex items-center gap-2.5 text-sm">
+                    <li key={pick(requirement.label, locale)} className="flex items-center gap-2.5 text-sm">
                       <span aria-hidden>{requirement.met ? "✅" : "⭕"}</span>
                       <span className={requirement.met ? "text-ink" : "text-ink-soft"}>
-                        {requirement.label}
+                        {pick(requirement.label, locale)}
                       </span>
                     </li>
                   ))}
@@ -168,14 +176,14 @@ export default async function PassportPage() {
                 <div className="mt-5 flex items-center gap-3">
                   <ButtonLink href="/quests" variant={activeQuest.allMet ? "primary" : "secondary"}>
                     {activeQuest.claimed
-                      ? "View quests"
+                      ? t.passport.viewQuests
                       : activeQuest.allMet
-                        ? "Claim your reward"
-                        : "See quest details"}
+                        ? t.passport.claimReward
+                        : t.passport.questDetails}
                   </ButtonLink>
                   <span className="flex items-center gap-1.5 text-sm font-semibold text-ink-soft">
                     <Trophy className="size-4" aria-hidden />
-                    {activeQuest.completed}/{activeQuest.total} done
+                    {t.passport.questProgress(activeQuest.completed, activeQuest.total)}
                   </span>
                 </div>
               </div>
@@ -187,7 +195,7 @@ export default async function PassportPage() {
       {/* -------------------------------------------------------------------- Tickets */}
       {validPasses.length > 0 ? (
         <section className="mt-12">
-          <CardHeader title="Your tickets" description="Show these at the entrance." />
+          <CardHeader title={t.passport.yourTickets} description={t.passport.yourTicketsLead} />
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {validPasses.map((pass) => (
               <Link key={pass.passId} href="/tickets">
@@ -197,11 +205,11 @@ export default async function PassportPage() {
                   </span>
                   <div className="min-w-0">
                     <p className="font-display text-sm font-bold text-ink">
-                      {pass.credential.title}
+                      {pick(pass.credential.title, locale)}
                     </p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-emerald-500">
                       <Ticket className="size-3.5" aria-hidden />
-                      Ticket #{pass.passId} · Valid
+                      {t.tickets.ticketNumber(pass.passId)} · {t.tickets.statusValid}
                     </p>
                   </div>
                 </Card>
@@ -215,8 +223,8 @@ export default async function PassportPage() {
       {completions.length > 0 ? (
         <section className="mt-12">
           <CardHeader
-            title="Recent activity"
-            description="Only you can see this. It is stored in the city app, not on the public registry."
+            title={t.passport.recentActivity}
+            description={t.passport.recentActivityLead}
           />
           <Card className="mt-4 divide-y divide-border-soft">
             {completions.slice(0, 8).map((completion) => {
@@ -229,13 +237,20 @@ export default async function PassportPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-ink">
-                      {isQuest ? "Quest completed" : (activity?.title ?? completion.activitySlug)}
+                      {isQuest
+                        ? t.passport.questCompleted
+                        : activity
+                          ? pick(activity.title, locale)
+                          : completion.activitySlug}
                     </p>
                     <p className="text-xs text-ink-faint">
-                      {new Date(completion.createdAt).toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                      })}
+                      {new Date(completion.createdAt).toLocaleDateString(
+                        locale === "tr" ? "tr-TR" : "en-GB",
+                        {
+                          day: "numeric",
+                          month: "short",
+                        },
+                      )}
                     </p>
                   </div>
                   <span className="flex shrink-0 items-center gap-1 text-sm font-bold text-brand-700">

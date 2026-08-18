@@ -15,11 +15,14 @@ export function TechnicalDetails({
   txHash,
   explorerUrl,
   rows,
+  label = "Technical details",
   className,
 }: {
   txHash?: string | null;
   explorerUrl?: string | null;
   rows?: { label: string; value: string }[];
+  /** The disclosure's own wording; the rows below stay in developer English on purpose. */
+  label?: string;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -34,7 +37,7 @@ export function TechnicalDetails({
         aria-expanded={open}
       >
         <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} aria-hidden />
-        Technical details
+        {label}
       </button>
 
       {open ? (

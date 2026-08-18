@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Gift } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAccount } from "@/features/auth/AccountProvider";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 interface ClaimResponse {
   ok: true;
@@ -33,6 +34,7 @@ export function ClaimRewardButton({
 }) {
   const router = useRouter();
   const { status, signIn } = useAccount();
+  const { t } = useTranslations();
   const [code, setCode] = useState<string | null>(existingCode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +42,7 @@ export function ClaimRewardButton({
   if (status !== "signed-in") {
     return (
       <Button variant="secondary" onClick={() => signIn()}>
-        Sign in to check
+        {t.auth.signInToCheck}
       </Button>
     );
   }
@@ -48,9 +50,11 @@ export function ClaimRewardButton({
   if (code) {
     return (
       <div className="animate-pop rounded-2xl border-2 border-dashed border-sun-300 bg-sun-100/60 p-5 text-center">
-        <p className="text-xs font-semibold tracking-wide text-sun-700 uppercase">Your coupon</p>
+        <p className="text-xs font-semibold tracking-wide text-sun-700 uppercase">
+          {t.rewards.yourCoupon}
+        </p>
         <p className="mt-2 font-mono text-2xl font-bold tracking-[0.15em] text-ink">{code}</p>
-        <p className="mt-2 text-xs text-sun-700">Show this at the counter. One per person.</p>
+        <p className="mt-2 text-xs text-sun-700">{t.rewards.couponHint}</p>
       </div>
     );
   }
@@ -58,8 +62,8 @@ export function ClaimRewardButton({
   if (!eligible) {
     return (
       <div className="rounded-2xl bg-paper-sunk p-4">
-        <p className="text-sm font-semibold text-ink-soft">Not yet available</p>
-        <p className="mt-1 text-sm text-ink-faint">You need the {requirement} achievement first.</p>
+        <p className="text-sm font-semibold text-ink-soft">{t.rewards.notYet}</p>
+        <p className="mt-1 text-sm text-ink-faint">{t.rewards.notYetBody(requirement)}</p>
       </div>
     );
   }
@@ -88,7 +92,7 @@ export function ClaimRewardButton({
     <div>
       <Button onClick={claim} disabled={busy} className="gap-2">
         <Gift className="size-4" aria-hidden />
-        {busy ? "Getting your coupon…" : "Claim reward"}
+        {busy ? t.rewards.claiming : t.rewards.claim}
       </Button>
       {error ? <p className="mt-2 text-sm font-medium text-danger-700">{error}</p> : null}
     </div>

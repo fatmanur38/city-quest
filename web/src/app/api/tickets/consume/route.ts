@@ -5,6 +5,8 @@ import { activityBySlug, institutionBySlug } from "@/server/catalog";
 import { readPass, passOwner } from "@/lib/chain/reads";
 import { consumePassOnChain } from "@/server/chain/writes";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
 /**
  * Spend a ticket at the door.
@@ -22,6 +24,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     const operatorSlug = await requireOperator();
     const { passId } = await parseBody(request, schema);
+    const { locale } = await getTranslations();
 
     const institution = institutionBySlug(operatorSlug);
     if (!institution?.signerRole) return fail("That institution cannot validate tickets.", 400);
@@ -61,9 +64,9 @@ export async function POST(request: Request) {
     return ok({
       passId,
       holder,
-      credential: { title: pass.credential.title, emoji: pass.credential.emoji },
-      activityTitle: activity?.title ?? pass.credential.title,
-      issuer: institution.name,
+      credential: { title: pick(pass.credential.title, locale), emoji: pass.credential.emoji },
+      activityTitle: pick(activity?.title ?? pass.credential.title, locale),
+      issuer: pick(institution.label, locale),
       xpAwarded,
       txHash: receipt.txHash,
     });

@@ -7,6 +7,8 @@ import { hasCredential } from "@/lib/chain/reads";
 import { addressForSlug } from "@/server/institutions";
 import { buildClaim, verifyActivityOnChain } from "@/server/chain/writes";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
 /**
  * Claim a quest reward.
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { questSlug } = await parseBody(request, schema);
+    const { locale } = await getTranslations();
 
     const quest = questBySlug(questSlug);
     if (!quest) return fail("We do not know that quest.", 404);
@@ -46,10 +49,10 @@ export async function POST(request: Request) {
       if (requirement.kind === "credential") {
         // Verified against the chain, where other institutions put it.
         const held = await hasCredential(wallet, CREDENTIALS[requirement.credential].hash);
-        if (!held) unmet.push(requirement.label);
+        if (!held) unmet.push(pick(requirement.label, locale));
       } else {
         const completion = await db().findCompletion(wallet, requirement.activitySlug, "once");
-        if (!completion) unmet.push(requirement.label);
+        if (!completion) unmet.push(pick(requirement.label, locale));
       }
     }
 
@@ -74,8 +77,8 @@ export async function POST(request: Request) {
     const profile = await db().addXp(wallet, quest.xpReward);
 
     return ok({
-      credential: { title: rewardCredential.title, emoji: rewardCredential.emoji },
-      issuer: issuer.name,
+      credential: { title: pick(rewardCredential.title, locale), emoji: rewardCredential.emoji },
+      issuer: pick(issuer.label, locale),
       xpAwarded: quest.xpReward,
       totalXp: profile.xp,
       txHash: receipt.txHash,

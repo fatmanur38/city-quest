@@ -5,6 +5,7 @@ import { Camera, CameraOff, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { parseQrPayload } from "@/lib/qr";
 import { cn } from "@/lib/cn";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /**
  * Scanning at the desk.
@@ -17,17 +18,20 @@ export function Scanner({
   expect,
   onResult,
   disabled,
-  placeholder = "Passport code or ticket number",
+  placeholder,
 }: {
   expect: "user" | "ticket";
   onResult: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
 }) {
+  const { t } = useTranslations();
   const [mode, setMode] = useState<"manual" | "camera">("manual");
   const [typed, setTyped] = useState("");
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const cameraFailedMessage = t.institution.cameraFailed;
 
   useEffect(() => {
     if (mode !== "camera") return;
@@ -53,7 +57,7 @@ export function Scanner({
         await instance.start();
       } catch {
         if (!cancelled) {
-          setCameraError("The camera could not be opened. Type the code instead.");
+          setCameraError(cameraFailedMessage);
           setMode("manual");
         }
       }
@@ -64,15 +68,13 @@ export function Scanner({
       scanner?.stop();
       scanner?.destroy();
     };
-  }, [mode, expect, onResult]);
+  }, [mode, expect, onResult, cameraFailedMessage]);
 
   function submitTyped() {
     const parsed = parseQrPayload(typed);
     if (!parsed || parsed.kind !== expect) {
       setCameraError(
-        expect === "user"
-          ? "That does not look like a passport code."
-          : "That does not look like a ticket number.",
+        expect === "user" ? t.institution.notAPassportCode : t.institution.notATicketNumber,
       );
       return;
     }
@@ -93,7 +95,7 @@ export function Scanner({
           )}
         >
           <Keyboard className="size-4" aria-hidden />
-          Type code
+          {t.institution.typeCode}
         </button>
         <button
           type="button"
@@ -107,7 +109,7 @@ export function Scanner({
           )}
         >
           <Camera className="size-4" aria-hidden />
-          Use camera
+          {t.institution.useCamera}
         </button>
       </div>
 
@@ -115,7 +117,7 @@ export function Scanner({
         <div className="relative overflow-hidden rounded-2xl bg-ink">
           <video ref={videoRef} className="aspect-video w-full object-cover" muted playsInline />
           <p className="absolute inset-x-0 bottom-0 bg-ink/70 p-2 text-center text-xs text-white">
-            Point at the code on the visitor&apos;s phone
+            {t.institution.cameraHint}
           </p>
         </div>
       ) : (
@@ -126,12 +128,12 @@ export function Scanner({
             onKeyDown={(event) => {
               if (event.key === "Enter") submitTyped();
             }}
-            placeholder={placeholder}
+            placeholder={placeholder ?? t.institution.passportOrTicket}
             disabled={disabled}
             className="h-11 min-w-0 flex-1 rounded-full border border-border-soft bg-paper-raised px-4 text-sm focus:border-brand-500 focus:outline-none"
           />
           <Button onClick={submitTyped} disabled={disabled || typed.trim().length === 0}>
-            Check
+            {t.common.check}
           </Button>
         </div>
       )}

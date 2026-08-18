@@ -6,6 +6,8 @@ import { CREDENTIALS } from "@/lib/credentials";
 import { addressForSlug } from "@/server/institutions";
 import { issuePassOnChain } from "@/server/chain/writes";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
 /**
  * Buy a ticket for a paid experience.
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { activitySlug } = await parseBody(request, schema);
+    const { locale } = await getTranslations();
 
     const activity = activityBySlug(activitySlug);
     if (!activity) return fail("We do not know that experience.", 404);
@@ -72,9 +75,9 @@ export async function POST(request: Request) {
     return ok({
       ticket: {
         passId: order.passId,
-        activityTitle: activity.title,
+        activityTitle: pick(activity.title, locale),
         emoji: activity.emoji,
-        venue: institution.name,
+        venue: pick(institution.label, locale),
         priceTry: order.priceTry,
         validUntil: new Date(Number(validUntil) * 1000).toISOString(),
       },

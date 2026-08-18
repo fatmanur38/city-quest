@@ -1,11 +1,12 @@
 import { keccak256, toBytes } from "viem";
+import type { Localized } from "./i18n/types";
 
 /**
  * The achievement catalogue.
  *
  * Only `keccak256(name)` ever reaches the blockchain. Everything a person actually sees -- the
- * title, the icon, the wording -- lives here, so a city can restyle its badges without touching
- * a deployed contract.
+ * title, the icon, the wording -- lives here, so a city can restyle its badges, or add a
+ * language, without touching a deployed contract.
  */
 
 export const CREDENTIAL_NAMES = [
@@ -24,18 +25,18 @@ export interface CredentialDefinition {
   name: CredentialName;
   /** keccak256 of the name -- the only form the contract knows. */
   hash: `0x${string}`;
-  title: string;
+  title: Localized;
   emoji: string;
-  description: string;
+  description: Localized;
   /** Higher tier badges are earned by combining others. */
   tier: "activity" | "milestone";
 }
 
 function define(
   name: CredentialName,
-  title: string,
+  title: Localized,
   emoji: string,
-  description: string,
+  description: Localized,
   tier: CredentialDefinition["tier"] = "activity",
 ): CredentialDefinition {
   return { name, hash: keccak256(toBytes(name)), title, emoji, description, tier };
@@ -44,41 +45,64 @@ function define(
 export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   LIBRARY_VISIT: define(
     "LIBRARY_VISIT",
-    "Library Visitor",
+    { en: "Library Visitor", tr: "Kütüphane Ziyaretçisi" },
     "📚",
-    "Checked in at a city library and spent time reading.",
+    {
+      en: "Checked in at a city library and spent time reading.",
+      tr: "Bir şehir kütüphanesine uğradı ve okuyarak vakit geçirdi.",
+    },
   ),
   SCIENCE_CENTER_VISIT: define(
     "SCIENCE_CENTER_VISIT",
-    "Science Center Visitor",
+    { en: "Science Center Visitor", tr: "Bilim Merkezi Ziyaretçisi" },
     "🔬",
-    "Explored the exhibits at a city science center.",
+    {
+      en: "Explored the exhibits at a city science center.",
+      tr: "Şehrin bilim merkezindeki sergileri gezdi.",
+    },
   ),
   EARTHQUAKE_EXPERIENCE: define(
     "EARTHQUAKE_EXPERIENCE",
-    "Earthquake Experience",
+    { en: "Earthquake Experience", tr: "Deprem Deneyimi" },
     "🌍",
-    "Completed the earthquake simulation and learned what to do when the ground moves.",
+    {
+      en: "Completed the earthquake simulation and learned what to do when the ground moves.",
+      tr: "Deprem simülasyonunu tamamladı ve yer sarsıldığında ne yapılacağını öğrendi.",
+    },
   ),
   ROBOTICS_WORKSHOP: define(
     "ROBOTICS_WORKSHOP",
-    "Robotics Workshop",
+    { en: "Robotics Workshop", tr: "Robotik Atölyesi" },
     "🤖",
-    "Built and programmed a robot in a municipality workshop.",
+    {
+      en: "Built and programmed a robot in a municipality workshop.",
+      tr: "Belediye atölyesinde bir robot yaptı ve programladı.",
+    },
   ),
-  MUSEUM_EXPLORER: define("MUSEUM_EXPLORER", "Museum Explorer", "🏛️", "Visited a city museum."),
+  MUSEUM_EXPLORER: define(
+    "MUSEUM_EXPLORER",
+    { en: "Museum Explorer", tr: "Müze Kâşifi" },
+    "🏛️",
+    { en: "Visited a city museum.", tr: "Bir şehir müzesini ziyaret etti." },
+  ),
   SCIENCE_EXPLORER: define(
     "SCIENCE_EXPLORER",
-    "Science Explorer",
+    { en: "Science Explorer", tr: "Bilim Kâşifi" },
     "🧪",
-    "Completed a series of science activities across the city.",
+    {
+      en: "Completed a series of science activities across the city.",
+      tr: "Şehrin dört bir yanında bir dizi bilim etkinliğini tamamladı.",
+    },
     "milestone",
   ),
   YOUNG_SCIENTIST: define(
     "YOUNG_SCIENTIST",
-    "Young Scientist",
+    { en: "Young Scientist", tr: "Genç Bilim İnsanı" },
     "🏆",
-    "Earned by combining verified achievements from several independent institutions.",
+    {
+      en: "Earned by combining verified achievements from several independent institutions.",
+      tr: "Birbirinden bağımsız birkaç kurumun onayladığı başarımları birleştirerek kazanıldı.",
+    },
     "milestone",
   ),
 };
@@ -111,9 +135,12 @@ export function describeCredential(hash: string): CredentialDefinition {
     credentialByHash(hash) ?? {
       name: "UNKNOWN" as CredentialName,
       hash: hash as `0x${string}`,
-      title: "Achievement",
+      title: { en: "Achievement", tr: "Başarım" },
       emoji: "🎖️",
-      description: "Issued by an institution outside this city's catalogue.",
+      description: {
+        en: "Issued by an institution outside this city's catalogue.",
+        tr: "Bu şehrin kataloğu dışındaki bir kurum tarafından verildi.",
+      },
       tier: "activity",
     }
   );

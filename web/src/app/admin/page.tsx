@@ -3,8 +3,12 @@ import { resolveInstitutions } from "@/server/institutions";
 import { db } from "@/server/db";
 import { AdminSignIn } from "@/features/admin/AdminSignIn";
 import { AdminConsole } from "@/features/admin/AdminConsole";
+import { getTranslations } from "@/server/locale";
 
-export const metadata = { title: "Municipality — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.admin.metaTitle} — CityQuest` };
+}
 
 export default async function AdminPage() {
   const operator = await currentOperator();

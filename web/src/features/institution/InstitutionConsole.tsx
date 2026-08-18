@@ -9,6 +9,7 @@ import { TechnicalDetails } from "@/components/ui/TechnicalDetails";
 import { Scanner } from "@/features/scan/Scanner";
 import { explorerTxUrl } from "@/lib/chain/client";
 import { cn } from "@/lib/cn";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /**
  * What a librarian or a science center operator actually uses.
@@ -60,6 +61,7 @@ export function InstitutionConsole({
   activities: ConsoleActivity[];
   sellsTickets: boolean;
 }) {
+  const { t } = useTranslations();
   const [tab, setTab] = useState<"visitor" | "ticket">(sellsTickets ? "ticket" : "visitor");
   const [selected, setSelected] = useState(activities[0]?.slug ?? "");
   const [busy, setBusy] = useState(false);
@@ -92,7 +94,7 @@ export function InstitutionConsole({
         if (!data.ok) {
           setOutcome({
             kind: "refused",
-            title: "Not verified",
+            title: t.institution.notVerified,
             detail: data.error,
             code: data.code ?? null,
           });
@@ -102,8 +104,8 @@ export function InstitutionConsole({
 
         setOutcome({
           kind: "success",
-          title: `${data.activity.title} verified`,
-          detail: `${data.credential.title} added · +${data.xpAwarded} XP`,
+          title: t.institution.verified(data.activity.title),
+          detail: t.institution.addedWithXp(data.credential.title, data.xpAwarded),
           emoji: data.credential.emoji,
           txHash: data.txHash,
         });
@@ -111,15 +113,15 @@ export function InstitutionConsole({
       } catch {
         setOutcome({
           kind: "refused",
-          title: "Could not reach the city registry",
-          detail: "Please try again in a moment.",
+          title: t.institution.unreachable,
+          detail: t.institution.tryAgainSoon,
           code: null,
         });
       } finally {
         setBusy(false);
       }
     },
-    [selected, record],
+    [selected, record, t],
   );
 
   const validateTicket = useCallback(
@@ -139,7 +141,7 @@ export function InstitutionConsole({
         if (!data.ok) {
           setOutcome({
             kind: "refused",
-            title: "Ticket refused",
+            title: t.institution.ticketRefused,
             detail: data.error,
             code: data.code ?? null,
           });
@@ -149,8 +151,8 @@ export function InstitutionConsole({
 
         setOutcome({
           kind: "success",
-          title: `Ticket #${data.passId} accepted`,
-          detail: `${data.credential.title} added · +${data.xpAwarded} XP`,
+          title: t.institution.ticketAccepted(data.passId),
+          detail: t.institution.addedWithXp(data.credential.title, data.xpAwarded),
           emoji: data.credential.emoji,
           txHash: data.txHash,
         });
@@ -158,15 +160,15 @@ export function InstitutionConsole({
       } catch {
         setOutcome({
           kind: "refused",
-          title: "Could not reach the city registry",
-          detail: "Please try again in a moment.",
+          title: t.institution.unreachable,
+          detail: t.institution.tryAgainSoon,
           code: null,
         });
       } finally {
         setBusy(false);
       }
     },
-    [record],
+    [record, t],
   );
 
   async function signOut() {
@@ -183,14 +185,14 @@ export function InstitutionConsole({
           </span>
           <div>
             <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
-              Staff console
+              {t.institution.console}
             </p>
             <h1 className="font-display text-xl font-bold text-ink">{institutionName}</h1>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={signOut} className="gap-1.5">
           <LogOut className="size-4" aria-hidden />
-          Sign out
+          {t.nav.signOut}
         </Button>
       </div>
 
@@ -207,7 +209,7 @@ export function InstitutionConsole({
                 : "border-border-soft bg-paper-raised text-ink-soft",
             )}
           >
-            Validate a ticket
+            {t.institution.tabTicket}
           </button>
           <button
             type="button"
@@ -219,7 +221,7 @@ export function InstitutionConsole({
                 : "border-border-soft bg-paper-raised text-ink-soft",
             )}
           >
-            Confirm a visitor
+            {t.institution.tabVisitor}
           </button>
         </div>
       ) : null}
@@ -228,8 +230,8 @@ export function InstitutionConsole({
         {tab === "visitor" ? (
           <>
             <CardHeader
-              title="Confirm a visitor"
-              description="Scan the code on their phone to confirm they were here."
+              title={t.institution.confirmVisitor}
+              description={t.institution.confirmVisitorLead}
             />
 
             {activities.length > 1 ? (
@@ -259,22 +261,22 @@ export function InstitutionConsole({
         ) : (
           <>
             <CardHeader
-              title="Validate a ticket"
-              description="Scan the ticket. It will be accepted once and only once."
+              title={t.institution.validateTicket}
+              description={t.institution.validateTicketLead}
             />
             <div className="mt-5">
               <Scanner
                 expect="ticket"
                 onResult={validateTicket}
                 disabled={busy}
-                placeholder="Ticket number"
+                placeholder={t.institution.ticketNumberPlaceholder}
               />
             </div>
           </>
         )}
 
         {busy ? (
-          <p className="mt-5 text-sm font-medium text-ink-soft">Checking with the city registry…</p>
+          <p className="mt-5 text-sm font-medium text-ink-soft">{t.institution.checkingRegistry}</p>
         ) : null}
 
         {outcome ? (
@@ -307,7 +309,7 @@ export function InstitutionConsole({
                   />
                 ) : outcome.code ? (
                   <p className="mt-3 font-mono text-[0.7rem] text-ink-faint">
-                    refused by: {outcome.code}
+                    {t.institution.refusedBy(outcome.code)}
                   </p>
                 ) : null}
               </div>
@@ -319,8 +321,8 @@ export function InstitutionConsole({
       {log.length > 0 ? (
         <Card className="p-6">
           <CardHeader
-            title="Recent verifications"
-            description="This session only. Visit histories are not kept."
+            title={t.institution.recentVerifications}
+            description={t.institution.recentVerificationsLead}
           />
           <ul className="mt-4 divide-y divide-border-soft">
             {log.map((entry, index) => (
@@ -333,7 +335,7 @@ export function InstitutionConsole({
                   ) : (
                     <XCircle className="size-3.5" aria-hidden />
                   )}
-                  {entry.ok ? "Accepted" : "Refused"}
+                  {entry.ok ? t.institution.accepted : t.institution.refused}
                 </Badge>
               </li>
             ))}

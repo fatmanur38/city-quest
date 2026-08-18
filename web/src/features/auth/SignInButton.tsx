@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { hasBrowserWallet } from "./wallet";
 import { useAccount } from "./AccountProvider";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /**
  * "Start your City Passport", not "Connect Wallet".
@@ -13,7 +14,7 @@ import { useAccount } from "./AccountProvider";
  * a wallet get a quieter second option; nobody is required to know what a wallet is.
  */
 export function SignInButton({
-  label = "Start Your City Passport",
+  label,
   redirectTo = "/passport",
   size = "lg",
 }: {
@@ -23,6 +24,8 @@ export function SignInButton({
 }) {
   const router = useRouter();
   const { status, busy, error, signIn } = useAccount();
+  const { t } = useTranslations();
+  const text = label ?? t.auth.start;
   const [showWalletOption, setShowWalletOption] = useState(false);
 
   useEffect(() => setShowWalletOption(hasBrowserWallet()), []);
@@ -30,7 +33,7 @@ export function SignInButton({
   if (status === "signed-in") {
     return (
       <Button size={size} onClick={() => router.push(redirectTo)}>
-        Open my passport
+        {t.auth.openPassport}
       </Button>
     );
   }
@@ -45,11 +48,11 @@ export function SignInButton({
           router.push(redirectTo);
         }}
       >
-        {busy ? "Setting up…" : label}
+        {busy ? t.auth.settingUp : text}
       </Button>
 
       <p className="text-xs text-ink-faint">
-        No app to install, nothing to pay, nothing to remember.
+        {t.auth.reassurance}
       </p>
 
       {showWalletOption ? (
@@ -62,7 +65,7 @@ export function SignInButton({
             router.push(redirectTo);
           }}
         >
-          I already have a wallet
+          {t.auth.haveWallet}
         </button>
       ) : null}
 

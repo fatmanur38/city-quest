@@ -7,23 +7,26 @@ import { QUESTS, institutionBySlug } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
 import { ClaimQuestButton } from "@/features/quests/ClaimQuestButton";
 import { SignInButton } from "@/features/auth/SignInButton";
+import { getTranslations } from "@/server/locale";
+import { pick } from "@/lib/i18n/types";
 
-export const metadata = { title: "Quests — CityQuest" };
+export async function generateMetadata() {
+  const { t } = await getTranslations();
+  return { title: `${t.quests.metaTitle} — CityQuest` };
+}
 
 export default async function QuestsPage() {
-  const wallet = await currentWallet();
+  const [wallet, { locale, t }] = await Promise.all([currentWallet(), getTranslations()]);
   const passport = wallet ? await loadPassport(wallet) : null;
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          Quests
+          {t.quests.title}
         </h1>
         <p className="mt-3 max-w-2xl text-ink-soft">
-          A quest strings together things you did at different places. Finish one and the
-          municipality will vouch for the whole set — building on what the library and the science
-          center already confirmed.
+          {t.quests.lead}
         </p>
       </header>
 
@@ -50,21 +53,23 @@ export default async function QuestsPage() {
                       {quest.emoji}
                     </span>
                     <div>
-                      <h2 className="font-display text-xl font-bold text-ink">{quest.title}</h2>
+                      <h2 className="font-display text-xl font-bold text-ink">
+                        {pick(quest.title, locale)}
+                      </h2>
                       <p className="mt-1 max-w-xl text-sm leading-relaxed text-ink-soft">
-                        {quest.description}
+                        {pick(quest.description, locale)}
                       </p>
                     </div>
                   </div>
 
-                  {progress?.claimed ? <Badge tone="emerald">Earned</Badge> : null}
+                  {progress?.claimed ? <Badge tone="emerald">{t.quests.earned}</Badge> : null}
                 </div>
 
                 {/* Progress */}
                 <div className="mt-6">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-semibold text-ink">
-                      {completed} of {requirements.length} complete
+                      {t.quests.complete(completed, requirements.length)}
                     </span>
                     <span className="text-ink-faint">
                       {Math.round((completed / requirements.length) * 100)}%
@@ -81,7 +86,7 @@ export default async function QuestsPage() {
                 <ul className="mt-6 space-y-3">
                   {requirements.map((requirement) => (
                     <li
-                      key={requirement.label}
+                      key={pick(requirement.label, locale)}
                       className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl bg-paper-sunk/60 px-4 py-3"
                     >
                       <span className="text-lg" aria-hidden>
@@ -92,17 +97,17 @@ export default async function QuestsPage() {
                           requirement.met ? "text-ink" : "text-ink-soft"
                         }`}
                       >
-                        {requirement.label}
+                        {pick(requirement.label, locale)}
                       </span>
                       {requirement.verifiedOnChain ? (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
                           <BadgeCheck className="size-3.5" aria-hidden />
-                          Confirmed by an institution
+                          {t.quests.confirmedByInstitution}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-faint">
                           <Sparkles className="size-3.5" aria-hidden />
-                          Scored by the city app
+                          {t.quests.scoredByApp}
                         </span>
                       )}
                     </li>
@@ -112,32 +117,37 @@ export default async function QuestsPage() {
                 {/* Reward */}
                 <div className="mt-6 rounded-2xl border border-sun-300/60 bg-sun-100/50 p-5">
                   <p className="text-xs font-semibold tracking-wide text-sun-700 uppercase">
-                    Reward
+                    {t.quests.reward}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3">
                     <span className="text-3xl" aria-hidden>
                       {reward.emoji}
                     </span>
                     <div>
-                      <p className="font-display text-base font-bold text-ink">{reward.title}</p>
+                      <p className="font-display text-base font-bold text-ink">
+                        {pick(reward.title, locale)}
+                      </p>
                       <p className="text-sm text-ink-soft">
-                        Issued by {issuer?.name} · +{quest.xpReward} XP
+                        {t.quests.issuedBy(
+                          issuer ? pick(issuer.label, locale) : "",
+                          quest.xpReward,
+                        )}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-5">
                     {!wallet ? (
-                      <SignInButton label="Start your passport" redirectTo="/quests" size="md" />
+                      <SignInButton label={t.auth.startShort} redirectTo="/quests" size="md" />
                     ) : progress?.claimed ? (
                       <p className="text-sm font-semibold text-emerald-500">
-                        Already in your passport.
+                        {t.quests.alreadyInPassport}
                       </p>
                     ) : (
                       <ClaimQuestButton
                         questSlug={quest.slug}
                         disabled={!progress?.allMet}
-                        rewardTitle={reward.title}
+                        rewardTitle={pick(reward.title, locale)}
                       />
                     )}
                   </div>

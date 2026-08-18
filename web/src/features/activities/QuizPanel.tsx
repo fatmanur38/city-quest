@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useAccount } from "@/features/auth/AccountProvider";
 import { cn } from "@/lib/cn";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 
 /** A quiz question with the answer key stripped out before it reaches the browser. */
 export interface PublicQuestion {
@@ -34,6 +35,7 @@ export function QuizPanel({
 }) {
   const router = useRouter();
   const { status, signIn } = useAccount();
+  const { t } = useTranslations();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +46,7 @@ export function QuizPanel({
   if (status !== "signed-in") {
     return (
       <Button variant="secondary" onClick={() => signIn()}>
-        Sign in to take the quiz
+        {t.auth.signInToQuiz}
       </Button>
     );
   }
@@ -141,14 +143,14 @@ export function QuizPanel({
           )}
         >
           <p className="font-display text-base font-bold text-ink">
-            {result.correct} out of {result.total} correct
+            {t.activities.quizScore(result.correct, result.total)}
           </p>
           <p className="mt-1 text-sm text-ink-soft">
             {result.passed
               ? result.xpAwarded > 0
-                ? `Nicely done — that is +${result.xpAwarded} XP.`
-                : "You had already passed this one, so no extra points this time."
-              : "Not quite. Look at the answers above and try again tomorrow."}
+                ? t.activities.quizPassed(result.xpAwarded)
+                : t.activities.quizAlreadyPassed
+              : t.activities.quizFailed}
           </p>
           {!result.passed ? (
             <Button
@@ -160,13 +162,13 @@ export function QuizPanel({
                 setAnswers({});
               }}
             >
-              Try again
+              {t.activities.tryAgain}
             </Button>
           ) : null}
         </div>
       ) : (
         <Button onClick={submit} disabled={!allAnswered || busy}>
-          {busy ? "Checking…" : `Submit for +${xpReward} XP`}
+          {busy ? t.activities.checking : t.activities.submitForXp(xpReward)}
         </Button>
       )}
     </div>
