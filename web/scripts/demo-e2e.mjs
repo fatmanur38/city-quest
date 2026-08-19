@@ -18,7 +18,13 @@ const SCIENCE_SLUG = "kayseri-science-center";
 const BASE = "http://localhost:3000";
 
 // Cookie jars, one per actor, mirroring separate browsers.
-const jars = { citizen: new Map(), library: new Map(), science: new Map(), admin: new Map() };
+const jars = {
+  citizen: new Map(),
+  library: new Map(),
+  science: new Map(),
+  admin: new Map(),
+  business: new Map(),
+};
 
 function cookieHeader(jar) {
   return [...jar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
@@ -308,6 +314,118 @@ step(12, "A suspended institution cannot issue achievements");
     body: { wallet: fresh.address, activitySlug: "library-daily-visit" },
   });
   check("works again after reactivation", restored.ok === true, restored.error);
+}
+
+// -------------------------------------------------------------------------------------------
+// A business joins, and the municipality reprices a ticket. Neither touches the chain, which is
+// the point: an institution's authority is a public fact, a cafe's offer is a commercial one.
+// -------------------------------------------------------------------------------------------
+step(13, "The municipality changes a ticket price");
+{
+  const { data: up } = await call("admin", "/api/admin/prices", {
+    method: "PATCH",
+    body: { activitySlug: "earthquake-simulation", priceTry: 75 },
+  });
+  check("price raised to 75 TL", up.ok === true && up.priceTry === 75, up.error);
+
+  const { data: free } = await call("admin", "/api/admin/prices", {
+    method: "PATCH",
+    body: { activitySlug: "library-daily-visit", priceTry: 10 },
+  });
+  check("a free check-in cannot be priced", free.ok === false, free.error);
+
+  const { data: back } = await call("admin", "/api/admin/prices", {
+    method: "PATCH",
+    body: { activitySlug: "earthquake-simulation", priceTry: null },
+  });
+  check("reset returns the catalogue price", back.ok === true && back.priceTry === 50, back.error);
+}
+
+step(14, "A business joins and publishes an offer");
+let businessSlug = null;
+{
+  const name = `Demo Coffee ${Date.now().toString().slice(-6)}`;
+  const { data: created } = await call("admin", "/api/admin/sponsors", {
+    body: { name, emoji: "☕" },
+  });
+  check("business added", created.ok === true, created.ok ? created.sponsor.slug : created.error);
+  if (!created.ok) throw new Error("cannot continue without a business");
+  businessSlug = created.sponsor.slug;
+  check("starts unapproved", created.sponsor.approved === false);
+
+  const { status: wrong } = await call("business", "/api/sponsor/session", {
+    body: { accessCode: "WRONGCOD" },
+  });
+  check("a wrong code is refused", wrong === 401);
+
+  const { data: signedIn } = await call("business", "/api/sponsor/session", {
+    body: { accessCode: created.sponsor.accessCode },
+  });
+  check("business signed in with its own code", signedIn.ok === true, signedIn.error);
+
+  const { data: offer } = await call("business", "/api/sponsor/offers", {
+    body: {
+      title: "Free filter coffee",
+      description: "Show this at the counter.",
+      emoji: "☕",
+      // The strong form: the cafe reads this off the registry itself.
+      requirement: { kind: "credential", credential: "YOUNG_SCIENTIST" },
+    },
+  });
+  check("offer published", offer.ok === true, offer.ok ? offer.offer.slug : offer.error);
+
+  const { status: junk } = await call("business", "/api/sponsor/offers", {
+    body: { title: "x", requirement: { kind: "credential", credential: "NOT_A_CREDENTIAL" } },
+  });
+  check("an offer pointing at nothing is refused", junk === 400);
+
+  step(15, "An unapproved business is invisible, an approved one is not");
+  const { data: hidden } = await call("citizen", "/api/rewards/claim", {
+    body: { rewardSlug: offer.offer.slug },
+  });
+  check("its offer cannot be claimed yet", hidden.ok === false, hidden.error);
+
+  const { data: approved } = await call("admin", "/api/admin/sponsors", {
+    method: "PATCH",
+    body: { slug: businessSlug, approved: true },
+  });
+  check("municipality approved the business", approved.ok === true, approved.error);
+
+  // The citizen earned Young Scientist in step 8, so the coffee is theirs.
+  const { data: claimed } = await call("citizen", "/api/rewards/claim", {
+    body: { rewardSlug: offer.offer.slug },
+  });
+  check("coupon granted for the on-chain achievement", claimed.ok === true, claimed.couponCode);
+
+  const { data: again } = await call("citizen", "/api/rewards/claim", {
+    body: { rewardSlug: offer.offer.slug },
+  });
+  check(
+    "claiming again returns the same coupon",
+    again.ok === true && again.couponCode === claimed.couponCode,
+  );
+
+  // Withdrawing an offer hides it, but does not take back a coupon already promised.
+  await call("business", "/api/sponsor/offers", {
+    method: "PATCH",
+    body: { slug: offer.offer.slug, active: false },
+  });
+  const { data: afterHide } = await call("citizen", "/api/rewards/claim", {
+    body: { rewardSlug: offer.offer.slug },
+  });
+  check(
+    "a granted coupon survives the offer being withdrawn",
+    afterHide.ok === true && afterHide.couponCode === claimed.couponCode,
+  );
+
+  // Leave the demo city as it was found. The registry has no way to remove an institution -- a
+  // suspended one stays visible on purpose -- but a test business should not accumulate in the
+  // municipality's console every time this runs.
+  const { data: withdrawn } = await call("admin", "/api/admin/sponsors", {
+    method: "PATCH",
+    body: { slug: businessSlug, approved: false },
+  });
+  check("test business left unapproved", withdrawn.ok === true, withdrawn.error);
 }
 
 console.log(`\n${"=".repeat(60)}`);
