@@ -147,6 +147,15 @@ const en = {
   account: {
     metaTitle: "My City Account",
     defaultName: (code: string) => `Explorer ${code}`,
+    linkGoogleTitle: "This account lives only in this browser",
+    linkGoogleBody:
+      "Clearing your browser data would lose it, and it will not follow you to another phone. Attach your Google account and it opens anywhere — your achievements stay exactly where they are.",
+    linkGoogleButton: "Attach my Google account",
+    googleLinkedTitle: "Your Google account is attached",
+    googleLinkedBody:
+      "Sign in with Google on any phone or computer and this same account opens, with everything you have earned.",
+    linking: "Attaching your Google account",
+    linkingBody: "One moment — your achievements are staying exactly where they are.",
     documentLabel: "City Learning Account",
     signedOutTitle: "Your city account is waiting",
     signedOutBody: "Create one in a single tap. Nothing to install, nothing to pay.",
@@ -450,6 +459,9 @@ const en = {
     somethingWentWrong: "Something went wrong.",
     googleUnavailable: "Google sign-in is not set up on this city app yet.",
     googleSignInFailed: "We could not confirm that Google account. Please try again.",
+    googleAlreadyLinkedElsewhere:
+      "That Google account is already attached to a different city account.",
+    accountAlreadyHasGoogle: "This city account already has a Google account attached.",
 
     /**
      * Refusals that come from a contract revert, keyed by the on-chain error name. The key is
@@ -661,6 +673,15 @@ const tr: Dictionary = {
   account: {
     metaTitle: "Şehir Hesabım",
     defaultName: (code: string) => `Kâşif ${code}`,
+    linkGoogleTitle: "Bu hesap yalnızca bu tarayıcıda duruyor",
+    linkGoogleBody:
+      "Tarayıcı verini silersen kaybolur, başka bir telefona da geçmez. Google hesabını bağlarsan her yerden açılır — başarımların da olduğu yerde kalır.",
+    linkGoogleButton: "Google hesabımı bağla",
+    googleLinkedTitle: "Google hesabın bağlı",
+    googleLinkedBody:
+      "Hangi telefondan ya da bilgisayardan Google ile girersen gir, kazandığın her şeyle birlikte bu hesap açılır.",
+    linking: "Google hesabın bağlanıyor",
+    linkingBody: "Bir saniye — başarımların olduğu yerde kalıyor.",
     documentLabel: "Şehir Öğrenme Hesabı",
     signedOutTitle: "Şehir hesabın seni bekliyor",
     signedOutBody: "Tek dokunuşla oluştur. Kurulum yok, ödeme yok.",
@@ -957,6 +978,8 @@ const tr: Dictionary = {
     somethingWentWrong: "Bir şeyler ters gitti.",
     googleUnavailable: "Bu şehir uygulamasında Google girişi henüz kurulmadı.",
     googleSignInFailed: "Bu Google hesabını doğrulayamadık. Lütfen tekrar dene.",
+    googleAlreadyLinkedElsewhere: "Bu Google hesabı başka bir şehir hesabına bağlı.",
+    accountAlreadyHasGoogle: "Bu şehir hesabına zaten bir Google hesabı bağlı.",
 
     chain: {
       ActivityAlreadyVerified: "Bu bugün için zaten onaylandı.",

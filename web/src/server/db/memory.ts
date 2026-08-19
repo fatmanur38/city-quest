@@ -3,6 +3,7 @@ import { mkdirSync, readFileSync, statSync, writeFileSync, existsSync } from "no
 import { dirname, resolve } from "node:path";
 import type {
   ActivityPrice,
+  LinkedAccount,
   Completion,
   NewSponsor,
   NewSponsorOffer,
@@ -37,6 +38,7 @@ interface Snapshot {
   activityPrices: ActivityPrice[];
   sponsors: Sponsor[];
   sponsorOffers: SponsorOffer[];
+  linkedAccounts: LinkedAccount[];
 }
 
 const EMPTY: Snapshot = {
@@ -44,6 +46,7 @@ const EMPTY: Snapshot = {
   completions: [],
   ticketOrders: [],
   rewardClaims: [],
+  linkedAccounts: [],
   activityPrices: [],
   sponsors: [],
   sponsorOffers: [],
@@ -390,5 +393,42 @@ export class MemoryDatabase implements Database {
 
   async listRewardClaims(wallet: string): Promise<RewardClaim[]> {
     return this.data.rewardClaims.filter((c) => c.wallet === this.key(wallet));
+  }
+
+  async findLinkByProvider(
+    provider: "google",
+    providerUserId: string,
+  ): Promise<LinkedAccount | null> {
+    return (
+      (this.data.linkedAccounts ?? []).find(
+        (l) => l.provider === provider && l.providerUserId === providerUserId,
+      ) ?? null
+    );
+  }
+
+  async findLinkByWallet(provider: "google", wallet: string): Promise<LinkedAccount | null> {
+    return (
+      (this.data.linkedAccounts ?? []).find(
+        (l) => l.provider === provider && l.wallet === this.key(wallet),
+      ) ?? null
+    );
+  }
+
+  async createLink(
+    provider: "google",
+    providerUserId: string,
+    wallet: string,
+  ): Promise<LinkedAccount> {
+    const row: LinkedAccount = {
+      provider,
+      providerUserId,
+      wallet: this.key(wallet),
+      createdAt: new Date().toISOString(),
+    };
+    // A JSON file written before this table existed has no array to push onto.
+    this.data.linkedAccounts ??= [];
+    this.data.linkedAccounts.push(row);
+    this.persist();
+    return row;
   }
 }

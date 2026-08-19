@@ -139,6 +139,17 @@ export interface NewTicketOrder {
   issueTxHash: string | null;
 }
 
+/**
+ * An external identity pointed at a city account. Only the provider's opaque user id is kept --
+ * never the email, name or picture that came with it.
+ */
+export interface LinkedAccount {
+  provider: "google";
+  providerUserId: string;
+  wallet: string;
+  createdAt: string;
+}
+
 export interface ProfilePatch {
   displayName?: string;
   avatarEmoji?: string;
@@ -189,6 +200,12 @@ export interface Database {
   listActivityPrices(): Promise<ActivityPrice[]>;
   setActivityPrice(activitySlug: string, priceTry: number): Promise<ActivityPrice>;
   clearActivityPrice(activitySlug: string): Promise<void>;
+
+  /** The city account an external identity has been pointed at, if any. */
+  findLinkByProvider(provider: "google", providerUserId: string): Promise<LinkedAccount | null>;
+  /** The external identity pointed at this city account, if any. */
+  findLinkByWallet(provider: "google", wallet: string): Promise<LinkedAccount | null>;
+  createLink(provider: "google", providerUserId: string, wallet: string): Promise<LinkedAccount>;
 
   createRewardClaim(wallet: string, rewardSlug: string, couponCode: string): Promise<RewardClaim>;
   findRewardClaim(wallet: string, rewardSlug: string): Promise<RewardClaim | null>;

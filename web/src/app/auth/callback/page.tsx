@@ -14,9 +14,9 @@ export async function generateMetadata() {
 export default async function AuthCallbackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; intent?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next, intent } = await searchParams;
   const safe = next && next.startsWith("/") && !next.startsWith("//") ? next : "/account";
-  return <GoogleCallback redirectTo={safe} />;
+  return <GoogleCallback redirectTo={safe} intent={intent === "link" ? "link" : "signin"} />;
 }

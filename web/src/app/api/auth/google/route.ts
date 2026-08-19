@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
 import { fail, handle, ok, parseBody } from "@/server/api";
 import { startSession } from "@/server/session";
 import { canDeriveAccounts, deriveAddress } from "@/server/accounts";
+import { googleConfigured, verifyGoogleToken } from "@/server/google";
 import { db } from "@/server/db";
 import { getTranslations } from "@/server/locale";
 
@@ -11,13 +11,12 @@ import { getTranslations } from "@/server/locale";
  *
  * The device-account path proves ownership with a signature, because there is nothing else to
  * go on. Here there is: Google already established who this is, and Supabase already verified
- * Google. So there is no challenge to sign -- the browser hands over the access token it was
- * given, this route asks the auth server whose token it is, and the city account follows from
- * that identity.
+ * Google. So there is no challenge to sign.
  *
- * The token is verified server-side rather than decoded here. A JWT read without checking its
- * signature is just a claim, and the whole point of this route is to stop taking claims at
- * face value.
+ * Which city account this identity opens is a lookup first and a derivation second. Someone who
+ * started on a device and later linked their Google account has achievements bound to *that*
+ * address, and those achievements are soulbound -- so the link table wins, and derivation is
+ * only what happens for an identity nobody has seen before.
  */
 
 const schema = z.object({
@@ -29,37 +28,32 @@ export async function POST(request: Request) {
     const { t } = await getTranslations();
     const { accessToken } = await parseBody(request, schema);
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !anonKey || !canDeriveAccounts()) {
+    if (!googleConfigured() || !canDeriveAccounts()) {
       return fail(t.errors.googleUnavailable, 503, "NotConfigured");
     }
 
-    const auth = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data, error } = await auth.auth.getUser(accessToken);
-    if (error || !data.user) return fail(t.errors.googleSignInFailed, 401);
+    const identity = await verifyGoogleToken(accessToken);
+    if (!identity) return fail(t.errors.googleSignInFailed, 401);
 
-    // The provider's user id, not the email address. An email can be changed and reassigned;
-    // losing your city account because you renamed your mailbox would be indefensible.
-    const address = deriveAddress(data.user.id);
+    const link = await db().findLinkByProvider("google", identity.userId);
+    const address = link ? (link.wallet as `0x${string}`) : deriveAddress(identity.userId);
 
     await startSession(address);
 
     // Seed the display name from the Google profile the first time only, so a name the citizen
     // later chose for themselves is never overwritten by their Google one.
     const existing = await db().getProfile(address);
-    const suggested =
-      typeof data.user.user_metadata?.name === "string"
-        ? data.user.user_metadata.name.trim().slice(0, 40)
-        : "";
-    const profile = existing
-      ? existing
-      : await db().upsertProfile(address, {
-          ...(suggested ? { displayName: suggested } : {}),
-          defaultDisplayName: t.account.defaultName(address.slice(2, 6).toUpperCase()),
-        });
+    const profile =
+      existing ??
+      (await db().upsertProfile(address, {
+        ...(identity.name ? { displayName: identity.name } : {}),
+        defaultDisplayName: t.account.defaultName(address.slice(2, 6).toUpperCase()),
+      }));
+
+    // Record the derivation as a link too, so one table answers "is this account reachable by
+    // Google" for every account, however it was created. The profile has to exist first: the
+    // row points at it.
+    if (!link) await db().createLink("google", identity.userId, address);
 
     return ok({ profile });
   });

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
   ActivityPrice,
+  LinkedAccount,
   Completion,
   NewSponsor,
   NewSponsorOffer,
@@ -24,6 +25,13 @@ import type {
  *
  * Table definitions live in supabase/migrations/0001_init.sql.
  */
+
+interface LinkedAccountRow {
+  provider: string;
+  provider_user_id: string;
+  wallet: string;
+  created_at: string;
+}
 
 interface ProfileRow {
   wallet: string;
@@ -72,6 +80,15 @@ function toProfile(row: ProfileRow): Profile {
     displayName: row.display_name,
     avatarEmoji: row.avatar_emoji,
     xp: row.xp,
+    createdAt: row.created_at,
+  };
+}
+
+function toLink(row: LinkedAccountRow): LinkedAccount {
+  return {
+    provider: row.provider as "google",
+    providerUserId: row.provider_user_id,
+    wallet: row.wallet,
     createdAt: row.created_at,
   };
 }
@@ -538,6 +555,45 @@ export class SupabaseDatabase implements Database {
       .maybeSingle<RewardClaimRow>();
     if (error) throw new Error(`findRewardClaim: ${error.message}`);
     return data ? toRewardClaim(data) : null;
+  }
+
+  async findLinkByProvider(
+    provider: "google",
+    providerUserId: string,
+  ): Promise<LinkedAccount | null> {
+    const { data, error } = await this.client
+      .from("linked_accounts")
+      .select("*")
+      .eq("provider", provider)
+      .eq("provider_user_id", providerUserId)
+      .maybeSingle<LinkedAccountRow>();
+    if (error) throw new Error(`findLinkByProvider: ${error.message}`);
+    return data ? toLink(data) : null;
+  }
+
+  async findLinkByWallet(provider: "google", wallet: string): Promise<LinkedAccount | null> {
+    const { data, error } = await this.client
+      .from("linked_accounts")
+      .select("*")
+      .eq("provider", provider)
+      .eq("wallet", this.key(wallet))
+      .maybeSingle<LinkedAccountRow>();
+    if (error) throw new Error(`findLinkByWallet: ${error.message}`);
+    return data ? toLink(data) : null;
+  }
+
+  async createLink(
+    provider: "google",
+    providerUserId: string,
+    wallet: string,
+  ): Promise<LinkedAccount> {
+    const { data, error } = await this.client
+      .from("linked_accounts")
+      .insert({ provider, provider_user_id: providerUserId, wallet: this.key(wallet) })
+      .select()
+      .single<LinkedAccountRow>();
+    if (error) throw new Error(`createLink: ${error.message}`);
+    return toLink(data);
   }
 
   async listRewardClaims(wallet: string): Promise<RewardClaim[]> {

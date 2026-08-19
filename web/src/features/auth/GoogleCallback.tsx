@@ -13,7 +13,14 @@ import { Button } from "@/components/ui/Button";
  * gets out of the way. It only becomes interactive if something failed, because a dead end with
  * no way forward is the one thing this page must never be.
  */
-export function GoogleCallback({ redirectTo }: { redirectTo: string }) {
+export function GoogleCallback({
+  redirectTo,
+  intent,
+}: {
+  redirectTo: string;
+  /** "link" attaches Google to the account already signed in; "signin" opens one. */
+  intent: "signin" | "link";
+}) {
   const router = useRouter();
   const { t } = useTranslations();
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +40,8 @@ export function GoogleCallback({ redirectTo }: { redirectTo: string }) {
         const { data, error: exchangeError } = await authClient().auth.exchangeCodeForSession(code);
         if (exchangeError || !data.session) throw new Error(t.auth.couldNotSignIn);
 
-        const response = await fetch("/api/auth/google", {
+        const endpoint = intent === "link" ? "/api/auth/link/google" : "/api/auth/google";
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ accessToken: data.session.access_token }),
@@ -51,7 +59,7 @@ export function GoogleCallback({ redirectTo }: { redirectTo: string }) {
         setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
       }
     })();
-  }, [router, redirectTo, t]);
+  }, [router, redirectTo, intent, t]);
 
   return (
     <div className="mx-auto grid w-full max-w-md place-items-center px-4 py-24 text-center">
@@ -67,8 +75,12 @@ export function GoogleCallback({ redirectTo }: { redirectTo: string }) {
       ) : (
         <>
           <span className="animate-pulse text-5xl">🏙️</span>
-          <h1 className="mt-6 font-display text-2xl font-bold text-ink">{t.auth.finishing}</h1>
-          <p className="mt-3 text-sm text-ink-soft">{t.auth.finishingBody}</p>
+          <h1 className="mt-6 font-display text-2xl font-bold text-ink">
+            {intent === "link" ? t.account.linking : t.auth.finishing}
+          </h1>
+          <p className="mt-3 text-sm text-ink-soft">
+            {intent === "link" ? t.account.linkingBody : t.auth.finishingBody}
+          </p>
         </>
       )}
     </div>

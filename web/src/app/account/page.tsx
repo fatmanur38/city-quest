@@ -7,9 +7,11 @@ import { ButtonLink } from "@/components/ui/Button";
 import { AppAwardedMark } from "@/components/ui/VerifiedMark";
 import { SignInButton } from "@/features/auth/SignInButton";
 import { AccountCode } from "@/features/account/AccountCode";
+import { LinkGoogle } from "@/features/account/LinkGoogle";
 import { CredentialCard } from "@/features/account/CredentialCard";
 import { activityBySlug } from "@/server/catalog";
 import { isChainConfigured } from "@/lib/env";
+import { googleConfigured, googleLinkedFor } from "@/server/google";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
 
@@ -38,7 +40,7 @@ export default async function AccountPage() {
     );
   }
 
-  const account = await loadAccount(wallet);
+  const [account, googleLinked] = await Promise.all([loadAccount(wallet), googleLinkedFor(wallet)]);
   const { profile, level, credentials, passes, completions, quests, libraryStreakDays } = account;
   const validPasses = passes.filter((pass) => pass.status === "Valid");
   const activeQuest = quests.find((quest) => !quest.claimed) ?? quests[0];
@@ -262,6 +264,8 @@ export default async function AccountPage() {
           </Card>
         </section>
       ) : null}
+
+      {googleConfigured() ? <LinkGoogle linked={googleLinked} /> : null}
     </div>
   );
 }
