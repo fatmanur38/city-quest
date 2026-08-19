@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Check, LogOut, Power, PowerOff, Store, TicketPercent, X } from "lucide-react";
+import {
+  Building2,
+  Check,
+  LogOut,
+  Pencil,
+  Power,
+  PowerOff,
+  Store,
+  TicketPercent,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -40,6 +50,143 @@ export interface AdminInstitution {
   kind: string;
   active: boolean;
   emoji: string;
+}
+
+/**
+ * One institution in the registry.
+ *
+ * Renaming is here rather than in a settings screen because the name is the one thing about an
+ * institution that exists on-chain purely so somebody else can read it -- and a typo in it is
+ * visible to every other organisation until it is fixed. Re-registering to correct one would
+ * mean a new address, a new key, and every credential already issued pointing at an institution
+ * the registry no longer lists.
+ */
+function InstitutionRow({ institution }: { institution: AdminInstitution }) {
+  const router = useRouter();
+  const { t } = useTranslations();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(institution.name);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function patch(body: Record<string, unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/institutions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: institution.address, ...body }),
+      });
+      const data = (await response.json()) as { ok: true } | { ok: false; error: string };
+      if (!data.ok) throw new Error(data.error);
+      setEditing(false);
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "That did not go through.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="flex flex-wrap items-center gap-3 py-4">
+      <span className="grid size-10 place-items-center rounded-xl bg-paper-sunk text-xl">
+        {institution.emoji}
+      </span>
+
+      <div className="min-w-0 flex-1">
+        {editing ? (
+          <>
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && name.trim()) patch({ name: name.trim() });
+                if (event.key === "Escape") setEditing(false);
+              }}
+              autoFocus
+              className="h-10 w-full rounded-full border border-brand-500 bg-paper-raised px-4 text-sm focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-ink-faint">{t.admin.renameHint}</p>
+          </>
+        ) : (
+          <>
+            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
+              {institution.name}
+              <Badge tone={institution.active ? "emerald" : "danger"}>
+                {institution.active ? t.admin.active : t.admin.suspended}
+              </Badge>
+            </p>
+            <a
+              href={explorerAddressUrl(institution.address) ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-0.5 block truncate font-mono text-xs text-ink-faint hover:text-ink-soft"
+            >
+              {institution.address}
+            </a>
+          </>
+        )}
+        {error ? <p className="mt-1 text-xs font-medium text-danger-700">{error}</p> : null}
+      </div>
+
+      {editing ? (
+        <>
+          <Button
+            size="sm"
+            disabled={busy || name.trim() === "" || name.trim() === institution.name}
+            onClick={() => patch({ name: name.trim() })}
+          >
+            {busy ? t.admin.writing : t.admin.renameSave}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={() => {
+              setName(institution.name);
+              setEditing(false);
+            }}
+          >
+            {t.admin.renameCancel}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={() => setEditing(true)}
+            className="gap-1.5"
+          >
+            <Pencil className="size-3.5" aria-hidden />
+            {t.admin.rename}
+          </Button>
+          <Button
+            variant={institution.active ? "secondary" : "primary"}
+            size="sm"
+            disabled={busy}
+            onClick={() => patch({ active: !institution.active })}
+            className="gap-1.5"
+          >
+            {institution.active ? (
+              <>
+                <PowerOff className="size-3.5" aria-hidden />
+                {t.admin.suspend}
+              </>
+            ) : (
+              <>
+                <Power className="size-3.5" aria-hidden />
+                {t.admin.reactivate}
+              </>
+            )}
+          </Button>
+        </>
+      )}
+    </li>
+  );
 }
 
 /**
@@ -348,52 +495,10 @@ export function AdminConsole({
 
         <ul className="mt-5 divide-y divide-border-soft">
           {institutions.map((institution) => (
-            <li key={institution.address} className="flex flex-wrap items-center gap-3 py-4">
-              <span className="grid size-10 place-items-center rounded-xl bg-paper-sunk text-xl">
-                {institution.emoji}
-              </span>
-
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
-                  {institution.name}
-                  <Badge tone={institution.active ? "emerald" : "danger"}>
-                    {institution.active ? t.admin.active : t.admin.suspended}
-                  </Badge>
-                </p>
-                <a
-                  href={explorerAddressUrl(institution.address) ?? undefined}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-0.5 block truncate font-mono text-xs text-ink-faint hover:text-ink-soft"
-                >
-                  {institution.address}
-                </a>
-              </div>
-
-              <Button
-                variant={institution.active ? "secondary" : "primary"}
-                size="sm"
-                disabled={busy}
-                onClick={() => toggle(institution.address, !institution.active)}
-                className="gap-1.5"
-              >
-                {institution.active ? (
-                  <>
-                    <PowerOff className="size-3.5" aria-hidden />
-                    {t.admin.suspend}
-                  </>
-                ) : (
-                  <>
-                    <Power className="size-3.5" aria-hidden />
-                    {t.admin.reactivate}
-                  </>
-                )}
-              </Button>
-            </li>
+            <InstitutionRow key={institution.address} institution={institution} />
           ))}
         </ul>
       </Card>
-
       {/*
        * Businesses.
        *

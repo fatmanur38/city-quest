@@ -189,6 +189,33 @@ export async function registerInstitutionOnChain(
   return { txHash, blockNumber: receipt.blockNumber.toString() };
 }
 
+/**
+ * Correcting an institution's public name.
+ *
+ * The name is the one thing about an institution that lives on-chain purely so somebody else can
+ * read it, which is exactly why a typo has to be fixable without re-registering: re-registering
+ * would mean a new address, a new signing key, and every credential already issued under the old
+ * one pointing at an institution the registry no longer lists.
+ */
+export async function renameInstitutionOnChain(
+  address: `0x${string}`,
+  name: string,
+): Promise<TxResult> {
+  const admin = relayerAccount();
+  const client = publicClient();
+
+  const { request } = await client.simulateContract({
+    ...contracts.registry,
+    functionName: "renameInstitution",
+    args: [address, name],
+    account: admin,
+  });
+
+  const txHash = await walletFor(admin).writeContract(request);
+  const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+  return { txHash, blockNumber: receipt.blockNumber.toString() };
+}
+
 export async function setInstitutionActiveOnChain(
   address: `0x${string}`,
   active: boolean,

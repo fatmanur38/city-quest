@@ -34,7 +34,11 @@ export async function parseBody<T>(request: Request, schema: ZodType<T>): Promis
   } catch (error) {
     if (error instanceof ZodError) {
       const issue = error.issues[0];
-      throw new BadRequestError(issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid request.");
+      // A whole-object refinement has no path, so prefixing one would read ": nothing to change".
+      const where = issue?.path.join(".");
+      throw new BadRequestError(
+        issue ? (where ? `${where}: ${issue.message}` : issue.message) : "Invalid request.",
+      );
     }
     throw error;
   }

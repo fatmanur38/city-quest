@@ -362,6 +362,11 @@ const en = {
       "A cafe, a bookshop, a cinema — any business can reward students for what libraries and museums have already confirmed. You issue nothing and hold no keys; you read an achievement and decide for yourself what it is worth.",
   },
   admin: {
+    rename: "Rename",
+    renameSave: "Save name",
+    renameCancel: "Cancel",
+    renameHint:
+      "The name is on-chain so other organisations can read it. Correcting it keeps the same address, key and achievements.",
     businesses: "Businesses",
     businessesLead:
       "A business reads achievements that institutions already vouched for and rewards them. It issues nothing and holds no key, so nothing here touches the registry contract.",
@@ -776,6 +781,11 @@ const tr: Dictionary = {
       "Bir kafe, bir kitapçı, bir sinema — herhangi bir işletme, kütüphanelerin ve müzelerin zaten onayladığı şeyler için öğrencileri ödüllendirebilir. Hiçbir şey vermiyor, hiçbir anahtar tutmuyorsun; bir başarımı okuyup değerini kendin belirliyorsun.",
   },
   admin: {
+    rename: "Adını düzelt",
+    renameSave: "Adı kaydet",
+    renameCancel: "Vazgeç",
+    renameHint:
+      "Ad zincirde tutulur, başka kurumlar okuyabilsin diye. Düzeltmek adresi, anahtarı ve verilmiş başarımları değiştirmez.",
     businesses: "İşletmeler",
     businessesLead:
       "İşletme, kurumların zaten onayladığı başarımları okuyup ödüllendirir. Hiçbir şey vermez, hiçbir anahtar tutmaz; bu yüzden buradaki hiçbir işlem kayıt defteri kontratına dokunmaz.",
