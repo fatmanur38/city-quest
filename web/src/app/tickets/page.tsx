@@ -12,6 +12,8 @@ import { ticketQrPayload } from "@/lib/qr";
 import { explorerAddressUrl } from "@/lib/chain/client";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
+import { Icon, IconTile } from "@/components/ui/Icon";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -36,13 +38,14 @@ export default async function TicketsPage() {
 
   if (!wallet) {
     return (
-      <div className="mx-auto grid w-full max-w-2xl place-items-center px-4 py-24 text-center sm:px-6">
-        <span className="text-6xl">🎟️</span>
-        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.tickets.signedOutTitle}</h1>
-        <p className="mt-3 text-ink-soft">{t.tickets.signedOutBody}</p>
-        <div className="mt-8 flex justify-center">
-          <SignInButton redirectTo="/tickets" />
-        </div>
+      <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+        <EmptyState
+          icon="ticket"
+          tone="violet"
+          title={t.tickets.signedOutTitle}
+          body={t.tickets.signedOutBody}
+          action={<SignInButton redirectTo="/tickets" />}
+        />
       </div>
     );
   }
@@ -61,15 +64,14 @@ export default async function TicketsPage() {
       </header>
 
       {passes.length === 0 ? (
-        <Card className="mt-9 grid place-items-center p-12 text-center">
-          <span className="text-5xl">🎟️</span>
-          <p className="mt-4 font-display text-lg font-semibold text-ink">{t.tickets.none}</p>
-          <p className="mt-2 max-w-sm text-sm text-ink-soft">
-            {t.tickets.noneBody}
-          </p>
-          <ButtonLink href="/activities" className="mt-6">
-            {t.tickets.browse}
-          </ButtonLink>
+        <Card className="mt-9">
+          <EmptyState
+            icon="ticket"
+            tone="violet"
+            title={t.tickets.none}
+            body={t.tickets.noneBody}
+            action={<ButtonLink href="/activities">{t.tickets.browse}</ButtonLink>}
+          />
         </Card>
       ) : (
         <div className="mt-9 grid gap-5 sm:grid-cols-2">
@@ -93,7 +95,8 @@ export default async function TicketsPage() {
                         {pick(pass.credential.title, locale)}
                       </h2>
                       <p className="mt-1 text-sm text-ink-soft">
-                        {venue?.emoji} {venue ? pick(venue.label, locale) : t.tickets.unknownVenue}
+                        <Icon name={venue?.icon} className="mr-1 inline size-4 align-[-3px] text-ink-faint" />
+                        {venue ? pick(venue.label, locale) : t.tickets.unknownVenue}
                       </p>
                     </div>
                     <Badge tone={STATUS_TONE[pass.status]}>{statusLabel[pass.status]}</Badge>
@@ -108,9 +111,7 @@ export default async function TicketsPage() {
                     </div>
                   ) : (
                     <div className="mt-5 grid place-items-center rounded-2xl bg-paper-sunk py-10">
-                      <span className="text-4xl grayscale" aria-hidden>
-                        {pass.credential.emoji}
-                      </span>
+                      <IconTile name={pass.credential.icon} tone="neutral" size="xl" />
                       <p className="mt-3 text-sm font-semibold text-ink-soft">
                         {pass.status === "Used" ? t.tickets.usedBody : t.tickets.cancelledBody}
                       </p>

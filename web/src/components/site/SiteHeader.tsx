@@ -10,6 +10,7 @@ import { Logo } from "@/components/site/Logo";
 import type { Theme } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { Avatar } from "@/components/ui/Avatar";
 
 /**
  * `personal` links lead to pages that are only ever about you, and which greet a signed-out
@@ -76,9 +77,7 @@ export function SiteHeader({ theme }: { theme: Theme }) {
                 href="/account"
                 className="hidden items-center gap-2 rounded-full border border-border-soft bg-paper-raised py-1 pr-3 pl-1 sm:flex"
               >
-                <span className="grid size-8 place-items-center rounded-full bg-paper-sunk text-base">
-                  {profile.avatarEmoji}
-                </span>
+                <Avatar address={profile.wallet} className="size-8 rounded-full" />
                 <span className="text-sm font-semibold text-ink">{profile.xp} XP</span>
               </Link>
               <Button variant="ghost" size="sm" onClick={signOut} disabled={busy}>

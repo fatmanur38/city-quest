@@ -72,7 +72,8 @@ interface RewardClaimRow {
   created_at: string;
 }
 
-const DEFAULT_AVATARS = ["🦊", "🐙", "🦉", "🐝", "🦄", "🐢", "🦖", "🐬"];
+// Avatars are drawn from the wallet address in the interface (components/ui/Avatar),
+// so nothing needs to be chosen or stored here. The column stays for older rows.
 
 function toProfile(row: ProfileRow): Profile {
   return {
@@ -123,7 +124,7 @@ function toTicketOrder(row: TicketOrderRow): TicketOrder {
 interface SponsorRow {
   slug: string;
   name: string;
-  emoji: string;
+  icon: string;
   access_code: string;
   approved: boolean;
   created_at: string;
@@ -134,7 +135,7 @@ interface SponsorOfferRow {
   sponsor_slug: string;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   requirement: OfferRequirement;
   active: boolean;
   created_at: string;
@@ -144,7 +145,7 @@ function toSponsor(row: SponsorRow): Sponsor {
   return {
     slug: row.slug,
     name: row.name,
-    emoji: row.emoji,
+    icon: row.icon,
     accessCode: row.access_code,
     approved: row.approved,
     createdAt: row.created_at,
@@ -157,7 +158,7 @@ function toSponsorOffer(row: SponsorOfferRow): SponsorOffer {
     sponsorSlug: row.sponsor_slug,
     title: row.title,
     description: row.description,
-    emoji: row.emoji,
+    icon: row.icon,
     requirement: row.requirement,
     active: row.active,
     createdAt: row.created_at,
@@ -243,14 +244,13 @@ export class SupabaseDatabase implements Database {
       return toProfile(data);
     }
 
-    const avatarIndex = Number.parseInt(key.slice(-2), 16) % DEFAULT_AVATARS.length;
     const { data, error } = await this.client
       .from("profiles")
       .insert({
         wallet: key,
         display_name:
           patch.displayName ?? patch.defaultDisplayName ?? `Explorer ${key.slice(2, 6).toUpperCase()}`,
-        avatar_emoji: patch.avatarEmoji ?? DEFAULT_AVATARS[avatarIndex] ?? "🦊",
+        avatar_emoji: patch.avatarEmoji ?? "",
         xp: 0,
       })
       .select()
@@ -422,7 +422,7 @@ export class SupabaseDatabase implements Database {
         .insert({
           slug,
           name: sponsor.name,
-          emoji: sponsor.emoji,
+          icon: sponsor.icon,
           access_code: randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase(),
           approved: false,
         })
@@ -474,7 +474,7 @@ export class SupabaseDatabase implements Database {
           sponsor_slug: offer.sponsorSlug,
           title: offer.title,
           description: offer.description,
-          emoji: offer.emoji,
+          icon: offer.icon,
           requirement: offer.requirement,
           active: true,
         })

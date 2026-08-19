@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*
  * CityQuest visual identity.
@@ -77,6 +78,49 @@
     0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px -12px rgb(28 25 23 / 0.18);
   --shadow-lift:
     0 2px 4px rgb(28 25 23 / 0.05), 0 18px 40px -18px rgb(28 25 23 / 0.28);
+}
+
+/*
+ * The shadcn bridge.
+ *
+ * shadcn's components are written against a fixed set of role names -- background, primary,
+ * muted, ring and so on. Rather than let it install a second palette beside ours, every one of
+ * those names is defined here as a *reference* to the tokens above. There is still one source
+ * of truth, and dark mode still works the way it always did: the values below never change, the
+ * tokens they point at do.
+ */
+@theme inline {
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+
+  --color-card: var(--color-paper-raised);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-paper-raised);
+  --color-popover-foreground: var(--color-ink);
+
+  --color-primary: var(--color-brand-600);
+  --color-primary-foreground: var(--color-on-brand);
+
+  --color-secondary: var(--color-paper-sunk);
+  --color-secondary-foreground: var(--color-ink);
+
+  --color-muted: var(--color-paper-sunk);
+  --color-muted-foreground: var(--color-ink-soft);
+
+  --color-accent: var(--color-brand-100);
+  --color-accent-foreground: var(--color-brand-700);
+
+  --color-destructive: var(--color-danger-500);
+  --color-destructive-foreground: var(--color-on-brand);
+
+  --color-border: var(--color-border-soft);
+  --color-input: var(--color-border-soft);
+  --color-ring: var(--color-brand-500);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
 }
 
 html {

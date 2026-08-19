@@ -1,63 +1,80 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
+/**
+ * Built on shadcn's structure -- cva variants, `data-slot`, `asChild` -- but wearing this
+ * project's identity rather than the default one. The pill shape and the civic teal are the
+ * point; a generic shadcn button would make this look like every other hackathon entry.
+ */
 
-const VARIANTS: Record<Variant, string> = {
-  primary:
-    "bg-brand-600 text-on-brand hover:bg-brand-hover active:bg-brand-active shadow-soft disabled:bg-brand-300",
-  secondary:
-    "bg-paper-raised text-ink border border-border-soft hover:bg-paper-sunk active:bg-paper-sunk",
-  ghost: "text-ink-soft hover:bg-paper-sunk hover:text-ink",
-  danger: "bg-danger-500 text-on-brand hover:bg-danger-700",
-};
-
-const SIZES: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-sm gap-1.5",
-  md: "h-11 px-5 text-[0.95rem] gap-2",
-  lg: "h-14 px-7 text-lg gap-2.5",
-};
-
-const BASE =
-  // whitespace-nowrap: the fixed heights above assume one line, so a label that wraps -- which
+const buttonVariants = cva(
+  // whitespace-nowrap: the fixed heights below assume one line, so a label that wraps -- which
   // Turkish labels do first, being longer -- breaks out of the button rather than growing it.
-  "inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition-colors " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 " +
-  "disabled:cursor-not-allowed disabled:opacity-70";
+  [
+    "inline-flex shrink-0 items-center justify-center rounded-full font-semibold whitespace-nowrap",
+    "transition-all duration-150 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-[1.15em]",
+    "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+    "disabled:cursor-not-allowed disabled:opacity-60",
+  ],
+  {
+    variants: {
+      variant: {
+        primary:
+          "bg-brand-600 text-on-brand shadow-soft hover:bg-brand-hover hover:shadow-lift active:bg-brand-active active:shadow-soft disabled:bg-brand-300 disabled:shadow-none",
+        secondary:
+          "border border-border-soft bg-paper-raised text-ink hover:border-brand-300 hover:bg-paper-sunk active:bg-paper-sunk",
+        outline:
+          "border border-border-soft bg-transparent text-ink hover:border-brand-300 hover:bg-paper-sunk",
+        ghost: "text-ink-soft hover:bg-paper-sunk hover:text-ink",
+        danger: "bg-danger-500 text-on-brand shadow-soft hover:bg-danger-700",
+      },
+      size: {
+        sm: "h-9 gap-1.5 px-3.5 text-sm",
+        md: "h-11 gap-2 px-5 text-[0.95rem]",
+        lg: "h-14 gap-2.5 px-7 text-lg",
+        icon: "size-11 gap-0 p-0",
+      },
+    },
+    defaultVariants: { variant: "primary", size: "md" },
+  },
+);
 
-interface StyleProps {
-  variant?: Variant;
-  size?: Size;
-  className?: string;
-  children: ReactNode;
-}
+type ButtonStyle = VariantProps<typeof buttonVariants>;
 
 export function Button({
-  variant = "primary",
-  size = "md",
+  variant,
+  size,
   className,
-  children,
+  asChild,
   ...props
-}: StyleProps & ComponentProps<"button">) {
+}: ComponentProps<"button"> & ButtonStyle & { asChild?: boolean }) {
+  const Component = asChild ? Slot : "button";
   return (
-    <button className={cn(BASE, VARIANTS[variant], SIZES[size], className)} {...props}>
-      {children}
-    </button>
+    <Component
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
   );
 }
 
+/** The same surface as a link, so navigation never has to be faked with an onClick. */
 export function ButtonLink({
-  variant = "primary",
-  size = "md",
+  variant,
+  size,
   className,
-  children,
   ...props
-}: StyleProps & ComponentProps<typeof Link>) {
+}: ComponentProps<typeof Link> & ButtonStyle) {
   return (
-    <Link className={cn(BASE, VARIANTS[variant], SIZES[size], className)} {...props}>
-      {children}
-    </Link>
+    <Link
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
   );
 }
+
+export { buttonVariants };

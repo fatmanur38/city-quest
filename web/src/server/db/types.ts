@@ -7,6 +7,7 @@
 export interface Profile {
   wallet: string;
   displayName: string;
+  /** Kept for older rows; the interface draws an identicon from the wallet instead. */
   avatarEmoji: string;
   xp: number;
   createdAt: string;
@@ -71,7 +72,7 @@ export interface ActivityPrice {
 export interface Sponsor {
   slug: string;
   name: string;
-  emoji: string;
+  icon: string;
   /** DEMO MOCK -- a shared code the business's staff type in. Real accounts in production. */
   accessCode: string;
   approved: boolean;
@@ -95,7 +96,7 @@ export interface SponsorOffer {
   /** Written by the business in its own words, so a single string rather than a Localized. */
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   requirement: OfferRequirement;
   active: boolean;
   createdAt: string;
@@ -103,14 +104,14 @@ export interface SponsorOffer {
 
 export interface NewSponsor {
   name: string;
-  emoji: string;
+  icon: string;
 }
 
 export interface NewSponsorOffer {
   sponsorSlug: string;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   requirement: OfferRequirement;
 }
 

@@ -5,6 +5,7 @@ import { db } from "@/server/db";
 import { CREDENTIALS } from "@/lib/credentials";
 import { activityBySlug } from "@/server/catalog";
 import { getTranslations } from "@/server/locale";
+import { isIconName } from "@/lib/icons";
 
 /** A business publishing, editing or withdrawing its own offers. Never anyone else's. */
 
@@ -20,7 +21,7 @@ const requirementSchema = z.discriminatedUnion("kind", [
 const createSchema = z.object({
   title: z.string().trim().min(1).max(80),
   description: z.string().trim().max(300).default(""),
-  emoji: z.string().trim().min(1).max(8).default("🎁"),
+  icon: z.string().refine(isIconName, "unknown icon").default("gift"),
   requirement: requirementSchema,
 });
 

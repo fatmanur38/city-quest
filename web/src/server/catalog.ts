@@ -1,6 +1,7 @@
 import type { CredentialName } from "@/lib/credentials";
 import type { InstitutionTypeName } from "@/lib/chain/contracts";
 import type { Localized } from "@/lib/i18n/types";
+import type { IconName } from "@/lib/icons";
 
 /**
  * The city's catalogue: which institutions exist, what you can do at them, which quests are
@@ -30,7 +31,7 @@ export interface CatalogInstitution {
   kind: InstitutionTypeName;
   description: Localized;
   district: Localized;
-  emoji: string;
+  icon: IconName;
   /** Absent for sponsors, which never issue achievements. */
   signerRole?: SignerRole;
   isIssuer: boolean;
@@ -52,7 +53,7 @@ export interface CatalogActivity {
   cadence: "daily" | "once";
   /** Price in Turkish lira, charged through ordinary payment rails. Never on-chain. */
   priceTry?: number;
-  emoji: string;
+  icon: IconName;
   accent: "sky" | "amber" | "violet" | "emerald";
 }
 
@@ -69,7 +70,7 @@ export interface CatalogQuest {
   rewardCredential: CredentialName;
   /** Institution that vouches for the combined achievement. */
   issuerSlug: string;
-  emoji: string;
+  icon: IconName;
 }
 
 export interface CatalogReward {
@@ -78,7 +79,7 @@ export interface CatalogReward {
   title: Localized;
   description: Localized;
   requiredCredential: CredentialName;
-  emoji: string;
+  icon: IconName;
 }
 
 export interface QuizQuestion {
@@ -100,7 +101,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
       tr: "Geniş bir çocuk okuma salonu ve ücretsiz çalışma alanları olan bir mahalle kütüphanesi.",
     },
     district: { en: "Melikgazi", tr: "Melikgazi" },
-    emoji: "📚",
+    icon: "library",
     signerRole: "library",
     isIssuer: true,
   },
@@ -114,7 +115,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
       tr: "Dokunmatik sergiler, bir planetaryum ve deprem simülasyon salonu.",
     },
     district: { en: "Melikgazi", tr: "Melikgazi" },
-    emoji: "🔬",
+    icon: "microscope",
     signerRole: "scienceCenter",
     isIssuer: true,
   },
@@ -128,7 +129,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
       tr: "Şehir genelinde atölyeler, görevler ve gençlik programları düzenler.",
     },
     district: { en: "City wide", tr: "Şehir geneli" },
-    emoji: "🏛️",
+    icon: "landmark",
     signerRole: "municipality",
     isIssuer: true,
   },
@@ -142,7 +143,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
       tr: "Onaylanmış öğrenmeyi ödüllendiren yerel bir kafe.",
     },
     district: { en: "Melikgazi", tr: "Melikgazi" },
-    emoji: "☕",
+    icon: "coffee",
     isIssuer: false,
   },
 ];
@@ -164,7 +165,7 @@ export const ACTIVITIES: CatalogActivity[] = [
     credential: "LIBRARY_VISIT",
     xpReward: 10,
     cadence: "daily",
-    emoji: "📚",
+    icon: "library",
     accent: "amber",
   },
   {
@@ -184,7 +185,7 @@ export const ACTIVITIES: CatalogActivity[] = [
     xpReward: 30,
     cadence: "once",
     priceTry: 50,
-    emoji: "🌍",
+    icon: "waves",
     accent: "violet",
   },
   {
@@ -203,7 +204,7 @@ export const ACTIVITIES: CatalogActivity[] = [
     credential: "ROBOTICS_WORKSHOP",
     xpReward: 50,
     cadence: "once",
-    emoji: "🤖",
+    icon: "robot",
     accent: "sky",
   },
   {
@@ -222,7 +223,7 @@ export const ACTIVITIES: CatalogActivity[] = [
     credential: null,
     xpReward: 20,
     cadence: "once",
-    emoji: "🧠",
+    icon: "brain",
     accent: "emerald",
   },
 ];
@@ -258,7 +259,7 @@ export const QUESTS: CatalogQuest[] = [
     xpReward: 150,
     rewardCredential: "YOUNG_SCIENTIST",
     issuerSlug: "kayseri-municipality",
-    emoji: "🏆",
+    icon: "trophy",
   },
 ];
 
@@ -272,7 +273,7 @@ export const REWARDS: CatalogReward[] = [
       tr: "Bu kuponu kasada göster. Kişi başı bir adet. Kafe bir şey satmıyor, onaylanmış öğrenmeyi ödüllendiriyor.",
     },
     requiredCredential: "YOUNG_SCIENTIST",
-    emoji: "☕",
+    icon: "coffee",
   },
 ];
 

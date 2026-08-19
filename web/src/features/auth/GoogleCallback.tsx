@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/supabase/browser";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
+import { IconTile } from "@/components/ui/Icon";
 
 /**
  * Where Google sends everyone back to.
@@ -65,7 +66,7 @@ export function GoogleCallback({
     <div className="mx-auto grid w-full max-w-md place-items-center px-4 py-24 text-center">
       {error ? (
         <>
-          <span className="text-5xl">🔑</span>
+          <IconTile name="compass" tone="danger" size="hero" />
           <h1 className="mt-6 font-display text-2xl font-bold text-ink">{t.auth.couldNotSignIn}</h1>
           <p className="mt-3 text-sm text-ink-soft">{error}</p>
           <Button className="mt-8" onClick={() => router.push("/")}>
@@ -74,7 +75,7 @@ export function GoogleCallback({
         </>
       ) : (
         <>
-          <span className="animate-pulse text-5xl">🏙️</span>
+          <IconTile name="landmark" tone="brand" size="hero" className="animate-pulse" />
           <h1 className="mt-6 font-display text-2xl font-bold text-ink">
             {intent === "link" ? t.account.linking : t.auth.finishing}
           </h1>

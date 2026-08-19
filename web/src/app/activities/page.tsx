@@ -11,6 +11,7 @@ import { db } from "@/server/db";
 import { CREDENTIALS } from "@/lib/credentials";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
+import { Icon, IconTile, ACCENT_TONE } from "@/components/ui/Icon";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -61,13 +62,11 @@ export default async function ActivitiesPage() {
           return (
             <Card key={activity.slug} className="overflow-hidden">
               <div className="flex flex-col gap-6 p-6 sm:flex-row">
-                <span
-                  className={`grid size-16 shrink-0 place-items-center rounded-2xl text-4xl ${
-                    ACCENT_BG[activity.accent] ?? "bg-paper-sunk"
-                  }`}
-                >
-                  {activity.emoji}
-                </span>
+                <IconTile
+                  name={activity.icon}
+                  tone={ACCENT_TONE[activity.accent] ?? "neutral"}
+                  size="xl"
+                />
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -80,7 +79,7 @@ export default async function ActivitiesPage() {
 
                   <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
                     <span className="inline-flex items-center gap-1.5 font-medium">
-                      <span aria-hidden>{institution?.emoji}</span>
+                      <Icon name={institution?.icon} className="size-4 text-ink-faint" />
                       {institution ? pick(institution.label, locale) : null}
                     </span>
                     <span className="inline-flex items-center gap-1 text-ink-faint">
@@ -105,7 +104,7 @@ export default async function ActivitiesPage() {
                     </Badge>
                     {credential ? (
                       <Badge tone="sun">
-                        {credential.emoji} {pick(credential.title, locale)}
+                        <Icon name={credential.icon} /> {pick(credential.title, locale)}
                       </Badge>
                     ) : null}
                   </div>

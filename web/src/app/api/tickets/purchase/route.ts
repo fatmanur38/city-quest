@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       ticket: {
         passId: order.passId,
         activityTitle: pick(activity.title, locale),
-        emoji: activity.emoji,
+        icon: activity.icon,
         venue: pick(institution.label, locale),
         priceTry: order.priceTry,
         validUntil: new Date(Number(validUntil) * 1000).toISOString(),

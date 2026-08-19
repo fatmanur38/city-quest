@@ -6,6 +6,7 @@ import { ShieldCheck, Sparkles } from "lucide-react";
 import { currentWallet } from "@/server/session";
 import { loadRewardsFor } from "@/server/rewards";
 import { getTranslations } from "@/server/locale";
+import { IconTile } from "@/components/ui/Icon";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -29,9 +30,7 @@ export default async function RewardsPage() {
         {rewards.map((reward) => (
           <Card key={reward.slug} className="flex flex-col p-6">
             <div className="flex items-start justify-between gap-3">
-              <span className="grid size-14 place-items-center rounded-2xl bg-sun-100 text-3xl">
-                {reward.emoji}
-              </span>
+              <IconTile name={reward.icon} tone={reward.eligible ? "sun" : "neutral"} size="lg" />
               {reward.eligible ? (
                 <Badge tone="emerald">{t.rewards.eligible}</Badge>
               ) : (

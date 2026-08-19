@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     const profile = await db().addXp(wallet, quest.xpReward);
 
     return ok({
-      credential: { title: pick(rewardCredential.title, locale), emoji: rewardCredential.emoji },
+      credential: { title: pick(rewardCredential.title, locale), icon: rewardCredential.icon },
       issuer: pick(issuer.label, locale),
       xpAwarded: quest.xpReward,
       totalXp: profile.xp,

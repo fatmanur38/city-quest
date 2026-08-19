@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { ACTIVITIES, INSTITUTIONS, institutionBySlug } from "@/server/catalog";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
+import { Icon, IconTile, ACCENT_TONE } from "@/components/ui/Icon";
+import { Avatar } from "@/components/ui/Avatar";
 
 const ACCENTS: Record<string, string> = {
   amber: "bg-sun-100",
@@ -65,9 +67,7 @@ export default async function LandingPage() {
                         {t.landing.sampleAccountOwner}
                       </p>
                     </div>
-                    <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-paper-sunk text-2xl">
-                      🦊
-                    </span>
+                    <Avatar address="0xe1if0000000000000000000000000000000000ab" className="size-12 shrink-0" />
                   </div>
 
                   <div className="mt-5 flex items-center gap-3">
@@ -83,9 +83,7 @@ export default async function LandingPage() {
                         key={item.title}
                         className="flex items-center gap-3 rounded-2xl bg-paper-sunk/70 p-3"
                       >
-                        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-raised text-xl shadow-soft">
-                          {item.emoji}
-                        </span>
+                        <IconTile name={item.icon} tone="brand" size="md" className="shadow-soft" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-ink">{item.title}</p>
                           <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-brand-700">
@@ -124,7 +122,7 @@ export default async function LandingPage() {
                 key={institution.slug}
                 className="inline-flex items-center gap-2 rounded-full bg-band-chip px-3.5 py-2 text-sm font-medium text-on-band-soft"
               >
-                <span aria-hidden>{institution.emoji}</span>
+                <Icon name={institution.icon} className="size-4" />
                 {pick(institution.label, locale)}
               </span>
             ))}
@@ -187,11 +185,13 @@ export default async function LandingPage() {
                 <Link key={activity.slug} href="/activities" className="group">
                   <Card className="h-full p-5 transition-shadow group-hover:shadow-lift">
                     <span
-                      className={`grid size-12 place-items-center rounded-2xl text-2xl ${
-                        ACCENTS[activity.accent] ?? "bg-paper-sunk"
-                      }`}
+                      className="contents"
                     >
-                      {activity.emoji}
+                      <IconTile
+                        name={activity.icon}
+                        tone={ACCENT_TONE[activity.accent] ?? "neutral"}
+                        size="md"
+                      />
                     </span>
                     <p className="mt-4 text-xs font-semibold text-ink-faint">
                       {institution ? pick(institution.label, locale) : null}

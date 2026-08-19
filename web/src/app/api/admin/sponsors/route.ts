@@ -2,6 +2,7 @@ import { z } from "zod";
 import { handle, ok, parseBody } from "@/server/api";
 import { currentOperator, SessionError } from "@/server/session";
 import { db } from "@/server/db";
+import { isIconName } from "@/lib/icons";
 
 /**
  * The municipality admitting businesses to the ecosystem.
@@ -19,7 +20,7 @@ async function requireAdmin(): Promise<void> {
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(60),
-  emoji: z.string().trim().min(1).max(8).default("🏪"),
+  icon: z.string().refine(isIconName, "unknown icon").default("store"),
 });
 
 const patchSchema = z.object({

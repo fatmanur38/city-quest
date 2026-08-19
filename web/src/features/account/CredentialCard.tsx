@@ -6,6 +6,7 @@ import type { CredentialView } from "@/server/account-service";
 import { pick, type Locale } from "@/lib/i18n/types";
 import type { Dictionary } from "@/lib/i18n/dictionary";
 import { explorerAddressUrl } from "@/lib/chain/client";
+import { IconTile } from "@/components/ui/Icon";
 
 function monthYear(date: Date, locale: Locale): string {
   return date.toLocaleDateString(locale === "tr" ? "tr-TR" : "en-GB", {
@@ -28,14 +29,16 @@ export function CredentialCard({
   locale: Locale;
   t: Dictionary;
 }) {
-  const { definition, issuerName, issuerEmoji, revoked, issuedAt } = credential;
+  const { definition, issuerName, issuerIcon, revoked, issuedAt } = credential;
 
   return (
     <Card className={`animate-pop p-5 ${revoked ? "opacity-60" : ""}`}>
       <div className="flex items-start gap-4">
-        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-paper-sunk text-3xl">
-          {definition.emoji}
-        </span>
+        <IconTile
+          name={definition.icon}
+          tone={definition.tier === "milestone" ? "sun" : "brand"}
+          size="lg"
+        />
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -60,7 +63,7 @@ export function CredentialCard({
                 {t.account.withdrawnBy(pick(issuerName, locale))}
               </span>
             ) : (
-              <VerifiedMark issuer={`${issuerEmoji} ${pick(issuerName, locale)}`} label={t.common.verifiedBy} />
+              <VerifiedMark issuer={`${issuerIcon} ${pick(issuerName, locale)}`} label={t.common.verifiedBy} />
             )}
             <span className="text-xs text-ink-faint">{t.account.earnedOn(monthYear(issuedAt, locale))}</span>
           </div>

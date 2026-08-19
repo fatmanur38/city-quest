@@ -7,7 +7,7 @@ import type { Localized } from "@/lib/i18n/types";
  *
  * The name, the type and whether it is currently allowed to issue anything come from the
  * registry contract -- that is the part another city, another app or an auditor can read
- * without asking us. The emoji, the description and the district come from our catalogue,
+ * without asking us. The icon, the description and the district come from our catalogue,
  * because presentation is ours to change and nobody else needs to verify it.
  */
 
@@ -21,7 +21,7 @@ export interface ResolvedInstitution {
   active: boolean;
   onChain: boolean;
   catalog: CatalogInstitution | null;
-  emoji: string;
+  icon: string;
   description: Localized;
   district: Localized;
 }
@@ -35,7 +35,7 @@ function fromCatalog(entry: CatalogInstitution, chain?: OnChainInstitution): Res
     active: chain?.active ?? false,
     onChain: Boolean(chain),
     catalog: entry,
-    emoji: entry.emoji,
+    icon: entry.icon,
     description: entry.description,
     district: entry.district,
   };
@@ -67,7 +67,7 @@ export async function resolveInstitutions(): Promise<{
       active: chain.active,
       onChain: true,
       catalog: null,
-      emoji: "🏢",
+      icon: "building",
       description: {
         en: "Registered in the city registry outside this app's catalogue.",
         tr: "Bu uygulamanın kataloğu dışında, şehir kayıt defterinde kayıtlı.",

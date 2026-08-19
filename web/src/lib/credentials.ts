@@ -1,5 +1,6 @@
 import { keccak256, toBytes } from "viem";
 import type { Localized } from "./i18n/types";
+import type { IconName } from "./icons";
 
 /**
  * The achievement catalogue.
@@ -26,7 +27,7 @@ export interface CredentialDefinition {
   /** keccak256 of the name -- the only form the contract knows. */
   hash: `0x${string}`;
   title: Localized;
-  emoji: string;
+  icon: IconName;
   description: Localized;
   /** Higher tier badges are earned by combining others. */
   tier: "activity" | "milestone";
@@ -35,18 +36,18 @@ export interface CredentialDefinition {
 function define(
   name: CredentialName,
   title: Localized,
-  emoji: string,
+  icon: IconName,
   description: Localized,
   tier: CredentialDefinition["tier"] = "activity",
 ): CredentialDefinition {
-  return { name, hash: keccak256(toBytes(name)), title, emoji, description, tier };
+  return { name, hash: keccak256(toBytes(name)), title, icon, description, tier };
 }
 
 export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   LIBRARY_VISIT: define(
     "LIBRARY_VISIT",
     { en: "Library Visitor", tr: "Kütüphane Ziyaretçisi" },
-    "📚",
+    "book",
     {
       en: "Checked in at a city library and spent time reading.",
       tr: "Bir şehir kütüphanesine uğradı ve okuyarak vakit geçirdi.",
@@ -55,7 +56,7 @@ export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   SCIENCE_CENTER_VISIT: define(
     "SCIENCE_CENTER_VISIT",
     { en: "Science Center Visitor", tr: "Bilim Merkezi Ziyaretçisi" },
-    "🔬",
+    "microscope",
     {
       en: "Explored the exhibits at a city science center.",
       tr: "Şehrin bilim merkezindeki sergileri gezdi.",
@@ -64,7 +65,7 @@ export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   EARTHQUAKE_EXPERIENCE: define(
     "EARTHQUAKE_EXPERIENCE",
     { en: "Earthquake Experience", tr: "Deprem Deneyimi" },
-    "🌍",
+    "waves",
     {
       en: "Completed the earthquake simulation and learned what to do when the ground moves.",
       tr: "Deprem simülasyonunu tamamladı ve yer sarsıldığında ne yapılacağını öğrendi.",
@@ -73,7 +74,7 @@ export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   ROBOTICS_WORKSHOP: define(
     "ROBOTICS_WORKSHOP",
     { en: "Robotics Workshop", tr: "Robotik Atölyesi" },
-    "🤖",
+    "robot",
     {
       en: "Built and programmed a robot in a municipality workshop.",
       tr: "Belediye atölyesinde bir robot yaptı ve programladı.",
@@ -82,13 +83,13 @@ export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   MUSEUM_EXPLORER: define(
     "MUSEUM_EXPLORER",
     { en: "Museum Explorer", tr: "Müze Kâşifi" },
-    "🏛️",
+    "landmark",
     { en: "Visited a city museum.", tr: "Bir şehir müzesini ziyaret etti." },
   ),
   SCIENCE_EXPLORER: define(
     "SCIENCE_EXPLORER",
     { en: "Science Explorer", tr: "Bilim Kâşifi" },
-    "🧪",
+    "flask",
     {
       en: "Completed a series of science activities across the city.",
       tr: "Şehrin dört bir yanında bir dizi bilim etkinliğini tamamladı.",
@@ -98,7 +99,7 @@ export const CREDENTIALS: Record<CredentialName, CredentialDefinition> = {
   YOUNG_SCIENTIST: define(
     "YOUNG_SCIENTIST",
     { en: "Young Scientist", tr: "Genç Bilim İnsanı" },
-    "🏆",
+    "trophy",
     {
       en: "Earned by combining verified achievements from several independent institutions.",
       tr: "Birbirinden bağımsız birkaç kurumun onayladığı başarımları birleştirerek kazanıldı.",
@@ -136,7 +137,7 @@ export function describeCredential(hash: string): CredentialDefinition {
       name: "UNKNOWN" as CredentialName,
       hash: hash as `0x${string}`,
       title: { en: "Achievement", tr: "Başarım" },
-      emoji: "🎖️",
+      icon: "medal",
       description: {
         en: "Issued by an institution outside this city's catalogue.",
         tr: "Bu şehrin kataloğu dışındaki bir kurum tarafından verildi.",

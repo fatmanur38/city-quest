@@ -52,7 +52,7 @@ export async function POST(request: Request) {
             reward: {
               title: offer.title,
               sponsor: sponsor.name,
-              emoji: offer.emoji,
+              icon: offer.icon,
             },
             couponCode: existingClaim.couponCode,
             alreadyClaimed: true,
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
           reward: {
             title: offer.title,
             sponsor: sponsor.name,
-            emoji: offer.emoji,
+            icon: offer.icon,
           },
           couponCode: claimed.couponCode,
           alreadyClaimed: true,
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         reward: {
           title: offer.title,
           sponsor: sponsor.name,
-          emoji: offer.emoji,
+          icon: offer.icon,
         },
         couponCode: granted.couponCode,
         alreadyClaimed: false,
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         reward: {
           title: pick(reward.title, locale),
           sponsor: reward.sponsorName,
-          emoji: reward.emoji,
+          icon: reward.icon,
         },
         couponCode: existing.couponCode,
         alreadyClaimed: true,
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       reward: {
         title: pick(reward.title, locale),
         sponsor: reward.sponsorName,
-        emoji: reward.emoji,
+        icon: reward.icon,
       },
       couponCode: claim.couponCode,
       alreadyClaimed: false,

@@ -9,6 +9,8 @@ import { ClaimQuestButton } from "@/features/quests/ClaimQuestButton";
 import { SignInButton } from "@/features/auth/SignInButton";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
+import { IconTile } from "@/components/ui/Icon";
+import { Circle, CircleCheck } from "lucide-react";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -49,9 +51,7 @@ export default async function QuestsPage() {
               <div className="p-6 sm:p-8">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-sun-100 text-3xl">
-                      {quest.emoji}
-                    </span>
+                    <IconTile name={quest.icon} tone="sun" size="lg" />
                     <div>
                       <h2 className="font-display text-xl font-bold text-ink">
                         {pick(quest.title, locale)}
@@ -90,7 +90,11 @@ export default async function QuestsPage() {
                       className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl bg-paper-sunk/60 px-4 py-3"
                     >
                       <span className="text-lg" aria-hidden>
-                        {requirement.met ? "✅" : "⭕"}
+                        {requirement.met ? (
+                          <CircleCheck className="size-5 text-emerald-500" aria-hidden />
+                        ) : (
+                          <Circle className="size-5 text-ink-faint" aria-hidden />
+                        )}
                       </span>
                       <span
                         className={`flex-1 text-sm font-medium ${
@@ -120,9 +124,7 @@ export default async function QuestsPage() {
                     {t.quests.reward}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <span className="text-3xl" aria-hidden>
-                      {reward.emoji}
-                    </span>
+                    <IconTile name={reward.icon} tone="sun" size="lg" />
                     <div>
                       <p className="font-display text-base font-bold text-ink">
                         {pick(reward.title, locale)}

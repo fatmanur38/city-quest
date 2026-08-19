@@ -46,19 +46,21 @@ export default async function SponsorPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <SponsorConsole
         sponsorName={sponsor.name}
-        sponsorEmoji={sponsor.emoji}
+        sponsorIcon={sponsor.icon}
         approved={sponsor.approved}
         offers={offers}
         credentials={Object.values(CREDENTIALS).map((credential) => ({
           value: credential.name,
-          label: `${credential.emoji} ${pick(credential.title, locale)}`,
+          label: pick(credential.title, locale),
+          icon: credential.icon,
         }))}
         // Only activities a citizen can repeat are worth counting; a one-time achievement is
         // better expressed as the credential itself.
         activities={ACTIVITIES.filter((activity) => activity.cadence === "daily").map(
           (activity) => ({
             value: activity.slug,
-            label: `${activity.emoji} ${pick(activity.title, locale)}`,
+            label: pick(activity.title, locale),
+            icon: activity.icon,
           }),
         )}
       />

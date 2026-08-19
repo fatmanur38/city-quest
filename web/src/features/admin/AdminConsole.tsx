@@ -24,11 +24,17 @@ import {
 } from "@/lib/chain/contracts";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/chain/client";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
+import { Icon, IconTile } from "@/components/ui/Icon";
+import { IconPicker } from "@/components/ui/IconPicker";
+import { type IconName } from "@/lib/icons";
+
+/** What a business is likely to be, as opposed to what it is likely to offer. */
+const BUSINESS_ICONS: IconName[] = ["store", "coffee", "utensils", "bag", "building", "palette", "music", "theater", "dumbbell", "book"];
 
 export interface PriceableActivity {
   slug: string;
   title: string;
-  emoji: string;
+  icon: string;
   /** What src/server/catalog.ts ships with, shown so a change can be undone. */
   catalogPrice: number;
   /** What is actually charged today. */
@@ -38,7 +44,7 @@ export interface PriceableActivity {
 export interface AdminSponsor {
   slug: string;
   name: string;
-  emoji: string;
+  icon: string;
   accessCode: string;
   approved: boolean;
   offerCount: number;
@@ -49,7 +55,7 @@ export interface AdminInstitution {
   name: string;
   kind: string;
   active: boolean;
-  emoji: string;
+  icon: string;
 }
 
 /**
@@ -92,7 +98,7 @@ function InstitutionRow({ institution }: { institution: AdminInstitution }) {
   return (
     <li className="flex flex-wrap items-center gap-3 py-4">
       <span className="grid size-10 place-items-center rounded-xl bg-paper-sunk text-xl">
-        {institution.emoji}
+        <Icon name={institution.icon} className="size-5" />
       </span>
 
       <div className="min-w-0 flex-1">
@@ -232,7 +238,7 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
   return (
     <div className="flex flex-wrap items-center gap-3 py-3">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-paper-sunk text-xl">
-        {activity.emoji}
+        <Icon name={activity.icon} className="size-5" />
       </span>
 
       <div className="min-w-0 flex-1">
@@ -312,7 +318,7 @@ export function AdminConsole({
   const [error, setError] = useState<string | null>(null);
   const [lastTx, setLastTx] = useState<string | null>(null);
   const [sponsorName, setSponsorName] = useState("");
-  const [sponsorEmoji, setSponsorEmoji] = useState("🏪");
+  const [sponsorIcon, setSponsorIcon] = useState<IconName>("store");
 
   async function addSponsor() {
     setBusy(true);
@@ -321,7 +327,7 @@ export function AdminConsole({
       const response = await fetch("/api/admin/sponsors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: sponsorName, emoji: sponsorEmoji }),
+        body: JSON.stringify({ name: sponsorName, icon: sponsorIcon }),
       });
       const data = (await response.json()) as { ok: true } | { ok: false; error: string };
       if (!data.ok) throw new Error(data.error);
@@ -509,15 +515,16 @@ export function AdminConsole({
       <Card className="p-6">
         <CardHeader title={t.admin.businesses} description={t.admin.businessesLead} />
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-[5rem_1fr_auto] sm:items-end">
-          <label>
-            <span className="text-sm font-semibold text-ink">{t.sponsor.offerEmoji}</span>
-            <input
-              value={sponsorEmoji}
-              onChange={(event) => setSponsorEmoji(event.target.value)}
-              className="mt-2 h-11 w-full rounded-full border border-border-soft bg-paper-raised px-4 text-center text-lg focus:border-brand-500 focus:outline-none"
-            />
-          </label>
+        <div className="mt-5">
+          <IconPicker
+            value={sponsorIcon}
+            onChange={setSponsorIcon}
+            label={t.sponsor.offerIcon}
+            icons={BUSINESS_ICONS}
+          />
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <label>
             <span className="text-sm font-semibold text-ink">{t.admin.businessName}</span>
             <input
@@ -544,7 +551,7 @@ export function AdminConsole({
             {sponsors.map((sponsor) => (
               <li key={sponsor.slug} className="flex flex-wrap items-center gap-3 py-3">
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-sunk text-xl">
-                  {sponsor.emoji}
+                  <Icon name={sponsor.icon} className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2 font-semibold text-ink">

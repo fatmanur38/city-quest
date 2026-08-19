@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/Badge";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
 import type { OfferRequirement, SponsorOffer } from "@/server/db/types";
 import { cn } from "@/lib/cn";
+import { IconTile } from "@/components/ui/Icon";
+import { IconPicker } from "@/components/ui/IconPicker";
+import { type IconName } from "@/lib/icons";
 
 export interface OfferChoice {
   value: string;
@@ -24,14 +27,14 @@ export interface OfferChoice {
  */
 export function SponsorConsole({
   sponsorName,
-  sponsorEmoji,
+  sponsorIcon,
   approved,
   offers,
   credentials,
   activities,
 }: {
   sponsorName: string;
-  sponsorEmoji: string;
+  sponsorIcon: string;
   approved: boolean;
   offers: SponsorOffer[];
   credentials: OfferChoice[];
@@ -42,7 +45,7 @@ export function SponsorConsole({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [emoji, setEmoji] = useState("🎁");
+  const [icon, setIcon] = useState<IconName>("gift");
   const [kind, setKind] = useState<OfferRequirement["kind"]>("credential");
   const [credential, setCredential] = useState(credentials[0]?.value ?? "");
   const [activitySlug, setActivitySlug] = useState(activities[0]?.value ?? "");
@@ -62,7 +65,7 @@ export function SponsorConsole({
       const response = await fetch("/api/sponsor/offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, emoji, requirement }),
+        body: JSON.stringify({ title, description, icon, requirement }),
       });
       const data = (await response.json()) as { ok: true } | { ok: false; error: string };
       if (!data.ok) throw new Error(data.error);
@@ -94,9 +97,7 @@ export function SponsorConsole({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="grid size-12 place-items-center rounded-2xl bg-paper-sunk text-2xl">
-            {sponsorEmoji}
-          </span>
+          <IconTile name={sponsorIcon} tone="brand" size="lg" />
           <div>
             <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
               {t.sponsor.console}
@@ -129,9 +130,7 @@ export function SponsorConsole({
           <ul className="mt-4 divide-y divide-border-soft">
             {offers.map((offer) => (
               <li key={offer.slug} className="flex flex-wrap items-center gap-3 py-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-sunk text-xl">
-                  {offer.emoji}
-                </span>
+                <IconTile name={offer.icon} tone={offer.active ? "brand" : "neutral"} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2 font-semibold text-ink">
                     {offer.title}
@@ -176,15 +175,11 @@ export function SponsorConsole({
       <Card className="p-6">
         <CardHeader title={t.sponsor.newOffer} description={t.sponsor.newOfferLead} />
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-[5rem_1fr]">
-          <label>
-            <span className="text-sm font-semibold text-ink">{t.sponsor.offerEmoji}</span>
-            <input
-              value={emoji}
-              onChange={(event) => setEmoji(event.target.value)}
-              className="mt-2 h-11 w-full rounded-full border border-border-soft bg-paper-raised px-4 text-center text-lg focus:border-brand-500 focus:outline-none"
-            />
-          </label>
+        <div className="mt-5">
+          <IconPicker value={icon} onChange={setIcon} label={t.sponsor.offerIcon} />
+        </div>
+
+        <div className="mt-4 grid gap-4">
           <label>
             <span className="text-sm font-semibold text-ink">{t.sponsor.offerTitle}</span>
             <input

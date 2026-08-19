@@ -21,10 +21,10 @@ export type Verification = "chain" | "app";
 export interface RewardView {
   slug: string;
   sponsorName: string;
-  sponsorEmoji: string;
+  sponsorIcon: string;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   /** What the citizen still has to do, in their language. */
   requirementLabel: string;
   /**
@@ -42,10 +42,10 @@ function fromCatalog(reward: CatalogReward, locale: Locale): RewardView {
   return {
     slug: reward.slug,
     sponsorName: reward.sponsorName,
-    sponsorEmoji: "🏪",
+    sponsorIcon: "store",
     title: pick(reward.title, locale),
     description: pick(reward.description, locale),
-    emoji: reward.emoji,
+    icon: reward.icon,
     requirementLabel: pick(required.title, locale),
     verification: "chain",
     source: "catalog",
@@ -68,16 +68,16 @@ export function requirementLabel(requirement: OfferRequirement, locale: Locale):
 function fromOffer(
   offer: SponsorOffer,
   sponsorName: string,
-  sponsorEmoji: string,
+  sponsorIcon: string,
   locale: Locale,
 ): RewardView {
   return {
     slug: offer.slug,
     sponsorName,
-    sponsorEmoji,
+    sponsorIcon,
     title: offer.title,
     description: offer.description,
-    emoji: offer.emoji,
+    icon: offer.icon,
     requirementLabel: requirementLabel(offer.requirement, locale),
     verification: offer.requirement.kind === "credential" ? "chain" : "app",
     source: "sponsor",
@@ -94,7 +94,7 @@ export async function loadRewards(locale: Locale): Promise<RewardView[]> {
     .filter((offer) => offer.active && approved.has(offer.sponsorSlug))
     .map((offer) => {
       const sponsor = approved.get(offer.sponsorSlug)!;
-      return fromOffer(offer, sponsor.name, sponsor.emoji, locale);
+      return fromOffer(offer, sponsor.name, sponsor.icon, locale);
     });
 
   return [...REWARDS.map((reward) => fromCatalog(reward, locale)), ...published];

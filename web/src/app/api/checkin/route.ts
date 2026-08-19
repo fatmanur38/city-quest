@@ -102,10 +102,10 @@ export async function POST(request: Request) {
     const profile = await db().addXp(recipient, activity.xpReward);
 
     return ok({
-      activity: { title: pick(activity.title, locale), emoji: activity.emoji },
+      activity: { title: pick(activity.title, locale), icon: activity.icon },
       credential: {
         title: pick(CREDENTIALS[activity.credential].title, locale),
-        emoji: CREDENTIALS[activity.credential].emoji,
+        icon: CREDENTIALS[activity.credential].icon,
       },
       issuer: pick(institution.label, locale),
       xpAwarded: activity.xpReward,

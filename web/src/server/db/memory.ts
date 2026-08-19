@@ -52,7 +52,8 @@ const EMPTY: Snapshot = {
   sponsorOffers: [],
 };
 
-const DEFAULT_AVATARS = ["🦊", "🐙", "🦉", "🐝", "🦄", "🐢", "🦖", "🐬"];
+// Avatars are drawn from the wallet address in the interface (components/ui/Avatar),
+// so nothing needs to be chosen or stored here. The column stays for older rows.
 
 /** URL-safe, collision-free and readable, which is all a slug has to be here. */
 function slugify(value: string, taken: string[]): string {
@@ -79,9 +80,8 @@ function defaultName(wallet: string): string {
   return `Explorer ${wallet.slice(2, 6).toUpperCase()}`;
 }
 
-function defaultAvatar(wallet: string): string {
-  const index = Number.parseInt(wallet.slice(-2), 16) % DEFAULT_AVATARS.length;
-  return DEFAULT_AVATARS[index] ?? "🦊";
+function defaultAvatar(): string {
+  return "";
 }
 
 export class MemoryDatabase implements Database {
@@ -161,7 +161,7 @@ export class MemoryDatabase implements Database {
       profile = {
         wallet: key,
         displayName: patch.displayName ?? patch.defaultDisplayName ?? defaultName(key),
-        avatarEmoji: patch.avatarEmoji ?? defaultAvatar(key),
+        avatarEmoji: patch.avatarEmoji ?? defaultAvatar(),
         xp: 0,
         createdAt: new Date().toISOString(),
       };
@@ -284,7 +284,7 @@ export class MemoryDatabase implements Database {
         this.data.sponsors.map((s) => s.slug),
       ),
       name: sponsor.name,
-      emoji: sponsor.emoji,
+      icon: sponsor.icon,
       accessCode: accessCode(),
       // A business is visible to citizens only once the municipality has approved it.
       approved: false,
@@ -324,7 +324,7 @@ export class MemoryDatabase implements Database {
       sponsorSlug: offer.sponsorSlug,
       title: offer.title,
       description: offer.description,
-      emoji: offer.emoji,
+      icon: offer.icon,
       requirement: offer.requirement,
       active: true,
       createdAt: new Date().toISOString(),

@@ -23,7 +23,7 @@ export default async function InstitutionPage() {
           institutions={issuingInstitutions().map((entry) => ({
             slug: entry.slug,
             name: pick(entry.label, locale),
-            emoji: entry.emoji,
+            icon: entry.icon,
             kind: entry.kind,
           }))}
           showDemoCode={usesDemoCodes().operator}
@@ -60,12 +60,12 @@ export default async function InstitutionPage() {
 
       <InstitutionConsole
         institutionName={pick(institution.label, locale)}
-        institutionEmoji={institution.emoji}
+        institutionIcon={institution.icon}
         sellsTickets={sellsTickets}
         activities={activities.map((activity) => ({
           slug: activity.slug,
           title: pick(activity.title, locale),
-          emoji: activity.emoji,
+          icon: activity.icon,
           cadence: activity.cadence,
           xpReward: activity.xpReward,
         }))}

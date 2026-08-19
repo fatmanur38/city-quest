@@ -8,13 +8,20 @@ import { db } from "@/server/db";
 import { levelFor } from "@/server/account-service";
 import { cn } from "@/lib/cn";
 import { getTranslations } from "@/server/locale";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Avatar } from "@/components/ui/Avatar";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
   return { title: `${t.leaderboard.metaTitle} — CityQuest` };
 }
 
-const PODIUM = ["🥇", "🥈", "🥉"];
+/** Gold, silver, bronze -- as ring colours rather than as three medal emoji. */
+const PODIUM_RING = [
+  "bg-sun-100 text-sun-700 ring-sun-500/30",
+  "bg-paper-sunk text-ink-soft ring-border-soft",
+  "bg-berry-100 text-berry-500 ring-berry-500/25",
+];
 
 /**
  * The leaderboard.
@@ -47,15 +54,14 @@ export default async function LeaderboardPage() {
       </header>
 
       {explorers.length === 0 ? (
-        <Card className="mt-9 grid place-items-center p-12 text-center">
-          <span className="text-5xl">🗺️</span>
-          <p className="mt-4 font-display text-lg font-semibold text-ink">{t.leaderboard.empty}</p>
-          <p className="mt-2 max-w-sm text-sm text-ink-soft">
-            {t.leaderboard.emptyBody}
-          </p>
-          <ButtonLink href="/activities" className="mt-6">
-            {t.account.findSomething}
-          </ButtonLink>
+        <Card className="mt-9">
+          <EmptyState
+            icon="compass"
+            tone="sky"
+            title={t.leaderboard.empty}
+            body={t.leaderboard.emptyBody}
+            action={<ButtonLink href="/activities">{t.account.findSomething}</ButtonLink>}
+          />
         </Card>
       ) : (
         <Card className="mt-9 divide-y divide-border-soft">
@@ -73,16 +79,14 @@ export default async function LeaderboardPage() {
               >
                 <span
                   className={cn(
-                    "grid size-9 shrink-0 place-items-center text-lg font-bold",
-                    index > 2 && "font-display text-sm text-ink-faint",
+                    "grid size-8 shrink-0 place-items-center rounded-full font-display text-sm font-bold tabular-nums ring-1 ring-inset",
+                    PODIUM_RING[index] ?? "text-ink-faint ring-transparent",
                   )}
                 >
-                  {PODIUM[index] ?? index + 1}
+                  {index + 1}
                 </span>
 
-                <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-paper-sunk text-2xl">
-                  {profile.avatarEmoji}
-                </span>
+                <Avatar address={profile.wallet} className="size-11 shrink-0" />
 
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2 truncate font-semibold text-ink">

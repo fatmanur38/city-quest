@@ -38,7 +38,7 @@ export function levelFor(xp: number): LevelInfo {
 
 export interface CredentialView extends OnChainCredential {
   issuerName: Localized;
-  issuerEmoji: string;
+  issuerIcon: string;
 }
 
 export interface RequirementProgress {
@@ -63,7 +63,7 @@ export interface RewardView {
   sponsorName: string;
   title: Localized;
   description: Localized;
-  emoji: string;
+  icon: string;
   requiredCredentialTitle: Localized;
   eligible: boolean;
   couponCode: string | null;
@@ -91,7 +91,7 @@ function decorateCredentials(
     return {
       ...credential,
       issuerName: institution?.label ?? { en: "Unknown institution", tr: "Bilinmeyen kurum" },
-      issuerEmoji: institution?.emoji ?? "🏢",
+      issuerIcon: institution?.icon ?? "building",
     };
   });
 }
@@ -171,7 +171,7 @@ export async function loadAccount(wallet: `0x${string}`): Promise<AccountView> {
       sponsorName: reward.sponsorName,
       title: reward.title,
       description: reward.description,
-      emoji: reward.emoji,
+      icon: reward.icon,
       requiredCredentialTitle: CREDENTIALS[reward.requiredCredential].title,
       eligible: heldCredentials.has(CREDENTIALS[reward.requiredCredential].hash.toLowerCase()),
       couponCode: claim?.couponCode ?? null,

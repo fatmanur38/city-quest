@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     return ok({
       passId,
       holder,
-      credential: { title: pick(pass.credential.title, locale), emoji: pass.credential.emoji },
+      credential: { title: pick(pass.credential.title, locale), icon: pass.credential.icon },
       activityTitle: pick(activity?.title ?? pass.credential.title, locale),
       issuer: pick(institution.label, locale),
       xpAwarded,

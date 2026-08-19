@@ -70,13 +70,13 @@ const en = {
     // reader's language too -- an English sample under a Turkish headline undercuts the whole
     // point of the demo. The names match src/lib/credentials.ts and src/server/catalog.ts.
     sampleCredentials: [
-      { emoji: "📚", title: "Library Visitor", issuer: "Melikgazi Library" },
+      { icon: "library", title: "Library Visitor", issuer: "Melikgazi Library" },
       {
-        emoji: "🌍",
+        icon: "waves",
         title: "Earthquake Experience",
         issuer: "Kayseri Science Center",
       },
-      { emoji: "🏆", title: "Young Scientist", issuer: "Kayseri Municipality" },
+      { icon: "trophy", title: "Young Scientist", issuer: "Kayseri Municipality" },
     ],
     manifesto: "“If there were only one institution, we wouldn't use blockchain.”",
     manifestoBody:
@@ -363,7 +363,7 @@ const en = {
     offerTitlePlaceholder: "A free hot chocolate",
     offerDescription: "Details for the student",
     offerDescriptionPlaceholder: "Show this at the counter. One per person.",
-    offerEmoji: "Icon",
+    offerIcon: "Icon",
     requirement: "What do they need?",
     requirementCredential: "An achievement",
     requirementVisits: "A number of visits",
@@ -599,12 +599,12 @@ const tr: Dictionary = {
     sampleAccountOwner: "Elif'in Şehir Hesabı",
     sampleCredentials: [
       {
-        emoji: "📚",
+        icon: "library",
         title: "Kütüphane Ziyaretçisi",
         issuer: "Melikgazi Kütüphanesi",
       },
-      { emoji: "🌍", title: "Deprem Deneyimi", issuer: "Kayseri Bilim Merkezi" },
-      { emoji: "🏆", title: "Genç Bilim İnsanı", issuer: "Kayseri Büyükşehir Belediyesi" },
+      { icon: "waves", title: "Deprem Deneyimi", issuer: "Kayseri Bilim Merkezi" },
+      { icon: "trophy", title: "Genç Bilim İnsanı", issuer: "Kayseri Büyükşehir Belediyesi" },
     ],
     manifesto: "“Tek bir kurum olsaydı, blokzincir kullanmazdık.”",
     manifestoBody:
@@ -891,7 +891,7 @@ const tr: Dictionary = {
     offerTitlePlaceholder: "Bir ücretsiz sıcak çikolata",
     offerDescription: "Öğrenci için ayrıntı",
     offerDescriptionPlaceholder: "Bunu kasada göster. Kişi başı bir adet.",
-    offerEmoji: "Simge",
+    offerIcon: "Simge",
     requirement: "Ne gerekiyor?",
     requirementCredential: "Bir başarım",
     requirementVisits: "Belirli sayıda ziyaret",

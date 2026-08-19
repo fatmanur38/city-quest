@@ -14,6 +14,10 @@ import { isChainConfigured } from "@/lib/env";
 import { googleConfigured, googleLinkedFor } from "@/server/google";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
+import { IconTile } from "@/components/ui/Icon";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Circle, CircleCheck } from "lucide-react";
+import { Avatar } from "@/components/ui/Avatar";
 
 
 
@@ -27,15 +31,14 @@ export default async function AccountPage() {
 
   if (!wallet) {
     return (
-      <div className="mx-auto grid w-full max-w-2xl place-items-center px-4 py-24 text-center sm:px-6">
-        <span className="text-6xl">🛂</span>
-        <h1 className="mt-6 font-display text-3xl font-bold text-ink">{t.account.signedOutTitle}</h1>
-        <p className="mt-3 text-ink-soft">
-          {t.account.signedOutBody}
-        </p>
-        <div className="mt-8 flex justify-center">
-          <SignInButton />
-        </div>
+      <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+        <EmptyState
+          icon="compass"
+          tone="brand"
+          title={t.account.signedOutTitle}
+          body={t.account.signedOutBody}
+          action={<SignInButton />}
+        />
       </div>
     );
   }
@@ -53,9 +56,7 @@ export default async function AccountPage() {
         <div className="p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="flex items-center gap-4">
-              <span className="grid size-16 place-items-center rounded-2xl bg-paper-sunk text-4xl">
-                {profile.avatarEmoji}
-              </span>
+              <Avatar address={profile.wallet} className="size-16 shrink-0" />
               <div>
                 <p className="text-xs font-semibold tracking-[0.14em] text-ink-faint uppercase">
                   {t.account.documentLabel}
@@ -126,17 +127,14 @@ export default async function AccountPage() {
         />
 
         {credentials.length === 0 ? (
-          <Card className="mt-4 grid place-items-center p-10 text-center">
-            <span className="text-5xl">🌱</span>
-            <p className="mt-4 font-display text-lg font-semibold text-ink">
-              {t.account.noAchievements}
-            </p>
-            <p className="mt-2 max-w-sm text-sm text-ink-soft">
-              {t.account.noAchievementsBody}
-            </p>
-            <ButtonLink href="/activities" className="mt-6">
-              {t.account.findSomething}
-            </ButtonLink>
+          <Card className="mt-4">
+            <EmptyState
+              icon="leaf"
+              tone="emerald"
+              title={t.account.noAchievements}
+              body={t.account.noAchievementsBody}
+              action={<ButtonLink href="/activities">{t.account.findSomething}</ButtonLink>}
+            />
           </Card>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -153,9 +151,7 @@ export default async function AccountPage() {
           <CardHeader title={t.account.currentQuest} description={t.account.currentQuestLead} />
           <Card className="mt-4 p-6">
             <div className="flex items-start gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-sun-100 text-3xl">
-                {activeQuest.quest.emoji}
-              </span>
+              <IconTile name={activeQuest.quest.icon} tone="sun" size="lg" />
               <div className="min-w-0 flex-1">
                 <h3 className="font-display text-lg font-bold text-ink">
                   {pick(activeQuest.quest.title, locale)}
@@ -167,7 +163,11 @@ export default async function AccountPage() {
                 <ul className="mt-4 space-y-2">
                   {activeQuest.requirements.map((requirement) => (
                     <li key={pick(requirement.label, locale)} className="flex items-center gap-2.5 text-sm">
-                      <span aria-hidden>{requirement.met ? "✅" : "⭕"}</span>
+                      {requirement.met ? (
+                        <CircleCheck className="size-4 shrink-0 text-emerald-500" aria-hidden />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-ink-faint" aria-hidden />
+                      )}
                       <span className={requirement.met ? "text-ink" : "text-ink-soft"}>
                         {pick(requirement.label, locale)}
                       </span>
@@ -202,9 +202,7 @@ export default async function AccountPage() {
             {validPasses.map((pass) => (
               <Link key={pass.passId} href="/tickets">
                 <Card className="flex items-center gap-4 p-5 transition-shadow hover:shadow-lift">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-violet-100 text-2xl">
-                    {pass.credential.emoji}
-                  </span>
+                  <IconTile name={pass.credential.icon} tone="violet" size="md" />
                   <div className="min-w-0">
                     <p className="font-display text-sm font-bold text-ink">
                       {pick(pass.credential.title, locale)}
@@ -234,9 +232,11 @@ export default async function AccountPage() {
               const isQuest = completion.activitySlug.startsWith("quest:");
               return (
                 <div key={completion.id} className="flex items-center gap-3 p-4">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-paper-sunk text-lg">
-                    {isQuest ? "🏆" : (activity?.emoji ?? "✨")}
-                  </span>
+                  <IconTile
+                    name={isQuest ? "trophy" : (activity?.icon ?? "sparkles")}
+                    tone={isQuest ? "sun" : "neutral"}
+                    size="sm"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-ink">
                       {isQuest

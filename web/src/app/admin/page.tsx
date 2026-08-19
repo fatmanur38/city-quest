@@ -7,6 +7,7 @@ import { getTranslations } from "@/server/locale";
 import { ACTIVITIES } from "@/server/catalog";
 import { loadPrices, priceFor } from "@/server/pricing";
 import { pick } from "@/lib/i18n/types";
+import { Icon, IconTile } from "@/components/ui/Icon";
 
 export async function generateMetadata() {
   const { t } = await getTranslations();
@@ -36,7 +37,7 @@ export default async function AdminPage() {
   const priceable = ACTIVITIES.filter((activity) => activity.kind === "ticket").map((activity) => ({
     slug: activity.slug,
     title: pick(activity.title, locale),
-    emoji: activity.emoji,
+    icon: activity.icon,
     catalogPrice: activity.priceTry ?? 0,
     currentPrice: priceFor(activity, prices),
   }));
@@ -52,7 +53,7 @@ export default async function AdminPage() {
   const sponsors = sponsorList.map((sponsor) => ({
     slug: sponsor.slug,
     name: sponsor.name,
-    emoji: sponsor.emoji,
+    icon: sponsor.icon,
     accessCode: sponsor.accessCode,
     approved: sponsor.approved,
     offerCount: sponsorOffers.filter((offer) => offer.sponsorSlug === sponsor.slug).length,
@@ -66,7 +67,7 @@ export default async function AdminPage() {
           name: institution.name,
           kind: institution.kind,
           active: institution.active,
-          emoji: institution.emoji,
+          icon: institution.icon,
         }))}
         sponsors={sponsors}
         priceable={priceable}

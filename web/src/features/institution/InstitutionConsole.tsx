@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { BadgeCheck, LogOut, TicketCheck, XCircle } from "lucide-react";
+import { Ban, BadgeCheck, LogOut, TicketCheck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +10,7 @@ import { Scanner } from "@/features/scan/Scanner";
 import { explorerTxUrl } from "@/lib/chain/client";
 import { cn } from "@/lib/cn";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
+import { Icon, IconTile } from "@/components/ui/Icon";
 
 /**
  * What a librarian or a science center operator actually uses.
@@ -22,15 +23,15 @@ import { useTranslations } from "@/features/i18n/LocaleProvider";
 export interface ConsoleActivity {
   slug: string;
   title: string;
-  emoji: string;
+  icon: string;
   cadence: "daily" | "once";
   xpReward: number;
 }
 
 interface CheckinResponse {
   ok: true;
-  activity: { title: string; emoji: string };
-  credential: { title: string; emoji: string };
+  activity: { title: string; icon: string };
+  credential: { title: string; icon: string };
   issuer: string;
   xpAwarded: number;
   txHash: string;
@@ -40,24 +41,24 @@ interface ConsumeResponse {
   ok: true;
   passId: string;
   holder: string;
-  credential: { title: string; emoji: string };
+  credential: { title: string; icon: string };
   activityTitle: string;
   xpAwarded: number;
   txHash: string;
 }
 
 type Outcome =
-  | { kind: "success"; title: string; detail: string; emoji: string; txHash: string }
+  | { kind: "success"; title: string; detail: string; icon: string; txHash: string }
   | { kind: "refused"; title: string; detail: string; code: string | null };
 
 export function InstitutionConsole({
   institutionName,
-  institutionEmoji,
+  institutionIcon,
   activities,
   sellsTickets,
 }: {
   institutionName: string;
-  institutionEmoji: string;
+  institutionIcon: string;
   activities: ConsoleActivity[];
   sellsTickets: boolean;
 }) {
@@ -106,7 +107,7 @@ export function InstitutionConsole({
           kind: "success",
           title: t.institution.verified(data.activity.title),
           detail: t.institution.addedWithXp(data.credential.title, data.xpAwarded),
-          emoji: data.credential.emoji,
+          icon: data.credential.icon,
           txHash: data.txHash,
         });
         record(`${data.activity.title} · +${data.xpAwarded} XP`, true);
@@ -153,7 +154,7 @@ export function InstitutionConsole({
           kind: "success",
           title: t.institution.ticketAccepted(data.passId),
           detail: t.institution.addedWithXp(data.credential.title, data.xpAwarded),
-          emoji: data.credential.emoji,
+          icon: data.credential.icon,
           txHash: data.txHash,
         });
         record(`Ticket #${data.passId} used`, true);
@@ -181,7 +182,7 @@ export function InstitutionConsole({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="grid size-12 place-items-center rounded-2xl bg-paper-sunk text-2xl">
-            {institutionEmoji}
+            <Icon name={institutionIcon} className="size-6" />
           </span>
           <div>
             <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
@@ -248,7 +249,7 @@ export function InstitutionConsole({
                         : "border-border-soft text-ink-soft hover:bg-paper-sunk",
                     )}
                   >
-                    {activity.emoji} {activity.title}
+                    <Icon name={activity.icon} className="size-4" /> {activity.title}
                   </button>
                 ))}
               </div>
@@ -309,9 +310,13 @@ export function InstitutionConsole({
             )}
             onClick={(event) => event.stopPropagation()}
           >
-            <span className="text-6xl" aria-hidden>
-              {outcome.kind === "success" ? outcome.emoji : "🚫"}
-            </span>
+            {outcome.kind === "success" ? (
+              <IconTile name={outcome.icon} tone="emerald" size="hero" className="mx-auto" />
+            ) : (
+              <span className="mx-auto grid size-20 place-items-center rounded-2xl bg-danger-100 text-danger-700 ring-1 ring-inset ring-danger-500/20">
+                <Ban className="size-9" strokeWidth={1.75} aria-hidden />
+              </span>
+            )}
 
             <p
               id="scan-outcome-title"

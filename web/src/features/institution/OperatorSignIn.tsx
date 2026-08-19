@@ -7,11 +7,12 @@ import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/cn";
 import { institutionTypeLabel, type InstitutionTypeName } from "@/lib/chain/contracts";
 import { useTranslations } from "@/features/i18n/LocaleProvider";
+import { Icon, IconTile } from "@/components/ui/Icon";
 
 export interface SelectableInstitution {
   slug: string;
   name: string;
-  emoji: string;
+  icon: string;
   kind: string;
 }
 
@@ -78,7 +79,7 @@ export function OperatorSignIn({
                 onChange={() => setSlug(institution.slug)}
               />
               <span className="text-2xl" aria-hidden>
-                {institution.emoji}
+                <Icon name={institution.icon} className="size-5" />
               </span>
               <span>
                 <span className="block text-sm font-semibold text-ink">{institution.name}</span>
