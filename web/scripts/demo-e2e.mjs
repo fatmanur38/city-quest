@@ -5,6 +5,16 @@
  */
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
+// Read from the environment so a deployment that changed its sign-in codes -- which any public
+// one must -- is still testable without editing this file. The fallbacks are the codes a fresh
+// clone ships with.
+const OPERATOR_PIN = process.env.OPERATOR_PIN ?? "1234";
+const ADMIN_PIN = process.env.ADMIN_PIN ?? "cityquest";
+const WRONG_PIN = "0000";
+
+const LIBRARY_SLUG = "melikgazi-library";
+const SCIENCE_SLUG = "kayseri-science-center";
+
 const BASE = "http://localhost:3000";
 
 // Cookie jars, one per actor, mirroring separate browsers.
@@ -93,12 +103,12 @@ step(1, "Citizen creates a city account and signs in");
 step(2, "Library staff sign in to the console");
 {
   const { data: refused } = await call("library", "/api/institution/session", {
-    body: { institutionSlug: "selcuklu-library", pin: "0000" },
+    body: { institutionSlug: LIBRARY_SLUG, pin: WRONG_PIN },
   });
   check("wrong staff code refused", refused.ok === false, refused.error);
 
   const { data } = await call("library", "/api/institution/session", {
-    body: { institutionSlug: "selcuklu-library", pin: "1234" },
+    body: { institutionSlug: LIBRARY_SLUG, pin: OPERATOR_PIN },
   });
   check("correct staff code accepted", data.ok === true, data.error);
 }
@@ -121,7 +131,7 @@ let firstTx;
   check("visit verified", data.ok === true, data.error);
   check("Library Visitor awarded", data.credential?.title === "Library Visitor");
   check("+10 XP", data.xpAwarded === 10, `got ${data.xpAwarded}`);
-  check("issued by the library", data.issuer === "Selcuklu Library");
+  check("issued by the library", data.issuer === "Melikgazi Library");
   check("has a transaction hash", typeof data.txHash === "string");
   firstTx = data.txHash;
 }
@@ -158,7 +168,7 @@ let passId;
 step(6, "Science center scans the ticket");
 {
   await call("science", "/api/institution/session", {
-    body: { institutionSlug: "konya-science-center", pin: "1234" },
+    body: { institutionSlug: SCIENCE_SLUG, pin: OPERATOR_PIN },
   });
 
   // The library must not be able to spend the science center's ticket.
@@ -196,7 +206,7 @@ step(8, "Municipality issues Young Scientist");
   const { data } = await call("citizen", "/api/quests/claim", { body: { questSlug: "science-quest" } });
   check("quest reward issued", data.ok === true, data.error);
   check("Young Scientist awarded", data.credential?.title === "Young Scientist");
-  check("issued by the municipality", data.issuer === "Konya Municipality");
+  check("issued by the municipality", data.issuer === "Kayseri Municipality");
   check("+150 XP", data.xpAwarded === 150, `got ${data.xpAwarded}`);
   check("total XP is 210", data.totalXp === 210, `got ${data.totalXp}`);
 
@@ -244,11 +254,11 @@ step(10, "A citizen without the achievement cannot claim the reward");
 // -------------------------------------------------------------------- 11. admin console
 step(11, "Municipality suspends an institution");
 {
-  await call("admin", "/api/admin/session", { body: { pin: "cityquest" } });
+  await call("admin", "/api/admin/session", { body: { pin: ADMIN_PIN } });
 
   const museum = privateKeyToAccount(generatePrivateKey());
   const { data: created } = await call("admin", "/api/admin/institutions", {
-    body: { address: museum.address, name: "Konya City Museum", kind: "Museum" },
+    body: { address: museum.address, name: "Kayseri City Museum", kind: "Museum" },
   });
   check("new institution registered", created.ok === true, created.error);
 

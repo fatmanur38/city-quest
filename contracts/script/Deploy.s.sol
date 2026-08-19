@@ -51,13 +51,13 @@ contract Deploy is Script {
         passport.grantRole(passport.CREDENTIAL_ISSUER_ROLE(), address(experiencePass));
 
         registry.registerInstitution(
-            librarySigner, "Selcuklu Library", InstitutionRegistry.InstitutionType.Library
+            librarySigner, "Melikgazi Library", InstitutionRegistry.InstitutionType.Library
         );
         registry.registerInstitution(
-            scienceCenterSigner, "Konya Science Center", InstitutionRegistry.InstitutionType.ScienceCenter
+            scienceCenterSigner, "Kayseri Science Center", InstitutionRegistry.InstitutionType.ScienceCenter
         );
         registry.registerInstitution(
-            municipalitySigner, "Konya Municipality", InstitutionRegistry.InstitutionType.Municipality
+            municipalitySigner, "Kayseri Municipality", InstitutionRegistry.InstitutionType.Municipality
         );
 
         vm.stopBroadcast();

@@ -355,7 +355,7 @@ language, and no `/tr/` segment in every URL. Two typed dictionaries in
 [`dictionary.ts`](web/src/lib/i18n/dictionary.ts) define the strings, and the English one's shape
 *is* the `Dictionary` type, so a missing or misspelled Turkish key fails the build. Catalogue
 content carries `{ tr, en }` pairs inline. Turkish is the default: this is a passport for a
-Turkish city, and a child at a library desk in Konya should not have to switch away from English
+Turkish city, and a child at a library desk in Kayseri should not have to switch away from English
 first.
 
 Only the two-letter locale crosses the server/client boundary — the dictionary is looked up on
@@ -542,7 +542,7 @@ The five-minute version:
 | 2 | **Start Your City Passport** | No wallet, no seed phrase, no gas. One tap |
 | 3 | `/passport` — empty | 0 XP, no achievements |
 | 4 | `/institution` → library, code `1234`, scan the citizen | An institution vouching, cryptographically |
-| 5 | Passport now shows **📚 Library Visitor · Verified by Selcuklu Library** | The issuer is as prominent as the achievement |
+| 5 | Passport now shows **📚 Library Visitor · Verified by Melikgazi Library** | The issuer is as prominent as the achievement |
 | 6 | Scan the same person again | *"This visit is already verified for today."* Enforced on-chain, not by our server |
 | 7 | Book the Earthquake Experience, 50 TL | Payment is mocked and stays off-chain, by design |
 | 8 | Science center scans the ticket | **VALID → USED**, achievement issued in the same transaction |
@@ -569,7 +569,7 @@ The five-minute version:
 - **W3C Verifiable Credentials and DIDs** — express achievements in a standard schema so they
   interoperate outside this ecosystem.
 - **Multi-city federation** — several municipalities, one credential vocabulary; a student moving
-  from Konya to Izmir keeps their passport.
+  from Kayseri to Izmir keeps their passport.
 - **NFC turnstiles** for check-in without a phone.
 - **School and university integrations** so achievements can count towards coursework.
 

@@ -12,7 +12,7 @@ export type Locale = (typeof LOCALES)[number];
 
 /**
  * Turkish is the default: this is built for a Turkish city, and the people using it at a
- * library desk in Konya should not have to switch away from English first.
+ * library desk in Kayseri should not have to switch away from English first.
  */
 export const DEFAULT_LOCALE: Locale = "tr";
 

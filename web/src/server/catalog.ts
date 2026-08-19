@@ -91,37 +91,37 @@ export interface QuizQuestion {
 
 export const INSTITUTIONS: CatalogInstitution[] = [
   {
-    slug: "selcuklu-library",
-    name: "Selcuklu Library",
-    label: { en: "Selcuklu Library", tr: "Selçuklu Kütüphanesi" },
+    slug: "melikgazi-library",
+    name: "Melikgazi Library",
+    label: { en: "Melikgazi Library", tr: "Melikgazi Kütüphanesi" },
     kind: "Library",
     description: {
       en: "A neighbourhood library with a large children's reading room and free study spaces.",
       tr: "Geniş bir çocuk okuma salonu ve ücretsiz çalışma alanları olan bir mahalle kütüphanesi.",
     },
-    district: { en: "Selcuklu", tr: "Selçuklu" },
+    district: { en: "Melikgazi", tr: "Melikgazi" },
     emoji: "📚",
     signerRole: "library",
     isIssuer: true,
   },
   {
-    slug: "konya-science-center",
-    name: "Konya Science Center",
-    label: { en: "Konya Science Center", tr: "Konya Bilim Merkezi" },
+    slug: "kayseri-science-center",
+    name: "Kayseri Science Center",
+    label: { en: "Kayseri Science Center", tr: "Kayseri Bilim Merkezi" },
     kind: "ScienceCenter",
     description: {
       en: "Hands-on exhibits, a planetarium and the earthquake simulation hall.",
       tr: "Dokunmatik sergiler, bir planetaryum ve deprem simülasyon salonu.",
     },
-    district: { en: "Selcuklu", tr: "Selçuklu" },
+    district: { en: "Melikgazi", tr: "Melikgazi" },
     emoji: "🔬",
     signerRole: "scienceCenter",
     isIssuer: true,
   },
   {
-    slug: "konya-municipality",
-    name: "Konya Municipality",
-    label: { en: "Konya Municipality", tr: "Konya Belediyesi" },
+    slug: "kayseri-municipality",
+    name: "Kayseri Municipality",
+    label: { en: "Kayseri Municipality", tr: "Kayseri Büyükşehir Belediyesi" },
     kind: "Municipality",
     description: {
       en: "Runs city-wide workshops, quests and youth programmes.",
@@ -141,7 +141,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
       en: "A local cafe that rewards students for verified learning.",
       tr: "Onaylanmış öğrenmeyi ödüllendiren yerel bir kafe.",
     },
-    district: { en: "Selcuklu", tr: "Selçuklu" },
+    district: { en: "Melikgazi", tr: "Melikgazi" },
     emoji: "☕",
     isIssuer: false,
   },
@@ -150,7 +150,7 @@ export const INSTITUTIONS: CatalogInstitution[] = [
 export const ACTIVITIES: CatalogActivity[] = [
   {
     slug: "library-daily-visit",
-    institutionSlug: "selcuklu-library",
+    institutionSlug: "melikgazi-library",
     title: { en: "Daily Library Visit", tr: "Günlük Kütüphane Ziyareti" },
     summary: {
       en: "Spend time reading and get your visit confirmed at the desk.",
@@ -169,7 +169,7 @@ export const ACTIVITIES: CatalogActivity[] = [
   },
   {
     slug: "earthquake-simulation",
-    institutionSlug: "konya-science-center",
+    institutionSlug: "kayseri-science-center",
     title: { en: "Earthquake Experience", tr: "Deprem Deneyimi" },
     summary: {
       en: "Feel a simulated earthquake and learn exactly what to do.",
@@ -189,7 +189,7 @@ export const ACTIVITIES: CatalogActivity[] = [
   },
   {
     slug: "robotics-workshop",
-    institutionSlug: "konya-municipality",
+    institutionSlug: "kayseri-municipality",
     title: { en: "Robotics Workshop", tr: "Robotik Atölyesi" },
     summary: {
       en: "Build and program your first robot in a weekend workshop.",
@@ -208,7 +208,7 @@ export const ACTIVITIES: CatalogActivity[] = [
   },
   {
     slug: "science-quiz",
-    institutionSlug: "konya-municipality",
+    institutionSlug: "kayseri-municipality",
     title: { en: "Science Quiz", tr: "Bilim Testi" },
     summary: {
       en: "Four questions about what you saw around the city.",
@@ -257,7 +257,7 @@ export const QUESTS: CatalogQuest[] = [
     ],
     xpReward: 150,
     rewardCredential: "YOUNG_SCIENTIST",
-    issuerSlug: "konya-municipality",
+    issuerSlug: "kayseri-municipality",
     emoji: "🏆",
   },
 ];

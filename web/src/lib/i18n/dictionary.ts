@@ -54,7 +54,7 @@ const en = {
   },
 
   landing: {
-    eyebrow: "One learning account for Konya",
+    eyebrow: "One learning account for Kayseri",
     headlineLine1: "Explore your city.",
     headlineLine2: "Learn something new.",
     headlineLine3: "Collect your experiences in one place.",
@@ -66,13 +66,13 @@ const en = {
     // reader's language too -- an English sample under a Turkish headline undercuts the whole
     // point of the demo. The names match src/lib/credentials.ts and src/server/catalog.ts.
     sampleCredentials: [
-      { emoji: "📚", title: "Library Visitor", issuer: "Selcuklu Library" },
+      { emoji: "📚", title: "Library Visitor", issuer: "Melikgazi Library" },
       {
         emoji: "🌍",
         title: "Earthquake Experience",
-        issuer: "Konya Science Center",
+        issuer: "Kayseri Science Center",
       },
-      { emoji: "🏆", title: "Young Scientist", issuer: "Konya Municipality" },
+      { emoji: "🏆", title: "Young Scientist", issuer: "Kayseri Municipality" },
     ],
     manifesto: "“If there were only one institution, we wouldn't use blockchain.”",
     manifestoBody:
@@ -366,7 +366,7 @@ const en = {
     businessesLead:
       "A business reads achievements that institutions already vouched for and rewards them. It issues nothing and holds no key, so nothing here touches the registry contract.",
     businessName: "Business name",
-    businessNamePlaceholder: "Starbucks Selçuklu",
+    businessNamePlaceholder: "Starbucks Melikgazi",
     addBusiness: "Add business",
     businessCode: "Sign-in code",
     businessCodeHint: "Give this to the business. They sign in with it at /sponsor.",
@@ -471,7 +471,7 @@ const tr: Dictionary = {
   },
 
   landing: {
-    eyebrow: "Konya için tek bir öğrenme hesabı",
+    eyebrow: "Kayseri için tek bir öğrenme hesabı",
     headlineLine1: "Şehrini keşfet.",
     headlineLine2: "Yeni bir şey öğren.",
     headlineLine3: "Deneyimlerini tek yerde topla.",
@@ -483,10 +483,10 @@ const tr: Dictionary = {
       {
         emoji: "📚",
         title: "Kütüphane Ziyaretçisi",
-        issuer: "Selçuklu Kütüphanesi",
+        issuer: "Melikgazi Kütüphanesi",
       },
-      { emoji: "🌍", title: "Deprem Deneyimi", issuer: "Konya Bilim Merkezi" },
-      { emoji: "🏆", title: "Genç Bilim İnsanı", issuer: "Konya Belediyesi" },
+      { emoji: "🌍", title: "Deprem Deneyimi", issuer: "Kayseri Bilim Merkezi" },
+      { emoji: "🏆", title: "Genç Bilim İnsanı", issuer: "Kayseri Büyükşehir Belediyesi" },
     ],
     manifesto: "“Tek bir kurum olsaydı, blokzincir kullanmazdık.”",
     manifestoBody:
@@ -780,7 +780,7 @@ const tr: Dictionary = {
     businessesLead:
       "İşletme, kurumların zaten onayladığı başarımları okuyup ödüllendirir. Hiçbir şey vermez, hiçbir anahtar tutmaz; bu yüzden buradaki hiçbir işlem kayıt defteri kontratına dokunmaz.",
     businessName: "İşletme adı",
-    businessNamePlaceholder: "Starbucks Selçuklu",
+    businessNamePlaceholder: "Starbucks Melikgazi",
     addBusiness: "İşletme ekle",
     businessCode: "Giriş kodu",
     businessCodeHint: "Bunu işletmeye ver. /sponsor adresinden bu kodla giriş yapar.",
