@@ -255,7 +255,12 @@ export function InstitutionConsole({
             ) : null}
 
             <div className="mt-5">
-              <Scanner expect="user" onResult={verifyVisitor} disabled={busy} />
+              <Scanner
+                expect="user"
+                onResult={verifyVisitor}
+                disabled={busy}
+                paused={outcome !== null}
+              />
             </div>
           </>
         ) : (
@@ -269,6 +274,7 @@ export function InstitutionConsole({
                 expect="ticket"
                 onResult={validateTicket}
                 disabled={busy}
+                paused={outcome !== null}
                 placeholder={t.institution.ticketNumberPlaceholder}
               />
             </div>
@@ -279,44 +285,68 @@ export function InstitutionConsole({
           <p className="mt-5 text-sm font-medium text-ink-soft">{t.institution.checkingRegistry}</p>
         ) : null}
 
-        {outcome ? (
+      </Card>
+
+      {/* The answer, as a card the operator has to dismiss.
+
+          It used to sit inline below the scanner, which failed in the one situation that
+          matters: at a desk, holding a phone, reading at arm's length, with the next person
+          already waiting. It scrolled out of view on a laptop, and it left the camera running,
+          so the same visitor was read again the moment the answer appeared. Now it takes the
+          screen, says one thing, and clears on a tap. */}
+      {outcome ? (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4 backdrop-blur-sm"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="scan-outcome-title"
+          onClick={() => setOutcome(null)}
+        >
           <div
             className={cn(
-              "animate-pop mt-5 rounded-2xl p-5",
+              "animate-pop w-full max-w-sm rounded-card p-7 text-center shadow-lift",
               outcome.kind === "success" ? "bg-emerald-100" : "bg-danger-100",
             )}
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start gap-3">
-              <span className="text-3xl" aria-hidden>
-                {outcome.kind === "success" ? outcome.emoji : "🚫"}
-              </span>
-              <div className="min-w-0">
-                <p className="flex items-center gap-2 font-display text-lg font-bold text-ink">
-                  {outcome.kind === "success" ? (
-                    <BadgeCheck className="size-5 text-emerald-500" aria-hidden />
-                  ) : (
-                    <XCircle className="size-5 text-danger-500" aria-hidden />
-                  )}
-                  {outcome.title}
-                </p>
-                <p className="mt-1 text-sm text-ink-soft">{outcome.detail}</p>
+            <span className="text-6xl" aria-hidden>
+              {outcome.kind === "success" ? outcome.emoji : "🚫"}
+            </span>
 
-                {outcome.kind === "success" ? (
-                  <TechnicalDetails
-                    className="mt-3"
-                    txHash={outcome.txHash}
-                    explorerUrl={explorerTxUrl(outcome.txHash)}
-                  />
-                ) : outcome.code ? (
-                  <p className="mt-3 font-mono text-[0.7rem] text-ink-faint">
-                    {t.institution.refusedBy(outcome.code)}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+            <p
+              id="scan-outcome-title"
+              className="mt-4 flex items-center justify-center gap-2 font-display text-xl font-bold text-ink"
+            >
+              {outcome.kind === "success" ? (
+                <BadgeCheck className="size-6 shrink-0 text-emerald-500" aria-hidden />
+              ) : (
+                <XCircle className="size-6 shrink-0 text-danger-500" aria-hidden />
+              )}
+              {outcome.title}
+            </p>
+
+            <p className="mt-2 text-sm text-ink-soft">{outcome.detail}</p>
+
+            {outcome.kind === "refused" && outcome.code ? (
+              <p className="mt-3 font-mono text-[0.7rem] text-ink-faint">
+                {t.institution.refusedBy(outcome.code)}
+              </p>
+            ) : null}
+
+            <Button className="mt-6 w-full" autoFocus onClick={() => setOutcome(null)}>
+              {t.institution.nextVisitor}
+            </Button>
+
+            {outcome.kind === "success" ? (
+              <TechnicalDetails
+                className="mt-4"
+                txHash={outcome.txHash}
+                explorerUrl={explorerTxUrl(outcome.txHash)}
+              />
+            ) : null}
           </div>
-        ) : null}
-      </Card>
+        </div>
+      ) : null}
 
       {log.length > 0 ? (
         <Card className="p-6">

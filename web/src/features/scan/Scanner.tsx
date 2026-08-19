@@ -14,15 +14,26 @@ import { useTranslations } from "@/features/i18n/LocaleProvider";
  * prompt, and a device that has a camera at all. So typing the code by hand is a first-class
  * path here, not a hidden fallback: a demo must never fail because a browser refused a camera.
  */
+/** How long a code that was just answered for stays ignored after the camera comes back. */
+const REPEAT_GRACE_MS = 5000;
+
 export function Scanner({
   expect,
   onResult,
   disabled,
+  paused,
   placeholder,
 }: {
   expect: "user" | "ticket";
   onResult: (value: string) => void;
   disabled?: boolean;
+  /**
+   * Holds the camera off while the answer to the last scan is still on screen. Without it the
+   * same visitor is read again and again -- the desk would send a second request before the
+   * first had even reached the chain, and the operator would watch a success turn into "already
+   * verified today" a second later.
+   */
+  paused?: boolean;
   placeholder?: string;
 }) {
   const { t } = useTranslations();
@@ -31,13 +42,28 @@ export function Scanner({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  /**
+   * The code that was just answered for, and when.
+   *
+   * Without this, dismissing a result while the same phone is still in front of the lens reads
+   * it again immediately -- so the operator taps "next visitor" and is handed "already verified
+   * today" for the person who just walked up. A different code is never delayed; only the one
+   * already dealt with is, and only for as long as it takes to lower a phone.
+   */
+  const lastHandled = useRef<{ value: string; at: number } | null>(null);
+
   const cameraFailedMessage = t.institution.cameraFailed;
 
   useEffect(() => {
-    if (mode !== "camera") return;
+    if (mode !== "camera" || paused || disabled) return;
+
+    if (lastHandled.current) lastHandled.current = { ...lastHandled.current, at: Date.now() };
 
     let scanner: { stop: () => void; destroy: () => void } | null = null;
     let cancelled = false;
+    // Guards the gap between reading a code and React re-rendering with `paused` true. State
+    // updates are not synchronous, so without this the next few frames get through.
+    let handled = false;
 
     void (async () => {
       try {
@@ -47,9 +73,22 @@ export function Scanner({
         const instance = new QrScanner(
           videoRef.current,
           (result: { data: string }) => {
+            if (handled) return;
             const parsed = parseQrPayload(result.data);
             if (!parsed || parsed.kind !== expect) return;
-            onResult(parsed.kind === "user" ? parsed.wallet : parsed.passId);
+
+            const value = parsed.kind === "user" ? parsed.wallet : parsed.passId;
+            const previous = lastHandled.current;
+            if (previous && previous.value === value && Date.now() - previous.at < REPEAT_GRACE_MS) {
+              return;
+            }
+
+            // One scan, one answer. The camera stops here rather than after the round trip,
+            // because the round trip takes seconds and the code stays in frame the whole time.
+            handled = true;
+            lastHandled.current = { value, at: Date.now() };
+            instance.stop();
+            onResult(value);
           },
           { highlightScanRegion: true, highlightCodeOutline: true, maxScansPerSecond: 4 },
         );
@@ -68,7 +107,7 @@ export function Scanner({
       scanner?.stop();
       scanner?.destroy();
     };
-  }, [mode, expect, onResult, cameraFailedMessage]);
+  }, [mode, expect, onResult, disabled, paused, cameraFailedMessage]);
 
   function submitTyped() {
     const parsed = parseQrPayload(typed);
@@ -117,7 +156,7 @@ export function Scanner({
         <div className="relative overflow-hidden rounded-2xl bg-ink">
           <video ref={videoRef} className="aspect-video w-full object-cover" muted playsInline />
           <p className="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-center text-xs text-white">
-            {t.institution.cameraHint}
+            {paused || disabled ? t.institution.cameraPaused : t.institution.cameraHint}
           </p>
         </div>
       ) : (
