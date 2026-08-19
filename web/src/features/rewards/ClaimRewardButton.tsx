@@ -82,7 +82,7 @@ export function ClaimRewardButton({
       setCode(data.couponCode);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The coupon could not be created.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }

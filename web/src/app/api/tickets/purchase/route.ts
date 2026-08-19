@@ -8,6 +8,7 @@ import { addressForSlug } from "@/server/institutions";
 import { issuePassOnChain } from "@/server/chain/writes";
 import { db } from "@/server/db";
 import { getTranslations } from "@/server/locale";
+import { getDictionary } from "@/lib/i18n/dictionary";
 import { pick } from "@/lib/i18n/types";
 
 /**
@@ -25,6 +26,22 @@ const schema = z.object({
 });
 
 const TICKET_VALID_DAYS = 90;
+
+/**
+ * A ceiling on how many tickets the whole city issues per hour.
+ *
+ * Buying a ticket is the one thing a citizen can do that spends the relayer's balance, and a
+ * citizen account costs nothing to create -- the device wallet is a keypair generated in the
+ * browser. Without a cap, anyone who can reach a public deployment can mint accounts in a loop
+ * and drain the account that pays for everyone's gas, which stops the whole city rather than
+ * just them.
+ *
+ * Counted from ticket_orders rather than held in memory, so the limit is real on serverless,
+ * where consecutive requests need not reach the same instance.
+ *
+ * Set well above anything a demo or a school group would reach.
+ */
+const TICKETS_PER_HOUR = 60;
 
 export async function POST(request: Request) {
   return handle(async () => {
@@ -49,6 +66,13 @@ export async function POST(request: Request) {
     // Refuse to sell a second ticket for something already completed.
     const existing = await db().findCompletion(wallet, activity.slug, "once");
     if (existing) return fail("You have already completed this experience.", 409);
+
+    const issuedThisHour = await db().countTicketOrdersSince(
+      new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    );
+    if (issuedThisHour >= TICKETS_PER_HOUR) {
+      return fail(getDictionary(locale).activities.tooBusy, 429, "RateLimited");
+    }
 
     const unusedTicket = (await db().listTicketOrders(wallet)).find(
       (order) => order.activitySlug === activity.slug && order.status === "valid",

@@ -29,6 +29,10 @@ const en = {
   },
 
   common: {
+    // Shown when fetch itself fails. Anything the server answered with is already in the
+    // reader's language and is used instead, so this only ever describes not reaching it --
+    // which is why it is one message rather than a different wording per button.
+    couldNotReach: "We could not reach the city app. Check your connection and try again.",
     // Keyed by the on-chain enum name in InstitutionRegistry.InstitutionType, so a new kind of
     // institution added to the contract fails to compile here until it has been translated.
     institutionTypes: {
@@ -176,6 +180,8 @@ const en = {
     lead: "Every activity below is hosted by an institution that will confirm you were there. The quiz is the exception — the city app scores that one itself.",
     completed: "Completed",
     oncePerDay: "Once per day",
+    tooBusy:
+      "The city app is issuing more tickets than usual right now. Please try again in a few minutes.",
     kindCheckin: "Drop in any day",
     kindTicket: "Ticket required",
     kindWorkshop: "Scheduled workshop",
@@ -453,6 +459,7 @@ const tr: Dictionary = {
   },
 
   common: {
+    couldNotReach: "Şehir uygulamasına ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
     institutionTypes: {
       Library: "Kütüphane",
       ScienceCenter: "Bilim Merkezi",
@@ -595,6 +602,8 @@ const tr: Dictionary = {
     lead: "Aşağıdaki her etkinliğin arkasında, orada olduğunu onaylayacak bir kurum var. Test bunun istisnası — onu şehir uygulamasının kendisi değerlendiriyor.",
     completed: "Tamamlandı",
     oncePerDay: "Günde bir kez",
+    tooBusy:
+      "Şehir uygulaması şu anda alışılmadık sayıda bilet veriyor. Birkaç dakika sonra tekrar dene.",
     kindCheckin: "İstediğin gün uğra",
     kindTicket: "Bilet gerekli",
     kindWorkshop: "Programlı atölye",

@@ -12,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import type { Address } from "viem";
 import type { Profile } from "@/server/db/types";
+import { useTranslations } from "@/features/i18n/LocaleProvider";
 import { lastWalletKind, rememberWalletKind, walletFor, type WalletKind } from "./wallet";
 
 /**
@@ -42,6 +43,8 @@ export function AccountProvider({
   initialProfile: Profile | null;
 }) {
   const router = useRouter();
+  // Safe: the layout renders LocaleProvider outside this one.
+  const { t } = useTranslations();
   const [profile, setProfile] = useState<Profile | null>(initialProfile);
   const [status, setStatus] = useState<AccountState["status"]>(
     initialProfile ? "signed-in" : "signed-out",
@@ -91,12 +94,12 @@ export function AccountProvider({
         setStatus("signed-in");
         router.refresh();
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Could not sign in.");
+        setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
       } finally {
         setBusy(false);
       }
     },
-    [router],
+    [router, t],
   );
 
   const signOut = useCallback(async () => {

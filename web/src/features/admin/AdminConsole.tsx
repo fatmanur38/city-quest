@@ -83,7 +83,7 @@ function InstitutionRow({ institution }: { institution: AdminInstitution }) {
       setEditing(false);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "That did not go through.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }
@@ -223,7 +223,7 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
       setSaved(true);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not save the price.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }
@@ -328,7 +328,7 @@ export function AdminConsole({
       setSponsorName("");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not add the business.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }
@@ -347,7 +347,7 @@ export function AdminConsole({
       if (!data.ok) throw new Error(data.error);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not update the business.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }

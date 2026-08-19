@@ -166,6 +166,8 @@ export interface Database {
   createTicketOrder(order: NewTicketOrder): Promise<TicketOrder>;
   listTicketOrders(wallet: string): Promise<TicketOrder[]>;
   findTicketOrderByPassId(passId: string): Promise<TicketOrder | null>;
+  /** How many tickets the whole city has issued since a moment. Used to cap relayer spending. */
+  countTicketOrdersSince(iso: string): Promise<number>;
   markTicketConsumed(passId: string, txHash: string): Promise<void>;
 
   listSponsors(): Promise<Sponsor[]>;

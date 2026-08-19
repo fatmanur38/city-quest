@@ -59,7 +59,7 @@ export function BuyTicketButton({
       setStage("done");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Payment could not be completed.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
       setStage("checkout");
     }
   }

@@ -358,6 +358,15 @@ export class SupabaseDatabase implements Database {
     return data ? toTicketOrder(data) : null;
   }
 
+  async countTicketOrdersSince(iso: string): Promise<number> {
+    const { count, error } = await this.client
+      .from("ticket_orders")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", iso);
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
+
   async markTicketConsumed(passId: string, txHash: string): Promise<void> {
     const { error } = await this.client
       .from("ticket_orders")

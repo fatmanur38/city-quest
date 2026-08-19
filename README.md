@@ -104,9 +104,10 @@ flowchart TB
     end
 
     subgraph app["CITYQUEST APP · Next.js"]
-        FE["Web app<br/>account · activities · quests"]
+        FE["Web app<br/>account · activities · quests · rewards"]
+        SPORTAL["Business console<br/>publish an offer"]
         API["Route handlers<br/>validation + authorisation"]
-        DB[("Postgres / Supabase<br/>XP · streaks · quiz · coupons")]
+        DB[("Postgres / Supabase<br/>XP · streaks · coupons<br/>ticket prices · business offers")]
     end
 
     subgraph inst["INDEPENDENT INSTITUTIONS"]
@@ -121,7 +122,7 @@ flowchart TB
         TICK["ExperiencePass<br/>single-use tickets"]
     end
 
-    SPONSOR["Sponsor / another institution<br/>verifies independently"]
+    BIZ["Local business<br/>issues nothing · holds no key"]
 
     U -->|"QR code"| FE
     FE --> API
@@ -136,9 +137,17 @@ flowchart TB
     MUN -->|"registers institutions"| REG
     MUN -->|"issues quest reward after<br/>reading other institutions' badges"| PASS
     API --> DB
-    PASS -.->|"public read, no permission needed"| SPONSOR
-    REG -.->|"public read"| SPONSOR
+
+    BIZ --> SPORTAL
+    SPORTAL -->|"offer, off-chain"| DB
+    MUN -.->|"approves the business<br/>off-chain: no authority is granted"| SPORTAL
+    PASS -.->|"public read, no permission needed"| BIZ
+    REG -.->|"public read"| BIZ
 ```
+
+The dotted arrows are the argument. A business reads an achievement it did not issue, from a
+registry it is not in, without asking anyone — and that is only possible because the record is
+not ours to gate.
 
 ### The flow that matters
 

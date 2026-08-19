@@ -70,7 +70,7 @@ export function SponsorConsole({
       setDescription("");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not publish the offer.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }

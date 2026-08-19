@@ -83,7 +83,7 @@ export function ClaimQuestButton({
       setResult(data);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The reward could not be claimed.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }

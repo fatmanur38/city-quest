@@ -68,7 +68,7 @@ export function QuizPanel({
       setResult(data);
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The quiz could not be submitted.");
+      setError(cause instanceof Error ? cause.message : t.common.couldNotReach);
     } finally {
       setBusy(false);
     }

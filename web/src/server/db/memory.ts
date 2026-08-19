@@ -250,6 +250,10 @@ export class MemoryDatabase implements Database {
     return this.data.ticketOrders.find((t) => t.passId === passId) ?? null;
   }
 
+  async countTicketOrdersSince(iso: string): Promise<number> {
+    return this.data.ticketOrders.filter((order) => order.createdAt >= iso).length;
+  }
+
   async markTicketConsumed(passId: string, txHash: string): Promise<void> {
     const order = this.data.ticketOrders.find((t) => t.passId === passId);
     if (order) {
