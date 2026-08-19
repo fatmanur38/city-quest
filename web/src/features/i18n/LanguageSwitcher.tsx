@@ -46,7 +46,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       aria-label={t.nav.language}
     >
       {!compact ? (
-        <Languages className="ml-2 size-3.5 shrink-0 text-ink-faint" aria-hidden />
+        <Languages className="ml-2 hidden size-3.5 shrink-0 text-ink-faint sm:block" aria-hidden />
       ) : null}
       {LOCALES.map((option) => (
         <button

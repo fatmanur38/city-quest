@@ -27,7 +27,10 @@ export function SiteHeader({ theme }: { theme: Theme }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-soft/70 bg-paper/85 backdrop-blur">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-6 px-4 sm:px-6">
+      {/* gap-3 on a phone: logo, theme, language and the sign-in button together overflow a
+          390px viewport at gap-6, and 2px of horizontal rubber-banding is exactly the kind of
+          thing that reads as "unfinished" on the device this is demonstrated on. */}
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
         <Link href="/" className="shrink-0" aria-label="CityQuest">
           <Logo />
         </Link>

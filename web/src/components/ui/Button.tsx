@@ -21,7 +21,9 @@ const SIZES: Record<Size, string> = {
 };
 
 const BASE =
-  "inline-flex items-center justify-center rounded-full font-semibold transition-colors " +
+  // whitespace-nowrap: the fixed heights above assume one line, so a label that wraps -- which
+  // Turkish labels do first, being longer -- breaks out of the button rather than growing it.
+  "inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition-colors " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 " +
   "disabled:cursor-not-allowed disabled:opacity-70";
 
