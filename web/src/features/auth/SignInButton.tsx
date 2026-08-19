@@ -57,17 +57,19 @@ export function SignInButton({
   const { t } = useTranslations();
   const text = label ?? t.auth.start;
 
-  // Both are decided by the browser, so they are read after mount to keep the server and the
-  // first client render identical.
+  // Whether this deployment configured Google is a build-time constant -- Next inlines the
+  // NEXT_PUBLIC_ values -- so it renders the same on the server and on the client. Deciding it
+  // in an effect instead would paint the device button as the primary call to action and then
+  // demote it a frame later, which is a visible jump on the one screen that has to feel solid.
+  const showGoogle = googleSignInAvailable();
+
+  // Whether a wallet extension exists genuinely is not knowable until the browser runs, so this
+  // one has to wait for mount.
   const [showWalletOption, setShowWalletOption] = useState(false);
-  const [showGoogle, setShowGoogle] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setShowWalletOption(hasBrowserWallet());
-    setShowGoogle(googleSignInAvailable());
-  }, []);
+  useEffect(() => setShowWalletOption(hasBrowserWallet()), []);
 
   if (status === "signed-in") {
     return (
