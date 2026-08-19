@@ -1,12 +1,20 @@
-# CityQuest — A City Learning Passport
+# CityQuest — A City Learning Account
 
 > **"If there were only one institution, we wouldn't use blockchain."**
 
 CityQuest lets a student collect verified achievements from the libraries, science centers,
-museums and workshops around their city, and carry them in one portable passport that no single
-organisation owns.
+museums and workshops around their city, and carry them in one **city account** — *Şehir Hesabım* —
+that no single organisation owns. Local businesses can then reward those achievements without
+having to trust, or even know, the institution that issued them.
 
-It runs on **Base Sepolia** (testnet only, no real funds).
+It runs on **Base Sepolia** (testnet only, no real funds), in Turkish and English, with a light
+and a dark theme.
+
+**Live:** <https://cityquest-kayseri.vercel.app>
+
+> The interface says "account", not "passport". The word changed late; the deployed contract is
+> still called `CityPassport` and its EIP-712 domain separator is fixed on-chain, so the chain
+> layer kept its name deliberately rather than being renamed to match the wording.
 
 ---
 
@@ -32,7 +40,7 @@ A shared achievement layer that no participant owns.
 An institution confirms something a citizen did by **signing a claim**. The claim is submitted to
 a public registry that checks two things: is this institution authorised, and has this exact
 person already been credited for this exact thing in this period? If both pass, the citizen's
-passport gains a badge that names who vouched for it.
+account gains a badge that names who vouched for it.
 
 Any other institution — this year or in ten years, with or without our app — can verify that
 badge by reading the chain.
@@ -92,11 +100,11 @@ We put on-chain only the part that a single database genuinely cannot do.
 ```mermaid
 flowchart TB
     subgraph citizen["CITIZEN"]
-        U["Student<br/>shows passport code"]
+        U["Student<br/>shows account code"]
     end
 
     subgraph app["CITYQUEST APP · Next.js"]
-        FE["Web app<br/>passport · activities · quests"]
+        FE["Web app<br/>account · activities · quests"]
         API["Route handlers<br/>validation + authorisation"]
         DB[("Postgres / Supabase<br/>XP · streaks · quiz · coupons")]
     end
@@ -193,6 +201,49 @@ about the real world that other organisations need to check.
 
 ---
 
+## Businesses in the ecosystem
+
+The argument for a shared registry only becomes concrete when somebody *outside* it relies on what
+is in it. That somebody is a local business.
+
+A cafe joins, is approved by the municipality, and publishes an offer at `/sponsor`: *a free filter
+coffee for a student who has earned the Young Scientist achievement*. It did not issue that
+achievement, it does not know the science center, and it does not have to trust this app — the
+credential is in the registry contract, and the cafe can read it directly.
+
+A sponsor is deliberately **not** an institution:
+
+| | Institution | Business |
+|---|---|---|
+| Issues achievements | yes | **no** |
+| Holds a signing key | yes | **no** |
+| Appears in the registry contract | yes | **no** |
+| Authorised by the municipality | yes, on-chain | yes, off-chain |
+| Can suspend a citizen's record | no | no |
+
+Offers ask for one of two things, and the interface never blurs them:
+
+- **An achievement** — on-chain. The business verifies it itself. This is the strong form, and the
+  card says so: *"the business can check this itself."*
+- **A number of visits** (*five library visits*) — counted by this app from its own completion
+  records. A business accepting this is trusting our number, and the card says that too:
+  *"counted by the city app."*
+
+Putting the weaker form on the same screen as the stronger one, labelled, is the point. A city
+app that quietly presented both as "verified" would be doing exactly what this project argues
+against.
+
+A coupon already granted **survives the offer being withdrawn**. Taking one back after the fact
+would be the city breaking a promise a business made.
+
+### Prices
+
+Ticket prices are set by the municipality at `/admin` and stored in Postgres, not on-chain. An
+activity with no row keeps its catalogue price, so an empty table is a valid state. A price in a
+contract is precisely what would turn this into a token project.
+
+---
+
 ## Privacy decisions
 
 Some of the people using this are eleven years old. A permanent, public, queryable record of where
@@ -233,9 +284,9 @@ circuit asserts, and none of the surrounding application changes.
 
 ## User flow
 
-1. Tap **Start Your City Passport**. A passport identity is created on the device — no extension,
+1. Tap **Create My City Account**. An identity is created on the device — no extension,
    no seed phrase, nothing to pay.
-2. Open the passport and tap **Show my code** at the library desk.
+2. Open the account and tap **Show my code** at the library desk.
 3. A librarian scans it. Achievement appears, +10 XP.
 4. Come back the same day — politely refused. Come back tomorrow — accepted, and no duplicate badge.
 5. Book the Earthquake Experience (demo checkout, 50 TL). A ticket appears, marked **VALID**.
@@ -339,7 +390,7 @@ cd contracts && forge test -vv
 | Backend | Next.js route handlers, Zod validation |
 | Database | Supabase / Postgres, with a zero-config local fallback |
 
-### Two deliberate deviations from the brief
+### Four deliberate deviations from the brief
 
 **1. viem without wagmi.** wagmi exists to manage wallet connectors and user-signed transactions.
 In this design a citizen never sends a transaction — the institution signs and a relayer submits —
@@ -354,7 +405,7 @@ components read it and render the right language on the first paint — no flash
 language, and no `/tr/` segment in every URL. Two typed dictionaries in
 [`dictionary.ts`](web/src/lib/i18n/dictionary.ts) define the strings, and the English one's shape
 *is* the `Dictionary` type, so a missing or misspelled Turkish key fails the build. Catalogue
-content carries `{ tr, en }` pairs inline. Turkish is the default: this is a passport for a
+content carries `{ tr, en }` pairs inline. Turkish is the default: this is built for a
 Turkish city, and a child at a library desk in Kayseri should not have to switch away from English
 first.
 
@@ -364,8 +415,18 @@ serialise a function from a server component into a client one.
 
 **3. The database falls back to a JSON file.** When `SUPABASE_URL` is unset, the app uses a local
 JSON store so a fresh clone runs with zero provisioning and a live demo cannot fail on a missing
-service. Both sit behind the same 15-method `Database` interface; the Supabase adapter and the SQL
-migration are real and complete.
+service. Both sit behind the same `Database` interface; the Supabase adapter and the SQL
+migrations are real and complete. The JSON store re-reads its file whenever the modification time
+changes — Next gives route bundles their own module registry in development, so the handler that
+writes and the page that reads can otherwise hold two separate, diverging copies.
+
+**4. Dark mode as a palette swap, not a `dark:` class.** Every utility in the app already resolves
+through the theme tokens in [`globals.css`](web/src/app/globals.css), so redefining those tokens
+re-themes the whole interface and not one component carries a variant class. The choice lives in a
+cookie the server reads, so `<html>` carries `data-theme` in the first response and a reader who
+chose dark never sees a white flash. Colours whose *role* must not flip — the teal band, the
+primary button's own foreground and hover — are separate fixed tokens, because inverting
+`brand-700` for chip text would otherwise have turned the button's hover state light-on-white.
 
 ---
 
@@ -532,6 +593,39 @@ project and set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
 
 ---
 
+### Production (Vercel)
+
+```bash
+cd web
+npx vercel link
+# every variable from .env.local, for production and preview
+npx vercel deploy --prod
+```
+
+Three things bite on a first deployment:
+
+1. **The JSON fallback store cannot work on Vercel.** The filesystem is read-only, so
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are not optional there. Run the migrations in
+   `web/supabase/migrations/` in order before the first deploy.
+2. **Deployment Protection is on by default.** Until it is turned off under *Settings →
+   Deployment Protection → Vercel Authentication*, every route answers `302` to anyone who is not
+   signed in to the Vercel account — including the people you meant to show it to.
+3. **`vercel alias set` pins a domain to one deployment.** It does not follow later production
+   deploys, so a redeploy leaves the short URL serving the previous build until the alias is set
+   again.
+
+### Sign-in codes
+
+`OPERATOR_PIN` and `ADMIN_PIN` default to `1234` and `cityquest`, and the sign-in screens print
+those defaults so a fresh clone is usable immediately. The hint is tied to the values themselves:
+change them and it disappears, so a public deployment stops advertising its own codes without
+anyone having to remember to remove anything.
+
+Change them before making a deployment public. Anyone who reaches `/admin` with the default code
+can authorise and suspend institutions.
+
+---
+
 ## Demo scenario
 
 The five-minute version:
@@ -539,10 +633,10 @@ The five-minute version:
 | # | Action | What to point at |
 |---|---|---|
 | 1 | Open `/`, read the hero line aloud | The argument, stated before any technology |
-| 2 | **Start Your City Passport** | No wallet, no seed phrase, no gas. One tap |
-| 3 | `/passport` — empty | 0 XP, no achievements |
-| 4 | `/institution` → library, code `1234`, scan the citizen | An institution vouching, cryptographically |
-| 5 | Passport now shows **📚 Library Visitor · Verified by Melikgazi Library** | The issuer is as prominent as the achievement |
+| 2 | **Create My City Account** | No wallet, no seed phrase, no gas. One tap |
+| 3 | `/account` — empty | 0 XP, no achievements |
+| 4 | `/institution` → library, staff code, scan the citizen | An institution vouching, cryptographically |
+| 5 | The account now shows **📚 Library Visitor · Verified by Melikgazi Library** | The issuer is as prominent as the achievement |
 | 6 | Scan the same person again | *"This visit is already verified for today."* Enforced on-chain, not by our server |
 | 7 | Book the Earthquake Experience, 50 TL | Payment is mocked and stays off-chain, by design |
 | 8 | Science center scans the ticket | **VALID → USED**, achievement issued in the same transaction |
@@ -550,8 +644,12 @@ The five-minute version:
 | 10 | Take the science quiz | Off-chain XP, and the UI says so: *"Scored by the city app"* |
 | 11 | `/quests` → claim **🏆 Young Scientist** | The municipality read the *library's* and the *science center's* badges on-chain before signing |
 | 12 | `/rewards` → free hot chocolate | A sponsor rewarding verified behaviour. A coupon, not a coin |
-| 13 | `/admin` → suspend the library, retry step 4 | The registry is what makes an institution's word count |
-| 14 | Open **Technical details** anywhere | The chain was there the whole time, and never once in the way |
+| 13 | `/admin` → add **Starbucks Melikgazi**, take its code | A business joining takes a form, not a pull request |
+| 14 | `/sponsor` → sign in, publish *free coffee for a Young Scientist* | It never saw the science center, and does not have to |
+| 15 | `/rewards` — the offer is not there yet | The municipality has not approved the business |
+| 16 | `/admin` → approve, reload `/rewards` | Now it is, with *"the business can check this itself"* on the card |
+| 17 | `/admin` → suspend the library, retry step 4 | The registry is what makes an institution's word count |
+| 18 | Open **Technical details** anywhere | The chain was there the whole time, and never once in the way |
 
 ---
 
@@ -569,7 +667,7 @@ The five-minute version:
 - **W3C Verifiable Credentials and DIDs** — express achievements in a standard schema so they
   interoperate outside this ecosystem.
 - **Multi-city federation** — several municipalities, one credential vocabulary; a student moving
-  from Kayseri to Izmir keeps their passport.
+  from Kayseri to Izmir keeps their record.
 - **NFC turnstiles** for check-in without a phone.
 - **School and university integrations** so achievements can count towards coursework.
 
@@ -584,17 +682,18 @@ contracts/
     CityPassport.sol            soulbound achievements + EIP-712 claims
     ExperiencePass.sol          single-use tickets
     CredentialTypes.sol         canonical achievement identifiers
-  test/                         56 Foundry tests
+  test/                         68 Foundry tests
   script/Deploy.s.sol           deploy + seed the demo city
 
 web/
   src/
     app/                        pages and route handlers
     components/                 UI primitives
-    features/                   auth, passport, activities, quests, rewards, institution, admin
-    lib/                        chain clients, credential catalogue, QR, env
-    server/                     database, sessions, signing, transactions
-  supabase/migrations/          SQL schema
+    features/                   auth, account, activities, quests, rewards,
+                                institution, sponsor, admin, i18n, theme
+    lib/                        chain clients, credential catalogue, i18n, theme, QR, env
+    server/                     database, sessions, signing, transactions, pricing, rewards
+  supabase/migrations/          0001 core · 0002 ticket prices · 0003 businesses
   scripts/
     sync-abis.mjs               contract ABIs → typed TS
     demo-e2e.mjs                scripted run-through of the whole demo
