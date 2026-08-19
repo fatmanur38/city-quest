@@ -205,6 +205,7 @@ const en = {
     kindWorkshop: "Scheduled workshop",
     kindQuiz: "Take it from home",
     howToEarn: "How to earn this",
+    appScored: "Scored by the city app, so it earns points but no institutional achievement.",
     howToEarnBody: "Open your account, tap Show my code, and let a member of staff scan it.",
     bookFor: (price: number) => `Book for ${price} TL`,
     total: "Total",
@@ -733,6 +734,8 @@ const tr: Dictionary = {
     kindWorkshop: "Programlı atölye",
     kindQuiz: "Evden çöz",
     howToEarn: "Bu nasıl kazanılır",
+    appScored:
+      "Şehir uygulamasının kendisi değerlendirir; puan kazandırır ama kurum onaylı başarım vermez.",
     howToEarnBody: "Hesabını aç, Kodumu göster'e dokun ve bir görevlinin okutmasını bekle.",
     bookFor: (price: number) => `${price} TL — bilet al`,
     total: "Toplam",

@@ -32,6 +32,21 @@ function hash(value: string): number {
   return h >>> 0;
 }
 
+/**
+ * A fresh value per cell.
+ *
+ * Reading successive bits straight out of one 32-bit hash correlates neighbouring cells badly
+ * -- adjacent shifts share most of their bits -- and the result reads as static rather than as
+ * a mark. Mixing the cell index back in and re-avalanching gives each square an independent
+ * draw, which is what makes these look designed.
+ */
+function cellValue(seed: number, index: number): number {
+  let h = (seed ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
 export function Avatar({
   address,
   className,
@@ -45,12 +60,15 @@ export function Avatar({
   const [strong, soft] = PALETTE[seed % PALETTE.length]!;
 
   // A 5x5 grid, mirrored across the vertical axis: three columns decide, two are reflections.
+  // The centre column is biased towards being filled, which gives every mark a spine and stops
+  // the sparse ones from falling apart into unrelated specks.
   const cells: { x: number; y: number; fill: string }[] = [];
   for (let x = 0; x < 3; x += 1) {
     for (let y = 0; y < 5; y += 1) {
-      const bit = (seed >>> ((x * 5 + y) % 30)) & 3;
-      if (bit === 0) continue;
-      const fill = bit === 1 ? soft : strong;
+      const draw = cellValue(seed, x * 5 + y) % 100;
+      const threshold = x === 2 ? 30 : 45;
+      if (draw < threshold) continue;
+      const fill = draw % 3 === 0 ? soft : strong;
       cells.push({ x, y, fill });
       if (x < 2) cells.push({ x: 4 - x, y, fill });
     }

@@ -359,7 +359,7 @@ let businessSlug = null;
 {
   const name = `Demo Coffee ${Date.now().toString().slice(-6)}`;
   const { data: created } = await call("admin", "/api/admin/sponsors", {
-    body: { name, emoji: "☕" },
+    body: { name, icon: "coffee" },
   });
   check("business added", created.ok === true, created.ok ? created.sponsor.slug : created.error);
   if (!created.ok) throw new Error("cannot continue without a business");
@@ -380,7 +380,7 @@ let businessSlug = null;
     body: {
       title: "Free filter coffee",
       description: "Show this at the counter.",
-      emoji: "☕",
+      icon: "coffee",
       // The strong form: the cafe reads this off the registry itself.
       requirement: { kind: "credential", credential: "YOUNG_SCIENTIST" },
     },

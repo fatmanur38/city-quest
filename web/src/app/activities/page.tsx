@@ -1,4 +1,4 @@
-import { MapPin, Ticket, Users } from "lucide-react";
+import { CircleCheck, MapPin, ScanLine, Ticket, Users } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { VerifiedMark } from "@/components/ui/VerifiedMark";
@@ -61,7 +61,7 @@ export default async function ActivitiesPage() {
 
           return (
             <Card key={activity.slug} className="overflow-hidden">
-              <div className="flex flex-col gap-6 p-6 sm:flex-row">
+              <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-start">
                 <IconTile
                   name={activity.icon}
                   tone={ACCENT_TONE[activity.accent] ?? "neutral"}
@@ -70,11 +70,18 @@ export default async function ActivitiesPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-xl font-bold text-ink">
+                    <h2 className="font-display text-xl font-bold text-ink text-balance">
                       {pick(activity.title, locale)}
                     </h2>
-                    {done ? <Badge tone="emerald">{t.activities.completed}</Badge> : null}
-                    {activity.cadence === "daily" ? <Badge tone="sun">{t.activities.oncePerDay}</Badge> : null}
+                    {done ? (
+                      <Badge tone="emerald">
+                        <CircleCheck aria-hidden />
+                        {t.activities.completed}
+                      </Badge>
+                    ) : null}
+                    {activity.cadence === "daily" ? (
+                      <Badge tone="sun">{t.activities.oncePerDay}</Badge>
+                    ) : null}
                   </div>
 
                   <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
@@ -86,52 +93,68 @@ export default async function ActivitiesPage() {
                       <MapPin className="size-3.5" aria-hidden />
                       {institution ? pick(institution.district, locale) : null}
                     </span>
-                  </p>
-
-                  <p className="mt-3 leading-relaxed text-ink-soft">
-                    {pick(activity.description, locale)}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <Badge tone="brand">+{activity.xpReward} XP</Badge>
-                    <Badge tone="neutral">
+                    <span className="inline-flex items-center gap-1 text-ink-faint">
                       {activity.kind === "ticket" ? (
                         <Ticket className="size-3.5" aria-hidden />
                       ) : (
                         <Users className="size-3.5" aria-hidden />
                       )}
                       {kindLabel[activity.kind]}
-                    </Badge>
-                    {credential ? (
-                      <Badge tone="sun">
-                        <Icon name={credential.icon} /> {pick(credential.title, locale)}
-                      </Badge>
-                    ) : null}
+                    </span>
+                  </p>
+
+                  <p className="mt-3 max-w-prose leading-relaxed text-ink-soft text-pretty">
+                    {pick(activity.description, locale)}
+                  </p>
+
+                  {/* One line, not a panel. The instructions are the same on every card, so a
+                      grey box repeating them four times down the page was competing with the
+                      thing that actually differs -- what you get for going. */}
+                  {activity.kind === "checkin" || activity.kind === "workshop" ? (
+                    <p className="mt-3 flex items-center gap-1.5 text-sm text-ink-faint">
+                      <ScanLine className="size-4 shrink-0" aria-hidden />
+                      {t.activities.howToEarnBody}
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* The reward rail. On a wide screen the long description used to trail off into
+                    empty space; this puts what you earn where the eye already is. */}
+                <div className="flex shrink-0 flex-col gap-3 rounded-2xl bg-paper-sunk/60 p-4 lg:w-64">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-display text-2xl font-extrabold tabular-nums text-brand-700">
+                      +{activity.xpReward}
+                    </span>
+                    <span className="text-sm font-semibold text-ink-soft">{t.common.xp}</span>
                   </div>
 
-                  <div className="mt-5">
-                    {activity.kind === "ticket" ? (
-                      <BuyTicketButton
-                        activitySlug={activity.slug}
-                        priceTry={priceFor(activity, prices)}
-                        title={pick(activity.title, locale)}
-                      />
-                    ) : activity.kind === "quiz" ? null : (
-                      <div className="rounded-2xl bg-paper-sunk p-4">
-                        <p className="text-sm font-semibold text-ink">
-                          {t.activities.howToEarn}
+                  {credential ? (
+                    <div className="rounded-xl bg-paper-raised p-3">
+                      <div className="flex items-center gap-2.5">
+                        <IconTile name={credential.icon} tone="sun" size="sm" />
+                        <p className="min-w-0 text-sm font-semibold text-ink text-balance">
+                          {pick(credential.title, locale)}
                         </p>
-                        <p className="mt-1 text-sm text-ink-soft">{t.activities.howToEarnBody}</p>
-                        <div className="mt-3">
-                          <VerifiedMark
-                            issuer={institution ? pick(institution.label, locale) : undefined}
-                            label={t.common.verifiedBy}
-                            fallback={t.common.verifiedInstitution}
-                          />
-                        </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="mt-2">
+                        <VerifiedMark
+                          issuer={institution ? pick(institution.label, locale) : undefined}
+                          label={t.common.verifiedBy}
+                          fallback={t.common.verifiedInstitution}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-ink-faint text-pretty">{t.activities.appScored}</p>
+                  )}
+
+                  {activity.kind === "ticket" ? (
+                    <BuyTicketButton
+                      activitySlug={activity.slug}
+                      priceTry={priceFor(activity, prices)}
+                      title={pick(activity.title, locale)}
+                    />
+                  ) : null}
                 </div>
               </div>
 
