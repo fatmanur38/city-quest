@@ -2,6 +2,7 @@ import { z } from "zod";
 import { timingSafeEqual } from "node:crypto";
 import { fail, handle, ok, parseBody } from "@/server/api";
 import { currentOperator, endOperatorSession, startOperatorSession } from "@/server/session";
+import { getTranslations } from "@/server/locale";
 
 /**
  * DEMO MOCK -- the municipality signs in with a PIN. In production this is the city's own staff
@@ -23,10 +24,11 @@ export async function GET() {
 export async function POST(request: Request) {
   return handle(async () => {
     const { pin } = await parseBody(request, schema);
+    const { t } = await getTranslations();
     const expected = Buffer.from(adminPin());
     const provided = Buffer.from(pin);
     const matches = provided.length === expected.length && timingSafeEqual(provided, expected);
-    if (!matches) return fail("That administrator code is not correct.", 401);
+    if (!matches) return fail(t.errors.wrongAdminCode, 401);
     await startOperatorSession(ADMIN_ROLE);
     return ok({ isAdmin: true });
   });

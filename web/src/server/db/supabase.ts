@@ -231,7 +231,8 @@ export class SupabaseDatabase implements Database {
       .from("profiles")
       .insert({
         wallet: key,
-        display_name: patch.displayName ?? `Explorer ${key.slice(2, 6).toUpperCase()}`,
+        display_name:
+          patch.displayName ?? patch.defaultDisplayName ?? `Explorer ${key.slice(2, 6).toUpperCase()}`,
         avatar_emoji: patch.avatarEmoji ?? DEFAULT_AVATARS[avatarIndex] ?? "🦊",
         xp: 0,
       })

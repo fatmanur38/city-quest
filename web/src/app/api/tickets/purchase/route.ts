@@ -47,25 +47,25 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { activitySlug } = await parseBody(request, schema);
-    const { locale } = await getTranslations();
+    const { locale, t } = await getTranslations();
 
     const activity = activityBySlug(activitySlug);
-    if (!activity) return fail("We do not know that experience.", 404);
+    if (!activity) return fail(t.errors.unknownExperience, 404);
     if (activity.kind !== "ticket" || !activity.credential) {
-      return fail("That activity does not need a ticket.", 400);
+      return fail(t.errors.noTicketNeeded, 400);
     }
 
     const institution = institutionBySlug(activity.institutionSlug);
-    if (!institution?.signerRole) return fail("That venue cannot issue tickets.", 400);
+    if (!institution?.signerRole) return fail(t.errors.venueCannotIssueTickets, 400);
 
     const institutionAddress = await addressForSlug(activity.institutionSlug);
     if (!institutionAddress) {
-      return fail("That venue is not registered in the city registry yet.", 409);
+      return fail(t.errors.venueNotRegistered, 409);
     }
 
     // Refuse to sell a second ticket for something already completed.
     const existing = await db().findCompletion(wallet, activity.slug, "once");
-    if (existing) return fail("You have already completed this experience.", 409);
+    if (existing) return fail(t.errors.experienceAlreadyDone, 409);
 
     const issuedThisHour = await db().countTicketOrdersSince(
       new Date(Date.now() - 60 * 60 * 1000).toISOString(),
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       (order) => order.activitySlug === activity.slug && order.status === "valid",
     );
     if (unusedTicket) {
-      return fail("You already have an unused ticket for this experience.", 409, "TicketExists");
+      return fail(t.errors.unusedTicketExists, 409, "TicketExists");
     }
 
     const validUntil = BigInt(Math.floor(Date.now() / 1000) + TICKET_VALID_DAYS * 86_400);

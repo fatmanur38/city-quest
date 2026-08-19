@@ -9,12 +9,13 @@ import {
   renameInstitutionOnChain,
   setInstitutionActiveOnChain,
 } from "@/server/chain/writes";
+import { getTranslations } from "@/server/locale";
 
 /** Authorising and suspending institutions. Only the municipality can do this. */
 
 async function requireAdmin(): Promise<void> {
   if ((await currentOperator()) !== "admin") {
-    throw new SessionError("Municipality administrator sign-in required.");
+    throw new SessionError("adminSignInRequired");
   }
 }
 
@@ -45,10 +46,11 @@ export async function POST(request: Request) {
   return handle(async () => {
     await requireAdmin();
     const { address, name, kind } = await parseBody(request, registerSchema);
+    const { t } = await getTranslations();
 
     const existing = await readInstitutions();
     if (existing.some((i) => i.address.toLowerCase() === address.toLowerCase())) {
-      return fail("That institution is already registered.", 409);
+      return fail(t.errors.institutionAlreadyRegistered, 409);
     }
 
     const receipt = await registerInstitutionOnChain(

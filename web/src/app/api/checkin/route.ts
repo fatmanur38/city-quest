@@ -21,31 +21,45 @@ import { pick } from "@/lib/i18n/types";
  */
 
 const schema = z.object({
-  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "not a valid city account code"),
+  // Deliberately loose: the address is typed by hand at the desk as often as it is scanned, so
+  // the format complaint is answered below in the operator's own language rather than by Zod.
+  wallet: z.string().min(1),
   activitySlug: z.string().min(1),
 });
 
 export async function POST(request: Request) {
   return handle(async () => {
-    await requireOperator();
+    const operatorSlug = await requireOperator();
     const body = await parseBody(request, schema);
-    const { locale } = await getTranslations();
+    const { locale, t } = await getTranslations();
+
+    if (!/^0x[a-fA-F0-9]{40}$/.test(body.wallet)) {
+      return fail(t.errors.notAnAccountCode, 400);
+    }
 
     const activity = activityBySlug(body.activitySlug);
-    if (!activity) return fail("We do not know that activity.", 404);
+    if (!activity) return fail(t.errors.unknownActivity, 404);
     if (!activity.credential) {
-      return fail("That activity is not verified in person.", 400);
+      return fail(t.errors.notVerifiedInPerson, 400);
     }
     if (activity.kind === "ticket") {
-      return fail("This experience needs a ticket. Scan the ticket instead.", 400);
+      return fail(t.errors.needsTicket, 400);
+    }
+
+    // Who is signed in decides what may be issued -- not which activity was named. Without this
+    // the science center could hand out library badges: the app would sign with the library's
+    // own key, so the contract would see a perfectly valid claim and accept it. The chain cannot
+    // catch an institution acting outside its remit if the app hands over the wrong pen.
+    if (operatorSlug !== activity.institutionSlug) {
+      return fail(t.errors.wrongInstitution, 403, "WrongInstitution");
     }
 
     const institution = institutionBySlug(activity.institutionSlug);
-    if (!institution?.signerRole) return fail("That institution cannot issue achievements.", 400);
+    if (!institution?.signerRole) return fail(t.errors.cannotIssue, 400);
 
     const institutionAddress = await addressForSlug(activity.institutionSlug);
     if (!institutionAddress) {
-      return fail("That institution is not registered in the city registry yet.", 409);
+      return fail(t.errors.institutionNotRegistered, 409);
     }
 
     const recipient = getAddress(body.wallet);
@@ -57,13 +71,17 @@ export async function POST(request: Request) {
     const existing = await db().findCompletion(recipient, activity.slug, periodKey);
     if (existing) {
       return fail(
-        activity.cadence === "daily"
-          ? "This visit is already verified for today."
-          : "This achievement has already been earned.",
+        activity.cadence === "daily" ? t.errors.alreadyVerifiedToday : t.errors.alreadyEarned,
         409,
         "AlreadyVerified",
       );
     }
+
+    // The completion row points at a profile, so a visitor whose account exists only on their
+    // phone -- created, but never signed in -- would fail that insert *after* the achievement
+    // had already been written to the chain: the badge would exist, the day would be spent, and
+    // the desk would see nothing but a generic error. Make the profile first.
+    await db().upsertProfile(recipient);
 
     const claim = buildClaim(
       recipient,

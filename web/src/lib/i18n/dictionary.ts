@@ -129,6 +129,14 @@ const en = {
     openAccount: "Open my account",
     reassurance: "No app to install, nothing to pay, nothing to remember.",
     haveWallet: "I already have a wallet",
+    withGoogle: "Continue with Google",
+    withGoogleWhy: "Your account comes with you to any phone or computer.",
+    or: "or",
+    withoutAccount: "Continue without signing up",
+    withoutAccountWhy: "Stays on this device only. Clearing your browser loses it.",
+    finishing: "Setting up your account",
+    finishingBody: "One moment — we are getting your city account ready.",
+    backHome: "Back to the start",
     signInToBook: "Sign in to book",
     signInToCheck: "Sign in to check",
     signInToClaim: "Sign in to claim",
@@ -138,6 +146,7 @@ const en = {
 
   account: {
     metaTitle: "My City Account",
+    defaultName: (code: string) => `Explorer ${code}`,
     documentLabel: "City Learning Account",
     signedOutTitle: "Your city account is waiting",
     signedOutBody: "Create one in a single tap. Nothing to install, nothing to pay.",
@@ -425,6 +434,89 @@ const en = {
     couldNotUpdate: "Could not update that institution.",
   },
 
+  /**
+   * Everything the app says when it refuses.
+   *
+   * These used to live as English literals next to each `fail(...)`, which meant the interface
+   * was bilingual right up until something went wrong -- and a refusal is exactly the moment a
+   * reader can least afford to be handed a language they do not speak.
+   */
+  errors: {
+    signInRequired: "Please sign in to your City Account first.",
+    businessSignInRequired: "Please sign in to your business account first.",
+    staffSignInRequired: "Institution staff sign-in required.",
+    adminSignInRequired: "Municipality administrator sign-in required.",
+
+    somethingWentWrong: "Something went wrong.",
+    googleUnavailable: "Google sign-in is not set up on this city app yet.",
+    googleSignInFailed: "We could not confirm that Google account. Please try again.",
+
+    /**
+     * Refusals that come from a contract revert, keyed by the on-chain error name. The key is
+     * still reported separately, so Technical Details can name the rule that fired.
+     */
+    chain: {
+      ActivityAlreadyVerified: "You have already been verified for this today.",
+      UnauthorizedInstitution:
+        "This institution is not authorised to issue achievements right now. Please ask the desk to contact the municipality.",
+      InvalidSignature: "That verification could not be confirmed. Please ask the desk to try again.",
+      ClaimExpired: "That verification took too long and expired. Please try again.",
+      PassNotValid: "This ticket has already been used.",
+      PassExpired: "This ticket has expired.",
+      PassNotFound: "We could not find that ticket.",
+      NotIssuingInstitution: "This ticket belongs to a different venue.",
+      SoulboundTransferNotAllowed: "Achievements stay with the person who earned them.",
+      InstitutionAlreadyRegistered: "That institution is already registered.",
+      InstitutionNotRegistered: "That institution is not registered.",
+      AccessControlUnauthorizedAccount: "This account is not allowed to perform that action.",
+      InsufficientFunds: "The city's transaction account has run out of test funds. Please top it up.",
+      NetworkUnavailable: "Could not reach the network right now. Please try again in a moment.",
+    },
+
+    notAnAccountCode: "That is not a valid city account code.",
+    notATicketNumber: "That is not a valid ticket number.",
+
+    unknownActivity: "We do not know that activity.",
+    notVerifiedInPerson: "That activity is not verified in person.",
+    needsTicket: "This experience needs a ticket. Scan the ticket instead.",
+    cannotIssue: "That institution cannot issue achievements.",
+    institutionNotRegistered: "That institution is not registered in the city registry yet.",
+    wrongInstitution: "That activity belongs to another institution.",
+    alreadyVerifiedToday: "This visit is already verified for today.",
+    alreadyEarned: "This achievement has already been earned.",
+
+    unknownExperience: "We do not know that experience.",
+    noTicketNeeded: "That activity does not need a ticket.",
+    venueCannotIssueTickets: "That venue cannot issue tickets.",
+    venueNotRegistered: "That venue is not registered in the city registry yet.",
+    experienceAlreadyDone: "You have already completed this experience.",
+    unusedTicketExists: "You already have an unused ticket for this experience.",
+    cannotValidateTickets: "That institution cannot validate tickets.",
+    ticketNotFound: "We could not find that ticket.",
+    ticketUsed: "This ticket has already been used.",
+    ticketCancelled: "This ticket was cancelled.",
+    ticketHolderUnknown: "We could not find who this ticket belongs to.",
+
+    unknownQuest: "We do not know that quest.",
+    nobodyCanIssue: "Nobody can issue that achievement right now.",
+    questAlreadyEarned: "You have already earned this achievement.",
+    issuerNotRegistered: "The issuing institution is not registered yet.",
+    unknownReward: "We do not know that reward.",
+
+    unknownQuiz: "We do not know that quiz.",
+    answerEveryQuestion: "Please answer every question.",
+
+    wrongStaffCode: "That staff code is not correct.",
+    wrongAdminCode: "That administrator code is not correct.",
+
+    institutionAlreadyRegistered: "That institution is already registered.",
+    activityDoesNotExist: "That activity does not exist.",
+    onlyTicketedHavePrice: "Only ticketed activities have a price.",
+
+    unknownCredential: "That achievement does not exist.",
+    offerNotYours: "That offer does not belong to this business.",
+  },
+
   footer: {
     manifesto: "If there were only one institution, we wouldn't use blockchain.",
     body: "CityQuest is a demonstration project. It runs on a test network, holds no real money, and stores nothing about you beyond a display name you choose.",
@@ -551,6 +643,14 @@ const tr: Dictionary = {
     openAccount: "Hesabımı aç",
     reassurance: "Kurulacak uygulama yok, ödeme yok, ezberlenecek bir şey yok.",
     haveWallet: "Zaten bir cüzdanım var",
+    withGoogle: "Google ile devam et",
+    withGoogleWhy: "Hesabın hangi telefona ya da bilgisayara geçersen geçsen seninle gelir.",
+    or: "veya",
+    withoutAccount: "Kayıt olmadan devam et",
+    withoutAccountWhy: "Yalnızca bu cihazda kalır. Tarayıcı verini silersen kaybolur.",
+    finishing: "Hesabın hazırlanıyor",
+    finishingBody: "Bir saniye — şehir hesabını hazırlıyoruz.",
+    backHome: "Başa dön",
     signInToBook: "Bilet almak için giriş yap",
     signInToCheck: "Kontrol etmek için giriş yap",
     signInToClaim: "Almak için giriş yap",
@@ -560,6 +660,7 @@ const tr: Dictionary = {
 
   account: {
     metaTitle: "Şehir Hesabım",
+    defaultName: (code: string) => `Kâşif ${code}`,
     documentLabel: "Şehir Öğrenme Hesabı",
     signedOutTitle: "Şehir hesabın seni bekliyor",
     signedOutBody: "Tek dokunuşla oluştur. Kurulum yok, ödeme yok.",
@@ -845,6 +946,78 @@ const tr: Dictionary = {
     reactivate: "Yeniden aktifleştir",
     couldNotRegister: "Kurum kaydedilemedi.",
     couldNotUpdate: "Kurum güncellenemedi.",
+  },
+
+  errors: {
+    signInRequired: "Önce Şehir Hesabına giriş yap.",
+    businessSignInRequired: "Önce işletme hesabına giriş yap.",
+    staffSignInRequired: "Kurum görevlisi girişi gerekiyor.",
+    adminSignInRequired: "Belediye yöneticisi girişi gerekiyor.",
+
+    somethingWentWrong: "Bir şeyler ters gitti.",
+    googleUnavailable: "Bu şehir uygulamasında Google girişi henüz kurulmadı.",
+    googleSignInFailed: "Bu Google hesabını doğrulayamadık. Lütfen tekrar dene.",
+
+    chain: {
+      ActivityAlreadyVerified: "Bu bugün için zaten onaylandı.",
+      UnauthorizedInstitution:
+        "Bu kurum şu anda başarım vermeye yetkili değil. Lütfen danışmadan belediyeyle görüşmesini iste.",
+      InvalidSignature: "Bu onay doğrulanamadı. Lütfen danışmadan tekrar denemesini iste.",
+      ClaimExpired: "Bu onay çok uzun sürdü ve zaman aşımına uğradı. Lütfen tekrar dene.",
+      PassNotValid: "Bu bilet daha önce kullanılmış.",
+      PassExpired: "Bu biletin süresi dolmuş.",
+      PassNotFound: "Bu bileti bulamadık.",
+      NotIssuingInstitution: "Bu bilet başka bir mekâna ait.",
+      SoulboundTransferNotAllowed: "Başarımlar onları kazanan kişide kalır.",
+      InstitutionAlreadyRegistered: "Bu kurum zaten kayıtlı.",
+      InstitutionNotRegistered: "Bu kurum kayıtlı değil.",
+      AccessControlUnauthorizedAccount: "Bu hesabın bu işlemi yapmaya yetkisi yok.",
+      InsufficientFunds: "Şehrin işlem hesabındaki test bakiyesi bitti. Lütfen yükleme yapılması gerekiyor.",
+      NetworkUnavailable: "Ağa şu anda ulaşılamıyor. Lütfen birazdan tekrar dene.",
+    },
+
+    notAnAccountCode: "Bu geçerli bir şehir hesabı kodu değil.",
+    notATicketNumber: "Bu geçerli bir bilet numarası değil.",
+
+    unknownActivity: "Böyle bir etkinlik tanımıyoruz.",
+    notVerifiedInPerson: "Bu etkinlik yerinde onaylanmıyor.",
+    needsTicket: "Bu deneyim için bilet gerekiyor. Bunun yerine bileti okut.",
+    cannotIssue: "Bu kurum başarım veremez.",
+    institutionNotRegistered: "Bu kurum şehir kayıt defterine henüz kayıtlı değil.",
+    wrongInstitution: "Bu etkinlik başka bir kuruma ait.",
+    alreadyVerifiedToday: "Bu ziyaret bugün için zaten onaylandı.",
+    alreadyEarned: "Bu başarım daha önce kazanılmış.",
+
+    unknownExperience: "Böyle bir deneyim tanımıyoruz.",
+    noTicketNeeded: "Bu etkinlik için bilet gerekmiyor.",
+    venueCannotIssueTickets: "Bu mekân bilet veremez.",
+    venueNotRegistered: "Bu mekân şehir kayıt defterine henüz kayıtlı değil.",
+    experienceAlreadyDone: "Bu deneyimi zaten tamamladın.",
+    unusedTicketExists: "Bu deneyim için kullanılmamış bir biletin zaten var.",
+    cannotValidateTickets: "Bu kurum bilet okutamaz.",
+    ticketNotFound: "Bu bileti bulamadık.",
+    ticketUsed: "Bu bilet daha önce kullanılmış.",
+    ticketCancelled: "Bu bilet iptal edilmiş.",
+    ticketHolderUnknown: "Bu biletin kime ait olduğunu bulamadık.",
+
+    unknownQuest: "Böyle bir görev tanımıyoruz.",
+    nobodyCanIssue: "Bu başarımı şu anda verebilecek kimse yok.",
+    questAlreadyEarned: "Bu başarımı zaten kazandın.",
+    issuerNotRegistered: "Başarımı verecek kurum henüz kayıtlı değil.",
+    unknownReward: "Böyle bir ödül tanımıyoruz.",
+
+    unknownQuiz: "Böyle bir test tanımıyoruz.",
+    answerEveryQuestion: "Lütfen her soruyu yanıtla.",
+
+    wrongStaffCode: "Görevli kodu doğru değil.",
+    wrongAdminCode: "Yönetici kodu doğru değil.",
+
+    institutionAlreadyRegistered: "Bu kurum zaten kayıtlı.",
+    activityDoesNotExist: "Böyle bir etkinlik yok.",
+    onlyTicketedHavePrice: "Yalnızca biletli etkinliklerin fiyatı olur.",
+
+    unknownCredential: "Böyle bir başarım yok.",
+    offerNotYours: "Bu kampanya bu işletmeye ait değil.",
   },
 
   footer: {

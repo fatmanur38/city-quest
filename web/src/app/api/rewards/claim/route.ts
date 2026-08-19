@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { rewardSlug } = await parseBody(request, schema);
-    const { locale } = await getTranslations();
+    const { locale, t } = await getTranslations();
 
     const reward = rewardBySlug(rewardSlug);
 
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
             alreadyClaimed: true,
           });
         }
-        return fail("We do not know that reward.", 404);
+        return fail(t.errors.unknownReward, 404);
       }
 
       const claimed = await db().findRewardClaim(wallet, offer.slug);

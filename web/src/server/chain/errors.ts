@@ -1,28 +1,16 @@
 import { BaseError, ContractFunctionRevertedError } from "viem";
+import type { Dictionary } from "@/lib/i18n/dictionary";
 
 /**
- * Turns a contract revert into something a fourteen-year-old can act on.
+ * Turns a contract revert into something a fourteen-year-old can act on, in their own language.
  *
  * The technical name is kept alongside the friendly text so the Technical Details panel can show
  * exactly which on-chain rule fired, without putting "ActivityAlreadyVerified" in front of a
- * citizen.
+ * citizen. The wording itself lives in the dictionary, because a refusal at the desk is read by
+ * the same person as everything else on the screen.
  */
 
-const FRIENDLY: Record<string, string> = {
-  ActivityAlreadyVerified: "You have already been verified for this today.",
-  UnauthorizedInstitution:
-    "This institution is not authorised to issue achievements right now. Please ask the desk to contact the municipality.",
-  InvalidSignature: "That verification could not be confirmed. Please ask the desk to try again.",
-  ClaimExpired: "That verification took too long and expired. Please try again.",
-  PassNotValid: "This ticket has already been used.",
-  PassExpired: "This ticket has expired.",
-  PassNotFound: "We could not find that ticket.",
-  NotIssuingInstitution: "This ticket belongs to a different venue.",
-  SoulboundTransferNotAllowed: "Achievements stay with the person who earned them.",
-  InstitutionAlreadyRegistered: "That institution is already registered.",
-  InstitutionNotRegistered: "That institution is not registered.",
-  AccessControlUnauthorizedAccount: "This account is not allowed to perform that action.",
-};
+type ChainErrors = Dictionary["errors"]["chain"];
 
 export interface FriendlyError {
   message: string;
@@ -40,23 +28,26 @@ export function revertName(error: unknown): string | null {
   return null;
 }
 
-export function toFriendlyError(error: unknown, fallback = "Something went wrong."): FriendlyError {
+function known(errors: ChainErrors, code: string): string | null {
+  return code in errors ? errors[code as keyof ChainErrors] : null;
+}
+
+export function toFriendlyError(error: unknown, t: Dictionary): FriendlyError {
+  const errors = t.errors.chain;
+  const fallback = t.errors.somethingWentWrong;
+
   const code = revertName(error);
-  if (code && FRIENDLY[code]) return { message: FRIENDLY[code], code };
-  if (code) return { message: fallback, code };
+  if (code) {
+    const message = known(errors, code);
+    return { message: message ?? fallback, code };
+  }
 
   const message = error instanceof Error ? error.message : "";
   if (/insufficient funds/i.test(message)) {
-    return {
-      message: "The city's transaction account has run out of test funds. Please top it up.",
-      code: "InsufficientFunds",
-    };
+    return { message: errors.InsufficientFunds, code: "InsufficientFunds" };
   }
   if (/fetch failed|ECONNREFUSED|network/i.test(message)) {
-    return {
-      message: "Could not reach the network right now. Please try again in a moment.",
-      code: "NetworkUnavailable",
-    };
+    return { message: errors.NetworkUnavailable, code: "NetworkUnavailable" };
   }
   return { message: fallback, code: null };
 }

@@ -11,19 +11,30 @@ import type { Theme } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
+/**
+ * `personal` links lead to pages that are only ever about you, and which greet a signed-out
+ * visitor with nothing but an invitation to sign in. Showing them before there is an account
+ * advertises two dead ends in a six-item bar, so they appear once there is something behind
+ * them. Activities, quests, rewards and the leaderboard are the city's, not yours, and stay.
+ */
 const LINKS = [
-  { href: "/account", key: "account" },
-  { href: "/activities", key: "activities" },
-  { href: "/quests", key: "quests" },
-  { href: "/tickets", key: "tickets" },
-  { href: "/rewards", key: "rewards" },
-  { href: "/leaderboard", key: "leaderboard" },
+  { href: "/account", key: "account", personal: true },
+  { href: "/activities", key: "activities", personal: false },
+  { href: "/quests", key: "quests", personal: false },
+  { href: "/tickets", key: "tickets", personal: true },
+  { href: "/rewards", key: "rewards", personal: false },
+  { href: "/leaderboard", key: "leaderboard", personal: false },
 ] as const;
 
 export function SiteHeader({ theme }: { theme: Theme }) {
   const pathname = usePathname();
   const { profile, status, busy, signIn, signOut } = useAccount();
   const { t } = useTranslations();
+
+  // "loading" keeps them hidden too: a link that appears a beat after the page settles is more
+  // jarring than one that was never there.
+  const signedIn = status === "signed-in";
+  const links = LINKS.filter((link) => signedIn || !link.personal);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-soft/70 bg-paper/85 backdrop-blur">
@@ -32,11 +43,14 @@ export function SiteHeader({ theme }: { theme: Theme }) {
           thing that reads as "unfinished" on the device this is demonstrated on. */}
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
         <Link href="/" className="shrink-0" aria-label="CityQuest">
-          <Logo />
+          <Logo wordmark="sm-up" />
         </Link>
 
-        <nav className="hidden flex-1 items-center gap-1 md:flex">
-          {LINKS.map((link) => {
+        {/* lg, not md: at exactly 768px the six links, both switchers and the sign-in button
+            together are 31px wider than the viewport. The scrolling row below handles every
+            width under that, and handles it better than a cramped bar would. */}
+        <nav className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
+          {links.map((link) => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
@@ -53,10 +67,10 @@ export function SiteHeader({ theme }: { theme: Theme }) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <ThemeSwitcher initial={theme} />
           <LanguageSwitcher />
-          {status === "signed-in" && profile ? (
+          {signedIn && profile ? (
             <>
               <Link
                 href="/account"
@@ -80,8 +94,8 @@ export function SiteHeader({ theme }: { theme: Theme }) {
       </div>
 
       {/* Mobile navigation, since most citizens will open this on a phone in a library. */}
-      <nav className="flex gap-1 overflow-x-auto border-t border-border-soft/70 px-3 py-2 md:hidden">
-        {LINKS.map((link) => {
+      <nav className="flex gap-1 overflow-x-auto border-t border-border-soft/70 px-3 py-2 lg:hidden">
+        {links.map((link) => {
           const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
           return (
             <Link

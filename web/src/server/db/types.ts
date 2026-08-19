@@ -142,6 +142,12 @@ export interface NewTicketOrder {
 export interface ProfilePatch {
   displayName?: string;
   avatarEmoji?: string;
+  /**
+   * Used only when the profile is being created. `displayName` overwrites, which is right for
+   * someone renaming themselves and wrong for a default -- signing in again should never undo
+   * a name you chose.
+   */
+  defaultDisplayName?: string;
 }
 
 /**

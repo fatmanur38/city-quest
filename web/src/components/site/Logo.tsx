@@ -104,14 +104,21 @@ export function LogoMark({ className }: { className?: string }) {
 export function Logo({
   className,
   withTagline = false,
+  wordmark = "always",
 }: {
   className?: string;
   withTagline?: boolean;
+  /**
+   * On a 320px phone the header has to seat the mark, the theme toggle, the language pills and
+   * the sign-in button. The wordmark is the widest thing that is also the most redundant --
+   * the mark is already a link home and already says whose site this is.
+   */
+  wordmark?: "always" | "sm-up";
 }) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <LogoMark className="size-9 shrink-0" />
-      <span className="flex flex-col leading-none">
+      <span className={cn("flex-col leading-none", wordmark === "sm-up" ? "hidden sm:flex" : "flex")}>
         <span className="font-display text-lg font-extrabold tracking-tight text-ink">
           City<span className="text-brand-700">Quest</span>
         </span>

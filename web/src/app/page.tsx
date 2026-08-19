@@ -23,7 +23,7 @@ export default async function LandingPage() {
       <section className="paper-grain">
         <div className="mx-auto w-full max-w-6xl px-4 pt-14 pb-20 sm:px-6 lg:pt-20">
           <div className="grid items-center gap-14 lg:grid-cols-[1.08fr_0.92fr]">
-            <div className="animate-rise">
+            <div className="animate-rise min-w-0">
               <span className="inline-flex items-center gap-2 rounded-full border border-border-soft bg-paper-raised px-3 py-1.5 text-xs font-semibold text-ink-soft">
                 <span className="size-2 rounded-full bg-brand-500" aria-hidden />
                 {t.landing.eyebrow}
@@ -50,7 +50,7 @@ export default async function LandingPage() {
             </div>
 
             {/* An account card that looks like a membership card, not a wallet. */}
-            <div className="animate-rise lg:justify-self-end" style={{ animationDelay: "80ms" }}>
+            <div className="animate-rise min-w-0 lg:justify-self-end" style={{ animationDelay: "80ms" }}>
               <Card className="w-full max-w-sm overflow-hidden">
                 <div className="perforation h-2.5 w-full" />
                 <div className="p-6">

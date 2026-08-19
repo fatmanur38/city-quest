@@ -157,7 +157,7 @@ export class MemoryDatabase implements Database {
     if (!profile) {
       profile = {
         wallet: key,
-        displayName: patch.displayName ?? defaultName(key),
+        displayName: patch.displayName ?? patch.defaultDisplayName ?? defaultName(key),
         avatarEmoji: patch.avatarEmoji ?? defaultAvatar(key),
         xp: 0,
         createdAt: new Date().toISOString(),

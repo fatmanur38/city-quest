@@ -134,11 +134,25 @@ export async function currentWallet(): Promise<`0x${string}` | null> {
 
 export async function requireWallet(): Promise<`0x${string}`> {
   const wallet = await currentWallet();
-  if (!wallet) throw new SessionError("Please sign in to your City Account first.");
+  if (!wallet) throw new SessionError("signInRequired");
   return wallet;
 }
 
-export class SessionError extends Error {}
+/**
+ * A missing or expired session. Carries a dictionary key rather than a sentence, so the one
+ * place that turns errors into responses can say it in the reader's language.
+ */
+export type SessionErrorKey =
+  | "signInRequired"
+  | "businessSignInRequired"
+  | "staffSignInRequired"
+  | "adminSignInRequired";
+
+export class SessionError extends Error {
+  constructor(readonly key: SessionErrorKey) {
+    super(key);
+  }
+}
 
 // ---------------------------------------------------------------------------------------------
 // Institution operator session
@@ -219,7 +233,7 @@ export async function currentSponsor(): Promise<string | null> {
 
 export async function requireSponsor(): Promise<string> {
   const slug = await currentSponsor();
-  if (!slug) throw new SessionError("Please sign in to your business account first.");
+  if (!slug) throw new SessionError("businessSignInRequired");
   return slug;
 }
 
@@ -237,6 +251,6 @@ export async function currentOperator(): Promise<string | null> {
 
 export async function requireOperator(): Promise<string> {
   const role = await currentOperator();
-  if (!role) throw new SessionError("Institution staff sign-in required.");
+  if (!role) throw new SessionError("staffSignInRequired");
   return role;
 }

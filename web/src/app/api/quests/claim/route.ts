@@ -31,17 +31,17 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { questSlug } = await parseBody(request, schema);
-    const { locale } = await getTranslations();
+    const { locale, t } = await getTranslations();
 
     const quest = questBySlug(questSlug);
-    if (!quest) return fail("We do not know that quest.", 404);
+    if (!quest) return fail(t.errors.unknownQuest, 404);
 
     const issuer = institutionBySlug(quest.issuerSlug);
-    if (!issuer?.signerRole) return fail("Nobody can issue that achievement right now.", 400);
+    if (!issuer?.signerRole) return fail(t.errors.nobodyCanIssue, 400);
 
     const rewardCredential = CREDENTIALS[quest.rewardCredential];
     if (await hasCredential(wallet, rewardCredential.hash)) {
-      return fail("You have already earned this achievement.", 409, "AlreadyEarned");
+      return fail(t.errors.questAlreadyEarned, 409, "AlreadyEarned");
     }
 
     const unmet: string[] = [];
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     const issuerAddress = await addressForSlug(quest.issuerSlug);
-    if (!issuerAddress) return fail("The issuing institution is not registered yet.", 409);
+    if (!issuerAddress) return fail(t.errors.issuerNotRegistered, 409);
 
     const claim = buildClaim(wallet, issuerAddress, rewardCredential.hash, 0n);
     const receipt = await verifyActivityOnChain(issuer.signerRole, claim);

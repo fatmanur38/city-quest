@@ -17,25 +17,29 @@ import { pick } from "@/lib/i18n/types";
  */
 
 const schema = z.object({
-  passId: z.string().regex(/^\d+$/, "not a valid ticket number"),
+  // Loose on purpose: ticket numbers are typed at the door as well as scanned, so the
+  // complaint about the format is answered below in the operator's own language.
+  passId: z.string().min(1),
 });
 
 export async function POST(request: Request) {
   return handle(async () => {
     const operatorSlug = await requireOperator();
     const { passId } = await parseBody(request, schema);
-    const { locale } = await getTranslations();
+    const { locale, t } = await getTranslations();
+
+    if (!/^\d+$/.test(passId)) return fail(t.errors.notATicketNumber, 400);
 
     const institution = institutionBySlug(operatorSlug);
-    if (!institution?.signerRole) return fail("That institution cannot validate tickets.", 400);
+    if (!institution?.signerRole) return fail(t.errors.cannotValidateTickets, 400);
 
     const pass = await readPass(BigInt(passId));
-    if (!pass) return fail("We could not find that ticket.", 404);
-    if (pass.status === "Used") return fail("This ticket has already been used.", 409, "PassNotValid");
-    if (pass.status === "Cancelled") return fail("This ticket was cancelled.", 409, "PassNotValid");
+    if (!pass) return fail(t.errors.ticketNotFound, 404);
+    if (pass.status === "Used") return fail(t.errors.ticketUsed, 409, "PassNotValid");
+    if (pass.status === "Cancelled") return fail(t.errors.ticketCancelled, 409, "PassNotValid");
 
     const holder = await passOwner(BigInt(passId));
-    if (!holder) return fail("We could not find who this ticket belongs to.", 404);
+    if (!holder) return fail(t.errors.ticketHolderUnknown, 404);
 
     const receipt = await consumePassOnChain(institution.signerRole, BigInt(passId));
 

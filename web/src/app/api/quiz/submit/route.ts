@@ -3,6 +3,7 @@ import { fail, handle, ok, parseBody } from "@/server/api";
 import { requireWallet } from "@/server/session";
 import { QUIZ_PASS_MARK, QUIZ_QUESTIONS, activityBySlug } from "@/server/catalog";
 import { db } from "@/server/db";
+import { getTranslations } from "@/server/locale";
 
 /**
  * A quiz the city app scores itself.
@@ -22,14 +23,15 @@ export async function POST(request: Request) {
   return handle(async () => {
     const wallet = await requireWallet();
     const { activitySlug, answers } = await parseBody(request, schema);
+    const { t } = await getTranslations();
 
     const activity = activityBySlug(activitySlug);
     const questions = QUIZ_QUESTIONS[activitySlug];
     if (!activity || activity.kind !== "quiz" || !questions) {
-      return fail("We do not know that quiz.", 404);
+      return fail(t.errors.unknownQuiz, 404);
     }
     if (answers.length !== questions.length) {
-      return fail("Please answer every question.", 400);
+      return fail(t.errors.answerEveryQuestion, 400);
     }
 
     const correct = questions.reduce(

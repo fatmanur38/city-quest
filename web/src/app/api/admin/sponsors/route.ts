@@ -13,7 +13,7 @@ import { db } from "@/server/db";
 
 async function requireAdmin(): Promise<void> {
   if ((await currentOperator()) !== "admin") {
-    throw new SessionError("Municipality administrator sign-in required.");
+    throw new SessionError("adminSignInRequired");
   }
 }
 

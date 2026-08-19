@@ -181,6 +181,19 @@ step(6, "Science center scans the ticket");
   const { data: wrongVenue } = await call("library", "/api/tickets/consume", { body: { passId } });
   check("another venue cannot use this ticket", wrongVenue.ok === false, wrongVenue.error);
 
+  // Nor may one institution issue another's achievements. The contract cannot catch this on its
+  // own -- the app holds every institution's key, so signing with the wrong one still produces a
+  // claim the registry accepts. The refusal has to happen here.
+  const outsider = privateKeyToAccount(generatePrivateKey());
+  const { data: wrongIssuer } = await call("science", "/api/checkin", {
+    body: { wallet: outsider.address, activitySlug: "library-daily-visit" },
+  });
+  check(
+    "the science center cannot issue a library achievement",
+    wrongIssuer.ok === false && wrongIssuer.code === "WrongInstitution",
+    wrongIssuer.error,
+  );
+
   const { data } = await call("science", "/api/tickets/consume", { body: { passId } });
   check("ticket accepted", data.ok === true, data.error);
   check("Earthquake Experience awarded", data.credential?.title === "Earthquake Experience");

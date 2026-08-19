@@ -3,6 +3,7 @@ import { ZodError, type ZodType } from "zod";
 import { SessionError } from "./session";
 import { toFriendlyError } from "./chain/errors";
 import { MissingRelayerError, MissingSignerError } from "./chain/signer";
+import { getTranslations } from "./locale";
 
 /** Uniform JSON responses, so the client never has to guess at a shape. */
 
@@ -55,12 +56,17 @@ export async function handle(run: () => Promise<Response>): Promise<Response> {
     return await run();
   } catch (error) {
     if (error instanceof BadRequestError) return fail(error.message, 400);
-    if (error instanceof SessionError) return fail(error.message, 401);
+
+    // Everything below is shown to a person, so it has to be said in their language. Reading the
+    // locale here rather than in every route keeps the handlers free of it.
+    const { t } = await getTranslations();
+
+    if (error instanceof SessionError) return fail(t.errors[error.key], 401);
     if (error instanceof MissingSignerError || error instanceof MissingRelayerError) {
       console.error("[api] configuration error", error);
       return fail(error.message, 503, "NotConfigured");
     }
-    const friendly = toFriendlyError(error);
+    const friendly = toFriendlyError(error, t);
     console.error("[api]", friendly.code ?? "error", error);
     return fail(friendly.message, friendly.code ? 409 : 500, friendly.code);
   }

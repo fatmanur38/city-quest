@@ -8,6 +8,7 @@ import {
   startOperatorSession,
 } from "@/server/session";
 import { institutionBySlug } from "@/server/catalog";
+import { getTranslations } from "@/server/locale";
 
 /**
  * DEMO MOCK -- institution staff sign in with a shared PIN. See the note in server/session.ts
@@ -26,14 +27,15 @@ export async function GET() {
 export async function POST(request: Request) {
   return handle(async () => {
     const { institutionSlug, pin } = await parseBody(request, schema);
+    const { t } = await getTranslations();
 
     const institution = institutionBySlug(institutionSlug);
-    if (!institution?.isIssuer) return fail("That institution cannot issue achievements.", 400);
+    if (!institution?.isIssuer) return fail(t.errors.cannotIssue, 400);
 
     const expected = Buffer.from(operatorPin());
     const provided = Buffer.from(pin);
     const matches = provided.length === expected.length && timingSafeEqual(provided, expected);
-    if (!matches) return fail("That staff code is not correct.", 401);
+    if (!matches) return fail(t.errors.wrongStaffCode, 401);
 
     await startOperatorSession(institutionSlug);
     return ok({ operator: institutionSlug });

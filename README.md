@@ -293,8 +293,9 @@ circuit asserts, and none of the surrounding application changes.
 
 ## User flow
 
-1. Tap **Create My City Account**. An identity is created on the device — no extension,
-   no seed phrase, nothing to pay.
+1. Tap **Continue with Google**, or **Continue without signing up**. Either way there is no
+   extension, no seed phrase and nothing to pay — see [Ways in](#ways-in) for what each one
+   costs and what it buys.
 2. Open the account and tap **Show my code** at the library desk.
 3. A librarian scans it. Achievement appears, +10 XP.
 4. Come back the same day — politely refused. Come back tomorrow — accepted, and no duplicate badge.
@@ -304,6 +305,34 @@ circuit asserts, and none of the surrounding application changes.
 7. Pass the science quiz for off-chain XP.
 8. The Science Quest is now complete — claim **🏆 Young Scientist** from the municipality.
 9. Demo Café's reward unlocks. Claim an ordinary coupon code.
+
+### Ways in
+
+Three, offered in the order most people should take them.
+
+| | Survives a lost phone? | Needs an account? | Who can sign as you |
+|---|---|---|---|
+| **Google** | yes | a Google account | the server (see below) |
+| **This device** | no | nothing | only this browser |
+| **Browser wallet** | yes, if backed up | a wallet | only you |
+
+**Google** derives the city account from the provider's stable user id with HKDF, in
+[`server/accounts.ts`](web/src/server/accounts.ts). The same Google identity always produces the
+same address, on any device, with no key stored in any table. It is offered only when the
+deployment sets `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
+`ACCOUNT_DERIVATION_SECRET`; otherwise the button is not shown, because a sign-in button that
+leads nowhere is worse than one fewer option.
+
+The cost, stated plainly: the server can compute that key, so it could sign as the citizen. That
+trade is acceptable *here specifically* because the citizen key is not a credential — it holds no
+funds and cannot issue anything. Only an institution's key creates an achievement, and a citizen
+never signs a transaction at all. The key names who an achievement belongs to; it grants nothing.
+The production answer is the same one named below: a passkey-backed smart account, where the key
+lives in the device's secure enclave and no one else can derive it.
+
+`ACCOUNT_DERIVATION_SECRET` is therefore **not rotatable**. Changing it re-derives every account
+from scratch and orphans the achievements already issued to the old addresses. The derivation
+string is versioned for exactly that reason: a change has to be a decision, not an accident.
 
 ## Institution flow
 
@@ -399,7 +428,7 @@ cd contracts && forge test -vv
 | Backend | Next.js route handlers, Zod validation |
 | Database | Supabase / Postgres, with a zero-config local fallback |
 
-### Four deliberate deviations from the brief
+### Five deliberate deviations from the brief
 
 **1. viem without wagmi.** wagmi exists to manage wallet connectors and user-signed transactions.
 In this design a citizen never sends a transaction — the institution signs and a relayer submits —
@@ -436,6 +465,15 @@ cookie the server reads, so `<html>` carries `data-theme` in the first response 
 chose dark never sees a white flash. Colours whose *role* must not flip — the teal band, the
 primary button's own foreground and hover — are separate fixed tokens, because inverting
 `brand-700` for chip text would otherwise have turned the button's hover state light-on-white.
+
+**5. Google sign-in derives a key server-side instead of using a wallet SDK.** The brief asked for
+an experience that does not require knowing what a wallet is, and the device account delivered that
+— right up until someone cleared their browser or picked up a second phone, at which point their
+achievements were simply gone. An MPC wallet service would solve it by adding a third party to the
+trust model and an API key to the deployment; deriving the account from the Google identity solves
+it with one function and no new dependency. The reasoning, and the honest cost, are in
+[Ways in](#ways-in). Every path stays behind the same `WalletAdapter` seam, so the passkey
+smart-account upgrade remains a one-file change.
 
 ---
 
