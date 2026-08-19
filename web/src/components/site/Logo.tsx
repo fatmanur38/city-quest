@@ -15,22 +15,9 @@ import { cn } from "@/lib/cn";
 
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 64 64"
-      fill="none"
-      role="img"
-      aria-hidden
-      className={cn("size-9", className)}
-    >
+    <svg viewBox="0 0 64 64" fill="none" role="img" aria-hidden className={cn("size-9", className)}>
       <defs>
-        <linearGradient
-          id="cq-ring"
-          x1="46"
-          y1="6"
-          x2="24"
-          y2="58"
-          gradientUnits="userSpaceOnUse"
-        >
+        <linearGradient id="cq-ring" x1="46" y1="6" x2="24" y2="58" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="var(--color-sky-500)" />
           <stop offset=".55" stopColor="var(--color-brand-500)" />
           <stop offset="1" stopColor="var(--color-brand-600)" />
@@ -56,14 +43,7 @@ export function LogoMark({ className }: { className?: string }) {
           fill="var(--color-sky-500)"
           opacity=".5"
         />
-        <rect
-          x="25"
-          y="17"
-          width="6.5"
-          height="21"
-          rx="1"
-          fill="var(--color-sky-500)"
-        />
+        <rect x="25" y="17" width="6.5" height="21" rx="1" fill="var(--color-sky-500)" />
         <rect
           x="33"
           y="22"

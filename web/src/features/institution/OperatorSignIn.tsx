@@ -19,7 +19,13 @@ export interface SelectableInstitution {
  * DEMO MOCK -- staff pick their institution and enter a shared code. In production this is the
  * municipality's own staff identity system; see the note in src/server/session.ts.
  */
-export function OperatorSignIn({ institutions }: { institutions: SelectableInstitution[] }) {
+export function OperatorSignIn({
+  institutions,
+  showDemoCode,
+}: {
+  institutions: SelectableInstitution[];
+  showDemoCode: boolean;
+}) {
   const router = useRouter();
   const { t } = useTranslations();
   const [slug, setSlug] = useState(institutions[0]?.slug ?? "");
@@ -49,9 +55,7 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
   return (
     <Card className="mx-auto w-full max-w-lg p-7">
       <h1 className="font-display text-2xl font-bold text-ink">{t.institution.signInTitle}</h1>
-      <p className="mt-2 text-sm text-ink-soft">
-        {t.institution.signInBody}
-      </p>
+      <p className="mt-2 text-sm text-ink-soft">{t.institution.signInBody}</p>
 
       <fieldset className="mt-6">
         <legend className="text-sm font-semibold text-ink">{t.institution.whichInstitution}</legend>
@@ -108,9 +112,11 @@ export function OperatorSignIn({ institutions }: { institutions: SelectableInsti
         {busy ? t.activities.checking : t.nav.signIn}
       </Button>
 
-      <p className="mt-4 rounded-xl bg-sun-100 px-3 py-2 text-xs text-sun-700">
-        {t.institution.demoStaffCode} <code className="font-mono font-semibold">1234</code>.
-      </p>
+      {showDemoCode ? (
+        <p className="mt-4 rounded-xl bg-sun-100 px-3 py-2 text-xs text-sun-700">
+          {t.institution.demoStaffCode} <code className="font-mono font-semibold">1234</code>.
+        </p>
+      ) : null}
     </Card>
   );
 }

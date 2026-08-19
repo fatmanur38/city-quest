@@ -1,4 +1,4 @@
-import { currentOperator } from "@/server/session";
+import { currentOperator, usesDemoCodes } from "@/server/session";
 import { resolveInstitutions } from "@/server/institutions";
 import { db } from "@/server/db";
 import { AdminSignIn } from "@/features/admin/AdminSignIn";
@@ -19,7 +19,7 @@ export default async function AdminPage() {
   if (operator !== "admin") {
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-14 sm:px-6">
-        <AdminSignIn />
+        <AdminSignIn showDemoCode={usesDemoCodes().admin} />
       </div>
     );
   }
@@ -33,9 +33,7 @@ export default async function AdminPage() {
 
   // Only ticketed activities have a price. Everything else is free by design -- a library visit
   // that cost money would defeat the point of the project.
-  const priceable = ACTIVITIES.filter(
-    (activity) => activity.kind === "ticket",
-  ).map((activity) => ({
+  const priceable = ACTIVITIES.filter((activity) => activity.kind === "ticket").map((activity) => ({
     slug: activity.slug,
     title: pick(activity.title, locale),
     emoji: activity.emoji,
@@ -44,10 +42,21 @@ export default async function AdminPage() {
   }));
 
   // Ecosystem stats. Counts only, never anything that identifies a citizen.
-  const [citizens, recent] = await Promise.all([
+  const [citizens, recent, sponsorList, sponsorOffers] = await Promise.all([
     db().leaderboard(1000),
     db().listRecentCompletions(1000),
+    db().listSponsors(),
+    db().listSponsorOffers(),
   ]);
+
+  const sponsors = sponsorList.map((sponsor) => ({
+    slug: sponsor.slug,
+    name: sponsor.name,
+    emoji: sponsor.emoji,
+    accessCode: sponsor.accessCode,
+    approved: sponsor.approved,
+    offerCount: sponsorOffers.filter((offer) => offer.sponsorSlug === sponsor.slug).length,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
@@ -59,14 +68,13 @@ export default async function AdminPage() {
           active: institution.active,
           emoji: institution.emoji,
         }))}
+        sponsors={sponsors}
         priceable={priceable}
         stats={{
           total: onChain.length,
           active: onChain.filter((institution) => institution.active).length,
           citizens: citizens.length,
-          achievements: recent.filter(
-            (completion) => completion.txHash !== null,
-          ).length,
+          achievements: recent.filter((completion) => completion.txHash !== null).length,
         }}
       />
     </div>

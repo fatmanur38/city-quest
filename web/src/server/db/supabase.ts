@@ -1,13 +1,19 @@
+import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
   ActivityPrice,
   Completion,
+  NewSponsor,
+  NewSponsorOffer,
+  OfferRequirement,
   Database,
   NewCompletion,
   NewTicketOrder,
   Profile,
   ProfilePatch,
   RewardClaim,
+  Sponsor,
+  SponsorOffer,
   TicketOrder,
 } from "./types";
 
@@ -95,6 +101,63 @@ function toTicketOrder(row: TicketOrderRow): TicketOrder {
     consumeTxHash: row.consume_tx_hash,
     createdAt: row.created_at,
   };
+}
+
+interface SponsorRow {
+  slug: string;
+  name: string;
+  emoji: string;
+  access_code: string;
+  approved: boolean;
+  created_at: string;
+}
+
+interface SponsorOfferRow {
+  slug: string;
+  sponsor_slug: string;
+  title: string;
+  description: string;
+  emoji: string;
+  requirement: OfferRequirement;
+  active: boolean;
+  created_at: string;
+}
+
+function toSponsor(row: SponsorRow): Sponsor {
+  return {
+    slug: row.slug,
+    name: row.name,
+    emoji: row.emoji,
+    accessCode: row.access_code,
+    approved: row.approved,
+    createdAt: row.created_at,
+  };
+}
+
+function toSponsorOffer(row: SponsorOfferRow): SponsorOffer {
+  return {
+    slug: row.slug,
+    sponsorSlug: row.sponsor_slug,
+    title: row.title,
+    description: row.description,
+    emoji: row.emoji,
+    requirement: row.requirement,
+    active: row.active,
+    createdAt: row.created_at,
+  };
+}
+
+/** URL-safe, collision-free and readable, which is all a slug has to be here. */
+function slugify(value: string): string {
+  return (
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40) || "sponsor"
+  );
 }
 
 interface ActivityPriceRow {
@@ -303,6 +366,110 @@ export class SupabaseDatabase implements Database {
     if (error) throw new Error(`markTicketConsumed: ${error.message}`);
   }
 
+  // ------------------------------------------------------------------------------------- Sponsors
+
+  async listSponsors(): Promise<Sponsor[]> {
+    const { data, error } = await this.client.from("sponsors").select("*").order("created_at");
+    if (error) throw new Error(error.message);
+    return (data as SponsorRow[]).map(toSponsor);
+  }
+
+  async findSponsor(slug: string): Promise<Sponsor | null> {
+    const { data, error } = await this.client
+      .from("sponsors")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toSponsor(data as SponsorRow) : null;
+  }
+
+  async createSponsor(sponsor: NewSponsor): Promise<Sponsor> {
+    // The slug is derived from the name, and the unique constraint decides collisions rather
+    // than a read-then-write, which two businesses registering at once could both pass.
+    const base = slugify(sponsor.name);
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const slug = attempt === 0 ? base : `${base}-${attempt + 1}`;
+      const { data, error } = await this.client
+        .from("sponsors")
+        .insert({
+          slug,
+          name: sponsor.name,
+          emoji: sponsor.emoji,
+          access_code: randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase(),
+          approved: false,
+        })
+        .select()
+        .single();
+      if (!error) return toSponsor(data as SponsorRow);
+      if (error.code !== "23505") throw new Error(error.message);
+    }
+    throw new Error("Could not find a free slug for that business name.");
+  }
+
+  async setSponsorApproved(slug: string, approved: boolean): Promise<Sponsor> {
+    const { data, error } = await this.client
+      .from("sponsors")
+      .update({ approved })
+      .eq("slug", slug)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toSponsor(data as SponsorRow);
+  }
+
+  async listSponsorOffers(sponsorSlug?: string): Promise<SponsorOffer[]> {
+    let query = this.client.from("sponsor_offers").select("*").order("created_at");
+    if (sponsorSlug) query = query.eq("sponsor_slug", sponsorSlug);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data as SponsorOfferRow[]).map(toSponsorOffer);
+  }
+
+  async findSponsorOffer(slug: string): Promise<SponsorOffer | null> {
+    const { data, error } = await this.client
+      .from("sponsor_offers")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? toSponsorOffer(data as SponsorOfferRow) : null;
+  }
+
+  async createSponsorOffer(offer: NewSponsorOffer): Promise<SponsorOffer> {
+    const base = slugify(`${offer.sponsorSlug}-${offer.title}`);
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const slug = attempt === 0 ? base : `${base}-${attempt + 1}`;
+      const { data, error } = await this.client
+        .from("sponsor_offers")
+        .insert({
+          slug,
+          sponsor_slug: offer.sponsorSlug,
+          title: offer.title,
+          description: offer.description,
+          emoji: offer.emoji,
+          requirement: offer.requirement,
+          active: true,
+        })
+        .select()
+        .single();
+      if (!error) return toSponsorOffer(data as SponsorOfferRow);
+      if (error.code !== "23505") throw new Error(error.message);
+    }
+    throw new Error("Could not find a free slug for that offer.");
+  }
+
+  async setSponsorOfferActive(slug: string, active: boolean): Promise<SponsorOffer> {
+    const { data, error } = await this.client
+      .from("sponsor_offers")
+      .update({ active })
+      .eq("slug", slug)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return toSponsorOffer(data as SponsorOfferRow);
+  }
+
   async listActivityPrices(): Promise<ActivityPrice[]> {
     const { data, error } = await this.client.from("activity_prices").select("*");
     if (error) throw new Error(error.message);
@@ -313,7 +480,11 @@ export class SupabaseDatabase implements Database {
     const { data, error } = await this.client
       .from("activity_prices")
       .upsert(
-        { activity_slug: activitySlug, price_try: priceTry, updated_at: new Date().toISOString() },
+        {
+          activity_slug: activitySlug,
+          price_try: priceTry,
+          updated_at: new Date().toISOString(),
+        },
         { onConflict: "activity_slug" },
       )
       .select()
@@ -337,7 +508,11 @@ export class SupabaseDatabase implements Database {
   ): Promise<RewardClaim> {
     const { data, error } = await this.client
       .from("reward_claims")
-      .insert({ wallet: this.key(wallet), reward_slug: rewardSlug, coupon_code: couponCode })
+      .insert({
+        wallet: this.key(wallet),
+        reward_slug: rewardSlug,
+        coupon_code: couponCode,
+      })
       .select()
       .single<RewardClaimRow>();
     if (error) throw new Error(`createRewardClaim: ${error.message}`);

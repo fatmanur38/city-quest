@@ -5,6 +5,7 @@ import { requireWallet } from "@/server/session";
 import { rewardBySlug } from "@/server/catalog";
 import { CREDENTIALS } from "@/lib/credentials";
 import { hasCredential } from "@/lib/chain/reads";
+import { meetsRequirement, requirementLabel } from "@/server/rewards";
 import { db } from "@/server/db";
 import { getTranslations } from "@/server/locale";
 import { pick } from "@/lib/i18n/types";
@@ -34,12 +35,73 @@ export async function POST(request: Request) {
     const { locale } = await getTranslations();
 
     const reward = rewardBySlug(rewardSlug);
-    if (!reward) return fail("We do not know that reward.", 404);
+
+    // Not in the catalogue: it may be an offer a business published for itself.
+    if (!reward) {
+      const offer = await db().findSponsorOffer(rewardSlug);
+      const sponsor = offer ? await db().findSponsor(offer.sponsorSlug) : null;
+
+      // An offer that has been withdrawn, or whose business the municipality has not approved
+      // (or has since removed), is treated as if it never existed. A coupon already granted
+      // stays valid -- taking one back after the fact would be the city breaking a promise a
+      // business made.
+      if (!offer || !sponsor || !sponsor.approved || !offer.active) {
+        const existingClaim = await db().findRewardClaim(wallet, rewardSlug);
+        if (existingClaim && offer && sponsor) {
+          return ok({
+            reward: {
+              title: offer.title,
+              sponsor: sponsor.name,
+              emoji: offer.emoji,
+            },
+            couponCode: existingClaim.couponCode,
+            alreadyClaimed: true,
+          });
+        }
+        return fail("We do not know that reward.", 404);
+      }
+
+      const claimed = await db().findRewardClaim(wallet, offer.slug);
+      if (claimed) {
+        return ok({
+          reward: {
+            title: offer.title,
+            sponsor: sponsor.name,
+            emoji: offer.emoji,
+          },
+          couponCode: claimed.couponCode,
+          alreadyClaimed: true,
+        });
+      }
+
+      if (!(await meetsRequirement(wallet, offer.requirement))) {
+        return fail(
+          getDictionary(locale).rewards.notYetBody(requirementLabel(offer.requirement, locale)),
+          403,
+          "NotEligible",
+        );
+      }
+
+      const granted = await db().createRewardClaim(wallet, offer.slug, couponCode());
+      return ok({
+        reward: {
+          title: offer.title,
+          sponsor: sponsor.name,
+          emoji: offer.emoji,
+        },
+        couponCode: granted.couponCode,
+        alreadyClaimed: false,
+      });
+    }
 
     const existing = await db().findRewardClaim(wallet, reward.slug);
     if (existing) {
       return ok({
-        reward: { title: pick(reward.title, locale), sponsor: reward.sponsorName, emoji: reward.emoji },
+        reward: {
+          title: pick(reward.title, locale),
+          sponsor: reward.sponsorName,
+          emoji: reward.emoji,
+        },
         couponCode: existing.couponCode,
         alreadyClaimed: true,
       });
@@ -47,12 +109,20 @@ export async function POST(request: Request) {
 
     const required = CREDENTIALS[reward.requiredCredential];
     if (!(await hasCredential(wallet, required.hash))) {
-      return fail(getDictionary(locale).rewards.notYetBody(pick(required.title, locale)), 403, "NotEligible");
+      return fail(
+        getDictionary(locale).rewards.notYetBody(pick(required.title, locale)),
+        403,
+        "NotEligible",
+      );
     }
 
     const claim = await db().createRewardClaim(wallet, reward.slug, couponCode());
     return ok({
-      reward: { title: pick(reward.title, locale), sponsor: reward.sponsorName, emoji: reward.emoji },
+      reward: {
+        title: pick(reward.title, locale),
+        sponsor: reward.sponsorName,
+        emoji: reward.emoji,
+      },
       couponCode: claim.couponCode,
       alreadyClaimed: false,
     });

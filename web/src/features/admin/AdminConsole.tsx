@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Building2,
-  LogOut,
-  Power,
-  PowerOff,
-  TicketPercent,
-} from "lucide-react";
+import { Building2, Check, LogOut, Power, PowerOff, Store, TicketPercent, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -29,6 +23,15 @@ export interface PriceableActivity {
   catalogPrice: number;
   /** What is actually charged today. */
   currentPrice: number;
+}
+
+export interface AdminSponsor {
+  slug: string;
+  name: string;
+  emoji: string;
+  accessCode: string;
+  approved: boolean;
+  offerCount: number;
 }
 
 export interface AdminInstitution {
@@ -73,9 +76,7 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
       setSaved(true);
       router.refresh();
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Could not save the price.",
-      );
+      setError(cause instanceof Error ? cause.message : "Could not save the price.");
     } finally {
       setBusy(false);
     }
@@ -88,9 +89,7 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-ink">
-          {activity.title}
-        </p>
+        <p className="truncate text-sm font-semibold text-ink">{activity.title}</p>
         <p className="mt-0.5 text-xs text-ink-faint">
           {overridden ? t.admin.priceCatalogue(activity.catalogPrice) : null}
           {saved && !error ? (
@@ -124,12 +123,7 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
       </Button>
 
       {overridden ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => save(null)}
-          disabled={busy}
-        >
+        <Button variant="ghost" size="sm" onClick={() => save(null)} disabled={busy}>
           {t.admin.priceReset}
         </Button>
       ) : null}
@@ -148,10 +142,12 @@ function PriceRow({ activity }: { activity: PriceableActivity }) {
  */
 export function AdminConsole({
   institutions,
+  sponsors,
   priceable,
   stats,
 }: {
   institutions: AdminInstitution[];
+  sponsors: AdminSponsor[];
   priceable: PriceableActivity[];
   stats: {
     total: number;
@@ -168,6 +164,47 @@ export function AdminConsole({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastTx, setLastTx] = useState<string | null>(null);
+  const [sponsorName, setSponsorName] = useState("");
+  const [sponsorEmoji, setSponsorEmoji] = useState("🏪");
+
+  async function addSponsor() {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/sponsors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: sponsorName, emoji: sponsorEmoji }),
+      });
+      const data = (await response.json()) as { ok: true } | { ok: false; error: string };
+      if (!data.ok) throw new Error(data.error);
+      setSponsorName("");
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not add the business.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function setSponsorApproved(slug: string, approved: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/sponsors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, approved }),
+      });
+      const data = (await response.json()) as { ok: true } | { ok: false; error: string };
+      if (!data.ok) throw new Error(data.error);
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not update the business.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function registerInstitution() {
     setBusy(true);
@@ -186,9 +223,7 @@ export function AdminConsole({
       setName("");
       router.refresh();
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : t.admin.couldNotRegister,
-      );
+      setError(cause instanceof Error ? cause.message : t.admin.couldNotRegister);
     } finally {
       setBusy(false);
     }
@@ -227,9 +262,7 @@ export function AdminConsole({
           <p className="text-xs font-semibold tracking-wide text-ink-faint uppercase">
             {t.nav.municipality}
           </p>
-          <h1 className="font-display text-2xl font-bold text-ink">
-            {t.admin.cityRegistry}
-          </h1>
+          <h1 className="font-display text-2xl font-bold text-ink">{t.admin.cityRegistry}</h1>
         </div>
         <Button variant="ghost" size="sm" onClick={signOut} className="gap-1.5">
           <LogOut className="size-4" aria-hidden />
@@ -247,25 +280,18 @@ export function AdminConsole({
         ].map((stat) => (
           <Card key={stat.label} className="p-5">
             <p className="text-xs font-semibold text-ink-faint">{stat.label}</p>
-            <p className="mt-1 font-display text-3xl font-extrabold text-ink">
-              {stat.value}
-            </p>
+            <p className="mt-1 font-display text-3xl font-extrabold text-ink">{stat.value}</p>
           </Card>
         ))}
       </div>
 
       {/* Register */}
       <Card className="p-6">
-        <CardHeader
-          title={t.admin.authorise}
-          description={t.admin.authoriseLead}
-        />
+        <CardHeader title={t.admin.authorise} description={t.admin.authoriseLead} />
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <label className="sm:col-span-2">
-            <span className="text-sm font-semibold text-ink">
-              {t.admin.institutionAddress}
-            </span>
+            <span className="text-sm font-semibold text-ink">{t.admin.institutionAddress}</span>
             <input
               value={address}
               onChange={(event) => setAddress(event.target.value)}
@@ -275,9 +301,7 @@ export function AdminConsole({
           </label>
 
           <label>
-            <span className="text-sm font-semibold text-ink">
-              {t.admin.publicName}
-            </span>
+            <span className="text-sm font-semibold text-ink">{t.admin.publicName}</span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -287,65 +311,44 @@ export function AdminConsole({
           </label>
 
           <label>
-            <span className="text-sm font-semibold text-ink">
-              {t.admin.type}
-            </span>
+            <span className="text-sm font-semibold text-ink">{t.admin.type}</span>
             <select
               value={kind}
-              onChange={(event) =>
-                setKind(event.target.value as InstitutionTypeName)
-              }
+              onChange={(event) => setKind(event.target.value as InstitutionTypeName)}
               className="mt-2 h-11 w-full rounded-full border border-border-soft bg-paper-raised px-4 text-sm focus:border-brand-500 focus:outline-none"
             >
               {INSTITUTION_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {t.common.institutionTypes[type] ??
-                    institutionTypeLabel(type)}
+                  {t.common.institutionTypes[type] ?? institutionTypeLabel(type)}
                 </option>
               ))}
             </select>
           </label>
         </div>
 
-        {error ? (
-          <p className="mt-3 text-sm font-medium text-danger-700">{error}</p>
-        ) : null}
+        {error ? <p className="mt-3 text-sm font-medium text-danger-700">{error}</p> : null}
 
         <Button
           className="mt-5 gap-2"
           onClick={registerInstitution}
-          disabled={
-            busy ||
-            !/^0x[a-fA-F0-9]{40}$/.test(address) ||
-            name.trim().length === 0
-          }
+          disabled={busy || !/^0x[a-fA-F0-9]{40}$/.test(address) || name.trim().length === 0}
         >
           <Building2 className="size-4" aria-hidden />
           {busy ? t.admin.writing : t.admin.authoriseButton}
         </Button>
 
         {lastTx ? (
-          <TechnicalDetails
-            className="mt-4"
-            txHash={lastTx}
-            explorerUrl={explorerTxUrl(lastTx)}
-          />
+          <TechnicalDetails className="mt-4" txHash={lastTx} explorerUrl={explorerTxUrl(lastTx)} />
         ) : null}
       </Card>
 
       {/* List */}
       <Card className="p-6">
-        <CardHeader
-          title={t.admin.registered}
-          description={t.admin.registeredLead}
-        />
+        <CardHeader title={t.admin.registered} description={t.admin.registeredLead} />
 
         <ul className="mt-5 divide-y divide-border-soft">
           {institutions.map((institution) => (
-            <li
-              key={institution.address}
-              className="flex flex-wrap items-center gap-3 py-4"
-            >
+            <li key={institution.address} className="flex flex-wrap items-center gap-3 py-4">
               <span className="grid size-10 place-items-center rounded-xl bg-paper-sunk text-xl">
                 {institution.emoji}
               </span>
@@ -389,6 +392,94 @@ export function AdminConsole({
             </li>
           ))}
         </ul>
+      </Card>
+
+      {/*
+       * Businesses.
+       *
+       * Nothing here writes to a contract, and that is the honest boundary: an institution's
+       * authority to issue achievements is a public fact anyone can check, while a cafe's offer
+       * is a private commercial decision that needs no such guarantee.
+       */}
+      <Card className="p-6">
+        <CardHeader title={t.admin.businesses} description={t.admin.businessesLead} />
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-[5rem_1fr_auto] sm:items-end">
+          <label>
+            <span className="text-sm font-semibold text-ink">{t.sponsor.offerEmoji}</span>
+            <input
+              value={sponsorEmoji}
+              onChange={(event) => setSponsorEmoji(event.target.value)}
+              className="mt-2 h-11 w-full rounded-full border border-border-soft bg-paper-raised px-4 text-center text-lg focus:border-brand-500 focus:outline-none"
+            />
+          </label>
+          <label>
+            <span className="text-sm font-semibold text-ink">{t.admin.businessName}</span>
+            <input
+              value={sponsorName}
+              onChange={(event) => setSponsorName(event.target.value)}
+              placeholder={t.admin.businessNamePlaceholder}
+              className="mt-2 h-11 w-full rounded-full border border-border-soft bg-paper-raised px-4 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </label>
+          <Button
+            className="gap-2"
+            onClick={addSponsor}
+            disabled={busy || sponsorName.trim().length === 0}
+          >
+            <Store className="size-4" aria-hidden />
+            {t.admin.addBusiness}
+          </Button>
+        </div>
+
+        {sponsors.length === 0 ? (
+          <p className="mt-5 text-sm text-ink-faint">{t.admin.noBusinesses}</p>
+        ) : (
+          <ul className="mt-5 divide-y divide-border-soft">
+            {sponsors.map((sponsor) => (
+              <li key={sponsor.slug} className="flex flex-wrap items-center gap-3 py-3">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-paper-sunk text-xl">
+                  {sponsor.emoji}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 font-semibold text-ink">
+                    {sponsor.name}
+                    <Badge tone={sponsor.approved ? "emerald" : "neutral"}>
+                      {sponsor.approved ? t.admin.approved : t.admin.awaitingApproval}
+                    </Badge>
+                    <Badge tone="brand">{t.admin.offerCount(sponsor.offerCount)}</Badge>
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink-faint">
+                    {t.admin.businessCode}:{" "}
+                    <code className="font-mono font-semibold text-ink-soft">
+                      {sponsor.accessCode}
+                    </code>{" "}
+                    — {t.admin.businessCodeHint}
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setSponsorApproved(sponsor.slug, !sponsor.approved)}
+                  disabled={busy}
+                >
+                  {sponsor.approved ? (
+                    <>
+                      <X className="size-3.5" aria-hidden />
+                      {t.admin.unapprove}
+                    </>
+                  ) : (
+                    <>
+                      <Check className="size-3.5" aria-hidden />
+                      {t.admin.approve}
+                    </>
+                  )}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       {/* Prices. The only figures in the system that are not on the chain, on purpose. */}

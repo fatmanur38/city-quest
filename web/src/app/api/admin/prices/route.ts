@@ -40,8 +40,7 @@ export async function PATCH(request: Request) {
     // Guards against a typo creating a price for an activity nobody can buy.
     const activity = activityBySlug(activitySlug);
     if (!activity) return fail("That activity does not exist.", 404);
-    if (activity.kind !== "ticket")
-      return fail("Only ticketed activities have a price.", 400);
+    if (activity.kind !== "ticket") return fail("Only ticketed activities have a price.", 400);
 
     if (priceTry === null) {
       await db().clearActivityPrice(activitySlug);

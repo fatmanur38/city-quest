@@ -4,12 +4,16 @@ import { dirname, resolve } from "node:path";
 import type {
   ActivityPrice,
   Completion,
+  NewSponsor,
+  NewSponsorOffer,
   Database,
   NewCompletion,
   NewTicketOrder,
   Profile,
   ProfilePatch,
   RewardClaim,
+  Sponsor,
+  SponsorOffer,
   TicketOrder,
 } from "./types";
 
@@ -31,6 +35,8 @@ interface Snapshot {
   ticketOrders: TicketOrder[];
   rewardClaims: RewardClaim[];
   activityPrices: ActivityPrice[];
+  sponsors: Sponsor[];
+  sponsorOffers: SponsorOffer[];
 }
 
 const EMPTY: Snapshot = {
@@ -39,9 +45,32 @@ const EMPTY: Snapshot = {
   ticketOrders: [],
   rewardClaims: [],
   activityPrices: [],
+  sponsors: [],
+  sponsorOffers: [],
 };
 
 const DEFAULT_AVATARS = ["🦊", "🐙", "🦉", "🐝", "🦄", "🐢", "🦖", "🐬"];
+
+/** URL-safe, collision-free and readable, which is all a slug has to be here. */
+function slugify(value: string, taken: string[]): string {
+  const base =
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 40) || "sponsor";
+  if (!taken.includes(base)) return base;
+  let n = 2;
+  while (taken.includes(`${base}-${n}`)) n += 1;
+  return `${base}-${n}`;
+}
+
+/** DEMO MOCK -- the code a business's staff type in. Real accounts replace this in production. */
+function accessCode(): string {
+  return randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+}
 
 function defaultName(wallet: string): string {
   return `Explorer ${wallet.slice(2, 6).toUpperCase()}`;
@@ -91,7 +120,10 @@ export class MemoryDatabase implements Database {
   private load(): Snapshot {
     try {
       if (existsSync(this.file)) {
-        return { ...EMPTY, ...(JSON.parse(readFileSync(this.file, "utf8")) as Snapshot) };
+        return {
+          ...EMPTY,
+          ...(JSON.parse(readFileSync(this.file, "utf8")) as Snapshot),
+        };
       }
     } catch (error) {
       console.error("[db] could not read local store, starting empty", error);
@@ -174,7 +206,9 @@ export class MemoryDatabase implements Database {
     return (
       this.data.completions.find(
         (c) =>
-          c.wallet === this.key(wallet) && c.activitySlug === activitySlug && c.periodKey === periodKey,
+          c.wallet === this.key(wallet) &&
+          c.activitySlug === activitySlug &&
+          c.periodKey === periodKey,
       ) ?? null
     );
   }
@@ -223,6 +257,82 @@ export class MemoryDatabase implements Database {
       order.consumeTxHash = txHash;
       this.persist();
     }
+  }
+
+  // ------------------------------------------------------------------------------------- Sponsors
+
+  async listSponsors(): Promise<Sponsor[]> {
+    return structuredClone(this.data.sponsors);
+  }
+
+  async findSponsor(slug: string): Promise<Sponsor | null> {
+    const found = this.data.sponsors.find((sponsor) => sponsor.slug === slug);
+    return found ? structuredClone(found) : null;
+  }
+
+  async createSponsor(sponsor: NewSponsor): Promise<Sponsor> {
+    const record: Sponsor = {
+      slug: slugify(
+        sponsor.name,
+        this.data.sponsors.map((s) => s.slug),
+      ),
+      name: sponsor.name,
+      emoji: sponsor.emoji,
+      accessCode: accessCode(),
+      // A business is visible to citizens only once the municipality has approved it.
+      approved: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.data.sponsors.push(record);
+    this.persist();
+    return structuredClone(record);
+  }
+
+  async setSponsorApproved(slug: string, approved: boolean): Promise<Sponsor> {
+    const sponsor = this.data.sponsors.find((entry) => entry.slug === slug);
+    if (!sponsor) throw new Error("No such sponsor.");
+    sponsor.approved = approved;
+    this.persist();
+    return structuredClone(sponsor);
+  }
+
+  async listSponsorOffers(sponsorSlug?: string): Promise<SponsorOffer[]> {
+    const offers = sponsorSlug
+      ? this.data.sponsorOffers.filter((offer) => offer.sponsorSlug === sponsorSlug)
+      : this.data.sponsorOffers;
+    return structuredClone(offers);
+  }
+
+  async findSponsorOffer(slug: string): Promise<SponsorOffer | null> {
+    const found = this.data.sponsorOffers.find((offer) => offer.slug === slug);
+    return found ? structuredClone(found) : null;
+  }
+
+  async createSponsorOffer(offer: NewSponsorOffer): Promise<SponsorOffer> {
+    const record: SponsorOffer = {
+      slug: slugify(
+        `${offer.sponsorSlug}-${offer.title}`,
+        this.data.sponsorOffers.map((o) => o.slug),
+      ),
+      sponsorSlug: offer.sponsorSlug,
+      title: offer.title,
+      description: offer.description,
+      emoji: offer.emoji,
+      requirement: offer.requirement,
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    this.data.sponsorOffers.push(record);
+    this.persist();
+    return structuredClone(record);
+  }
+
+  async setSponsorOfferActive(slug: string, active: boolean): Promise<SponsorOffer> {
+    const offer = this.data.sponsorOffers.find((entry) => entry.slug === slug);
+    if (!offer) throw new Error("No such offer.");
+    offer.active = active;
+    this.persist();
+    return structuredClone(offer);
   }
 
   async listActivityPrices(): Promise<ActivityPrice[]> {

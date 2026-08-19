@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/Card";
-import { currentOperator } from "@/server/session";
+import { currentOperator, usesDemoCodes } from "@/server/session";
 import { activitiesForInstitution, institutionBySlug, issuingInstitutions } from "@/server/catalog";
 import { resolveInstitutions } from "@/server/institutions";
 import { OperatorSignIn } from "@/features/institution/OperatorSignIn";
@@ -26,6 +26,7 @@ export default async function InstitutionPage() {
             emoji: entry.emoji,
             kind: entry.kind,
           }))}
+          showDemoCode={usesDemoCodes().operator}
         />
       </div>
     );
@@ -48,16 +49,12 @@ export default async function InstitutionPage() {
       {!registered?.onChain ? (
         <Card className="mb-6 border-danger-100 bg-danger-100/30 p-5">
           <p className="font-semibold text-danger-700">{t.institution.notRegisteredTitle}</p>
-          <p className="mt-1 text-sm text-ink-soft">
-            {t.institution.notRegisteredBody}
-          </p>
+          <p className="mt-1 text-sm text-ink-soft">{t.institution.notRegisteredBody}</p>
         </Card>
       ) : !registered.active ? (
         <Card className="mb-6 border-danger-100 bg-danger-100/30 p-5">
           <p className="font-semibold text-danger-700">{t.institution.suspendedTitle}</p>
-          <p className="mt-1 text-sm text-ink-soft">
-            {t.institution.suspendedBody}
-          </p>
+          <p className="mt-1 text-sm text-ink-soft">{t.institution.suspendedBody}</p>
         </Card>
       ) : null}
 

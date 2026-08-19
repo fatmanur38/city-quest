@@ -13,6 +13,7 @@ import { serverEnv } from "@/lib/env";
 
 const CITIZEN_COOKIE = "cq_session";
 const OPERATOR_COOKIE = "cq_operator";
+const SPONSOR_COOKIE = "cq_sponsor";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const NONCE_TTL_SECONDS = 5 * 60;
 
@@ -156,6 +157,22 @@ export function operatorPin(): string {
   return process.env.OPERATOR_PIN || "1234";
 }
 
+/**
+ * Whether the sign-in codes are still the ones this repository ships with.
+ *
+ * The sign-in screens print the demo code so a fresh clone is usable immediately. On anything
+ * public that hint has to disappear, and tying it to the codes themselves means it does so the
+ * moment they are changed -- nobody has to remember to remove it before deploying.
+ */
+export function usesDemoCodes(): { operator: boolean; admin: boolean } {
+  return {
+    // Read directly rather than through adminPin(), which lives in the admin session route --
+    // importing it here would make session.ts and that route circular.
+    operator: operatorPin() === "1234",
+    admin: (process.env.ADMIN_PIN || "cityquest") === "cityquest",
+  };
+}
+
 export async function startOperatorSession(role: string): Promise<void> {
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
   const store = await cookies();
@@ -166,6 +183,44 @@ export async function startOperatorSession(role: string): Promise<void> {
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
   });
+}
+
+/**
+ * Business sessions.
+ *
+ * Separate from the operator cookie on purpose. A sponsor is not staff: it cannot confirm a
+ * visit, cannot issue anything and has no standing in the registry. Sharing one cookie would
+ * have made those two very different kinds of account one bug away from each other.
+ */
+export async function startSponsorSession(slug: string): Promise<void> {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const store = await cookies();
+  store.set(SPONSOR_COOKIE, seal(`${slug}:${expiresAt}`), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_SECONDS,
+  });
+}
+
+export async function endSponsorSession(): Promise<void> {
+  (await cookies()).delete(SPONSOR_COOKIE);
+}
+
+/** The signed-in business's slug, or null. */
+export async function currentSponsor(): Promise<string | null> {
+  const payload = unseal((await cookies()).get(SPONSOR_COOKIE)?.value);
+  if (!payload) return null;
+  const [slug, expiresAt] = payload.split(":");
+  if (!slug || Number(expiresAt) <= Math.floor(Date.now() / 1000)) return null;
+  return slug;
+}
+
+export async function requireSponsor(): Promise<string> {
+  const slug = await currentSponsor();
+  if (!slug) throw new SessionError("Please sign in to your business account first.");
+  return slug;
 }
 
 export async function endOperatorSession(): Promise<void> {

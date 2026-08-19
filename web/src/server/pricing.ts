@@ -13,9 +13,7 @@ export type PriceMap = Map<string, number>;
 
 export async function loadPrices(): Promise<PriceMap> {
   const overrides = await db().listActivityPrices();
-  return new Map(
-    overrides.map((entry) => [entry.activitySlug, entry.priceTry]),
-  );
+  return new Map(overrides.map((entry) => [entry.activitySlug, entry.priceTry]));
 }
 
 /** The effective price, in lira. Zero means free. */
@@ -26,8 +24,6 @@ export function priceFor(activity: CatalogActivity, prices: PriceMap): number {
 /** Convenience for the single-activity paths, where loading the whole map would be wasteful. */
 export async function priceForSlug(activity: CatalogActivity): Promise<number> {
   const overrides = await db().listActivityPrices();
-  const override = overrides.find(
-    (entry) => entry.activitySlug === activity.slug,
-  );
+  const override = overrides.find((entry) => entry.activitySlug === activity.slug);
   return override?.priceTry ?? activity.priceTry ?? 0;
 }
